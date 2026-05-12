@@ -15,7 +15,13 @@
                 <li class="nav-item">
                     <a href="{{ route('dashboard') }}"
                        class="nav-link {{ request()->routeIs('dashboard') ? 'active fw-semibold' : '' }}">
-                        Dashboard
+                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.consultations.index') }}"
+                       class="nav-link {{ request()->routeIs('admin.consultations.*') ? 'active fw-semibold' : '' }}">
+                        <i class="bi bi-file-earmark-text me-1"></i> Consultas
                     </a>
                 </li>
             </ul>
