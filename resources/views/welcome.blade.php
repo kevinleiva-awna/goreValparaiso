@@ -12,9 +12,14 @@
             <a class="navbar-brand fw-bold" href="{{ url('/') }}">
                 Gobierno Regional de Valparaiso
             </a>
-            <span class="navbar-text text-white-50 small">
-                Plataforma de Participacion Ciudadana
-            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-text text-white-50 small d-none d-md-inline">
+                    Plataforma de Participacion Ciudadana
+                </span>
+                <a href="{{ route('login') }}" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-shield-lock me-1"></i> Backoffice
+                </a>
+            </div>
         </div>
     </nav>
 
