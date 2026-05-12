@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ConsultationController;
+use App\Http\Controllers\Admin\ConsultationStageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,19 @@ Route::prefix('admin')
 
         Route::resource('consultations', ConsultationController::class)
             ->names('admin.consultations');
+
+        // Etapas anidadas bajo cada consulta. scoped() valida que el stage_id
+        // pertenezca a la consultation_id de la URL.
+        Route::resource('consultations.stages', ConsultationStageController::class)
+            ->scoped()
+            ->except(['index', 'show'])
+            ->names('admin.consultations.stages');
+
+        Route::post('consultations/{consultation}/stages/{stage}/move/{direction}',
+            [ConsultationStageController::class, 'move'])
+            ->scopeBindings()
+            ->whereIn('direction', ['up', 'down'])
+            ->name('admin.consultations.stages.move');
     });
 
 require __DIR__.'/auth.php';
