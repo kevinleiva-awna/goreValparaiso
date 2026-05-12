@@ -1,0 +1,223 @@
+﻿AWNA
+Brief TÃ©cnico de Proyecto
+Plataforma de Procesos Participativos Reglados
+Gobierno Regional de ValparaÃ­so (GORE)
+Destinatario: Kevin â€” Equipo de Desarrollo AWNA
+Responsable del proyecto: Lukas Escobar â€” Director de Marketing Digital y TecnologÃ­a
+Fecha de emisiÃ³n: 12 de mayo de 2026
+Plazo de ejecuciÃ³n: 25 dÃ­as corridos
+
+1. Resumen ejecutivo
+El Gobierno Regional de ValparaÃ­so (GORE) requiere el diseÃ±o, desarrollo y puesta en producciÃ³n de una plataforma web institucional para la gestiÃ³n y difusiÃ³n de procesos de consulta pÃºblica asociados a Instrumentos de PlanificaciÃ³n y Ordenamiento Territorial (IPT, PROT, ZUBC, entre otros). La soluciÃ³n debe operar bajo modalidad "Llave en Mano", garantizando soberanÃ­a tecnolÃ³gica plena para el GORE sobre cÃ³digo fuente, base de datos e infraestructura.
+El cliente manifestÃ³ expresamente que NO se busca innovaciÃ³n visual ni funcional. La referencia operativa es consultasciudadanas.mma.gob.cl, con un nivel de coincidencia estimado en 95%. Lo crÃ­tico es robustez, alta disponibilidad, autenticaciÃ³n dual (ClaveÃšnica + manual), trazabilidad inalterable y un backoffice autoadministrable extremadamente simple.
+Plazo formal del contrato: 30 dÃ­as corridos. Plazo interno asignado a desarrollo: 25 dÃ­as corridos para resguardar buffer de QA y validaciÃ³n.
+2. Puntos crÃ­ticos manifestados por el cliente
+ExtraÃ­dos de la reuniÃ³n de kick-off. Son no negociables y deben guiar cada decisiÃ³n tÃ©cnica.
+La plataforma NO puede caerse durante el proceso de participaciÃ³n. Alta disponibilidad â‰¥ 99% es requisito explÃ­cito.
+El proceso de consulta pÃºblica debe iniciarse en junio de 2026. Cualquier retraso impacta el cronograma del cliente.
+Se esperan VARIOS MILES de comentarios y observaciones durante el perÃ­odo de consulta. La arquitectura debe estar dimensionada para soportar concurrencia y volumen sin degradaciÃ³n.
+El backoffice debe ser intuitivo y simple. Los funcionarios del GORE deben poder operar la plataforma sin depender del proveedor: crear procesos, subir antecedentes, cerrar consultas, descargar bases de datos.
+La plataforma debe ser moldeable: distintos procesos pueden tener distintas etapas (una, dos, tres instancias), por lo que el modelo de datos debe soportar etapas configurables por proceso.
+Las observaciones NO pueden ser anÃ³nimas. Toda observaciÃ³n debe quedar asociada a una identidad verificada (ClaveÃšnica) o registrada manualmente con datos personales obligatorios (incluido correo).
+Un usuario registrado puede realizar MÃS DE UNA observaciÃ³n por consulta. Validar la lÃ³gica en BD.
+El cliente debe poder descargar la base completa de observaciones en formato digital procesable (CSV / Excel) para anÃ¡lisis posterior.
+Backup digital de observaciones cada dos dÃ­as durante el perÃ­odo de participaciÃ³n. Implementar rutina automatizada.
+3. Stack tecnolÃ³gico obligatorio
+El stack estÃ¡ definido por las Especificaciones TÃ©cnicas de Referencia (EETT). No hay flexibilidad en estos puntos:
+Componente
+EspecificaciÃ³n
+Lenguaje backend
+PHP â€” Ãºltima versiÃ³n estable
+Framework
+Laravel â€” Ãºltima versiÃ³n estable (preferente) o PHP puro
+Base de datos
+MariaDB â€” Ãºltima versiÃ³n estable (compatible con MySQL)
+Frontend
+Bootstrap â€” Ãºltima versiÃ³n estable; diseÃ±o responsive
+Infraestructura
+Amazon Web Services (AWS). Entornos segregados: desarrollo, QA y producciÃ³n
+Dominio
+Subdominio oficial (ej. participa.gorevalparaiso.cl) con SSL
+Disponibilidad
+â‰¥ 99% del data center / aplicativo
+Ciberseguridad
+Cumplimiento estÃ¡ndares D.S. NÂ°7/2023
+UX/UI
+Normas GrÃ¡ficas Institucionales del GORE + Kit Digital del Gobierno de Chile (accesibilidad universal, lenguaje claro)
+AutenticaciÃ³n
+ClaveÃšnica + registro manual (RUT, nombres, correo obligatorio)
+4. Arquitectura propuesta
+Arquitectura modular, escalable y de alta disponibilidad. Se sugiere la siguiente separaciÃ³n de capas:
+4.1. Capa de presentaciÃ³n
+Portal Ciudadano (frontend pÃºblico): Laravel Blade + Bootstrap, responsive, accesible WCAG 2.1 AA.
+Backoffice administrativo: panel separado bajo /admin, con autenticaciÃ³n independiente.
+4.2. Capa de aplicaciÃ³n
+Laravel como framework principal. Estructura MVC con Form Requests para validaciones.
+IntegraciÃ³n con ClaveÃšnica vÃ­a OpenID Connect (protocolo OAuth 2.0). DocumentaciÃ³n oficial: https://digital.gob.cl/biblioteca/guias/claveunica.
+Jobs y Queues (Laravel Queue + Redis o SQS) para procesos asÃ­ncronos: envÃ­o de correos, generaciÃ³n de exportaciones, backups.
+4.3. Capa de datos
+MariaDB en RDS (o EC2 con MariaDB instalado si el presupuesto AWS lo restringe).
+Almacenamiento de antecedentes tÃ©cnicos en S3 con versionado activado.
+Backups automÃ¡ticos cada 48 horas durante perÃ­odos activos de consulta (CRON o EventBridge).
+4.4. Capa de infraestructura AWS
+EC2 (t3.medium o superior) tras balanceador (ALB) â€” habilita escalado horizontal si la concurrencia lo exige.
+RDS MariaDB Multi-AZ para alta disponibilidad.
+S3 para documentos y respaldos.
+CloudFront para acelerar entrega de antecedentes pesados (PDFs, mapas).
+Route 53 + ACM para dominio y certificados SSL.
+CloudWatch para monitoreo de disponibilidad y alertas.
+5. MÃ³dulos funcionales a desarrollar
+5.1. Portal Ciudadano (frontend pÃºblico)
+Listado de procesos vigentes y finalizados, con filtros por tipo (IPT / PROT / ZUBC).
+Ficha de cada proceso: descripciÃ³n, antecedentes tÃ©cnicos descargables, contador regresivo de plazo, mapa del instrumento.
+Formulario de ingreso de observaciÃ³n con autenticaciÃ³n previa (ClaveÃšnica o manual).
+ConfirmaciÃ³n visual y por correo del registro exitoso de la observaciÃ³n.
+5.2. MÃ³dulo de ParticipaciÃ³n y AutenticaciÃ³n
+Flujo ClaveÃšnica: redirecciÃ³n OIDC, recepciÃ³n del token, mapeo a usuario interno.
+Flujo manual: formulario con RUT (validaciÃ³n de dÃ­gito verificador), nombres, apellidos, correo (OBLIGATORIO siempre).
+Configurabilidad por proceso: el backoffice debe permitir definir quÃ© mÃ©todos de autenticaciÃ³n admite cada consulta.
+Sin lÃ­mite de observaciones por usuario registrado. Cada observaciÃ³n es un registro independiente con timestamp inalterable.
+5.3. Gestor de Contenidos / Backoffice
+CRUD de procesos: crear, editar, cerrar, archivar.
+ConfiguraciÃ³n por proceso: fechas, tipo de instrumento, mÃ©todos de autenticaciÃ³n, archivos adjuntos.
+Carga masiva de antecedentes (drag & drop sobre S3).
+Vista de observaciones recibidas con filtros, bÃºsqueda y paginaciÃ³n.
+ExportaciÃ³n de base completa en CSV / Excel.
+GestiÃ³n de respuestas: posibilidad de cargar respuesta institucional por observaciÃ³n o por lote.
+GestiÃ³n de usuarios funcionarios y roles.
+Dashboard con mÃ©tricas: total de observaciones, observaciones por proceso, observaciones por dÃ­a.
+5.4. Repositorio Documental y Capa de Interoperabilidad
+API REST interna para servir documentos y bases de datos al frontend pÃºblico.
+Almacenamiento inalterable de expedientes en S3 (versionado + bloqueo de objetos).
+Rutina de backup diferencial cada 48 horas durante procesos activos.
+6. Roles y permisos del sistema
+Rol
+Capacidades
+Ciudadano
+Visualizar procesos vigentes, descargar antecedentes, autenticarse (ClaveÃšnica/manual), ingresar observaciones, visualizar sus observaciones previas.
+Funcionario GORE
+CRUD de procesos, carga de antecedentes, visualizaciÃ³n y exportaciÃ³n de observaciones, carga de respuestas institucionales.
+Super-Admin
+Todas las capacidades de funcionario + gestiÃ³n de usuarios funcionarios (crear, editar, desactivar, restablecer contraseÃ±as), configuraciÃ³n global del sistema, acceso a logs de auditorÃ­a.
+7. IntegraciÃ³n con ClaveÃšnica
+El cliente confirmÃ³ que la documentaciÃ³n oficial serÃ¡ suficiente para la integraciÃ³n. Pasos sugeridos:
+Solicitar al GORE (vÃ­a Lukas) la creaciÃ³n de cuenta de desarrollador en el portal de ClaveÃšnica si el GORE no la tiene aÃºn, o el acceso a la cuenta existente.
+Registrar el cliente OIDC con redirect_uri del entorno de QA y luego de producciÃ³n.
+Implementar flujo Authorization Code con PKCE.
+Mapear scopes mÃ­nimos: openid, run, nombre. Validar quÃ© scopes estÃ¡n autorizados para el GORE.
+Persistir RUN como identificador Ãºnico; permitir mÃºltiples observaciones por RUN.
+Mantener flujo manual como fallback siempre habilitado por proceso (configurable).
+8. Proyectos AWNA previos para apalancarse
+Durante el kick-off se mostraron al cliente dos desarrollos previos de AWNA como referencia. Ambos contienen mÃ³dulos directamente reutilizables. Se recomienda partir desde el cÃ³digo base mÃ¡s cercano y adaptar, en lugar de construir desde cero.
+8.1. Municipalidad de ConstituciÃ³n â€” Plataforma Cultural
+Es la referencia visual y estructural mÃ¡s cercana a lo que validÃ³ el cliente. Componentes reutilizables:
+Sistema de navegaciÃ³n pÃºblica con tarjetas (cards) por categorÃ­a.
+Panel Admin con CRUD de eventos â†’ adaptable a CRUD de procesos.
+LÃ³gica de creaciÃ³n intuitiva (formularios con nombre, descripciÃ³n, fecha, categorÃ­a, imagen).
+Sistema de roles (admin, editor, viewer).
+SuscripciÃ³n y captura de correo electrÃ³nico.
+Estructura general de proyecto Laravel (carpetas, naming, convenciones).
+8.2. Municipalidad de Ã‘uÃ±oa â€” InscripciÃ³n a Talleres
+Referencia para alta concurrencia y robustez bajo carga. Componentes reutilizables:
+Sistema de sala de espera (cola virtual estilo TicketMaster) â€” Ãºtil si proyectamos picos de concurrencia.
+LÃ³gica de expiraciÃ³n de sesiÃ³n por inactividad (botar al usuario tras X minutos sin actividad).
+Sistema de reporterÃ­a del backoffice con filtros, mÃ©tricas y exportaciÃ³n.
+GestiÃ³n de base de datos de usuarios con ficha completa e historial.
+ConexiÃ³n a API externa (en ese caso, Tarjeta Vecino) â†’ adaptable al patrÃ³n de integraciÃ³n con ClaveÃšnica.
+8.3. Estrategia de reutilizaciÃ³n recomendada
+Tomar el esqueleto Laravel de ConstituciÃ³n como base.
+Trasplantar el mÃ³dulo de cola virtual de Ã‘uÃ±oa para el portal pÃºblico en perÃ­odos de alta concurrencia.
+Reutilizar el mÃ³dulo de exportaciÃ³n de base de datos de Ã‘uÃ±oa para el listado de observaciones.
+Adaptar el sistema de roles de ConstituciÃ³n a los tres roles requeridos por GORE (ciudadano / funcionario / super-admin).
+Construir desde cero el mÃ³dulo de integraciÃ³n con ClaveÃšnica (no hay equivalente reutilizable).
+9. Plan de trabajo â€” Carta Gantt de 25 dÃ­as
+DistribuciÃ³n por etapas, alineada a las cinco etapas exigidas por el EETT del GORE, comprimida a 25 dÃ­as para resguardar buffer:
+DÃ­as
+Etapa
+Actividades
+Entregable
+1 â€“ 3
+Etapa 1: PlanificaciÃ³n
+Kick-off interno con Lukas. Levantamiento fino, definiciÃ³n de arquitectura AWS, modelo de datos, configuraciÃ³n de repositorio Git y entornos.
+Plan de Trabajo Detallado + Carta Gantt definitiva
+4 â€“ 7
+Etapa 2: DiseÃ±o UX/UI
+AplicaciÃ³n de Normas GrÃ¡ficas GORE, prototipos navegables (flujo ClaveÃšnica y manual), maquetas del portal y backoffice. ValidaciÃ³n con cliente.
+Documento de arquitectura + Mockups aprobados + Documento de requerimientos
+8 â€“ 14
+Etapa 3: Core + Backoffice
+Setup Laravel sobre base ConstituciÃ³n. Modelo de datos, migraciones, seeders. CRUD de procesos, gestiÃ³n de antecedentes, gestiÃ³n de usuarios, roles y permisos. ConfiguraciÃ³n entorno QA en AWS.
+Ambiente QA con mÃ³dulos operativos
+15 â€“ 20
+Etapa 4: Portal + ParticipaciÃ³n
+Desarrollo del portal pÃºblico, integraciÃ³n ClaveÃšnica, flujo manual, mÃ³dulo de observaciones, validaciones (correo obligatorio, RUT), exportaciÃ³n CSV/Excel, rutina de backup cada 48h.
+VersiÃ³n Beta completa en QA
+21 â€“ 23
+Etapa 5a: QA y hardening
+Pruebas de carga, pruebas de seguridad bÃ¡sicas (OWASP Top 10), correcciÃ³n de incidencias, despliegue a producciÃ³n AWS, certificados SSL, configuraciÃ³n de dominio.
+Plataforma en producciÃ³n + certificados vigentes
+24 â€“ 25
+Etapa 5b: Transferencia
+CapacitaciÃ³n a funcionarios GORE (DIPLAD + InformÃ¡tica). Entrega de cÃ³digo fuente, documentaciÃ³n tÃ©cnica, manuales de usuario, credenciales de super-admin.
+CÃ³digo fuente + DocumentaciÃ³n + Manuales + CapacitaciÃ³n ejecutada
+10. Entregables exigidos al cierre
+Plataforma 100% operativa en producciÃ³n con certificados SSL vigentes.
+Backoffice autoadministrable funcional.
+CÃ³digo fuente completo, estructurado, actualizado y documentado (repositorio Git transferible).
+Modelo de datos documentado con reglas de validaciÃ³n explÃ­citas.
+DocumentaciÃ³n tÃ©cnica Ã­ntegra: arquitectura, librerÃ­as, APIs, Manual de ProgramaciÃ³n-Mantenimiento-EvoluciÃ³n.
+Manual de InstalaciÃ³n: configuraciÃ³n, despliegue en AWS, respaldo y recuperaciÃ³n.
+Manuales de Usuario diferenciados por perfil (Backoffice y Portal PÃºblico).
+Credenciales y accesos: perfil super-administrador + configuraciones cloud.
+Material de capacitaciÃ³n para DIPLAD y Unidad de InformÃ¡tica.
+11. Ciberseguridad y cumplimiento normativo
+La plataforma debe cumplir con los estÃ¡ndares del D.S. NÂ°7/2023 y las leyes 19.175, 21.078, 21.180 y el Decreto 237. Checklist mÃ­nimo:
+HTTPS forzado en todos los entornos. Certificados SSL gestionados vÃ­a ACM.
+SanitizaciÃ³n y validaciÃ³n de entradas en backend (no confiar solo en frontend).
+ProtecciÃ³n CSRF en todos los formularios.
+Hashing de contraseÃ±as con bcrypt (Laravel default).
+Rate limiting en endpoints pÃºblicos, especialmente en envÃ­o de observaciones.
+Logs de auditorÃ­a inmutables: quiÃ©n creÃ³, modificÃ³ o cerrÃ³ cada proceso; cada observaciÃ³n con timestamp y mÃ©todo de autenticaciÃ³n.
+PolÃ­tica de retenciÃ³n y backup documentada.
+Headers de seguridad: HSTS, X-Content-Type-Options, X-Frame-Options, CSP.
+12. Contactos del proyecto
+Rol
+Nombre
+FunciÃ³n
+Responsable AWNA
+Lukas Escobar
+DirecciÃ³n de proyecto y comunicaciÃ³n con cliente
+Desarrollo AWNA
+Kevin (tÃº)
+EjecuciÃ³n tÃ©cnica integral
+Mandante
+Gonzalo GÃ³mez Ãngel
+Jefe Depto. PlanificaciÃ³n GORE â€” autorizaciÃ³n de pagos
+Contraparte tÃ©cnica
+Claudio (coordinador)
+Unidad de Ordenamiento Territorial â€” visaciÃ³n de productos
+Contraparte tÃ©cnica
+Gabriel San MartÃ­n
+Profesional UOT â€” validaciÃ³n funcional
+Contraparte tÃ©cnica
+Vicente Gajardo
+Profesional UOT â€” validaciÃ³n funcional
+Contraparte TI
+Miguel (por confirmar)
+Unidad de InformÃ¡tica â€” validaciÃ³n tÃ©cnica y QA
+13. Insumos que entregarÃ¡ el cliente
+Lukas gestionarÃ¡ la entrega de los siguientes materiales con la contraparte del GORE. CoordÃ­nate con Ã©l antes de avanzar a la Etapa 2:
+Manual de marca / Normas GrÃ¡ficas Institucionales del GORE.
+Especificaciones tÃ©cnicas de imagen (manual de uso y tratamiento).
+Logos institucionales en formatos editables (SVG / AI / PNG).
+Acceso o documentaciÃ³n de la cuenta de desarrollador de ClaveÃšnica del GORE.
+ConfirmaciÃ³n del subdominio definitivo a configurar en producciÃ³n.
+Listado preciso de los primeros procesos a cargar al lanzamiento (junio 2026).
+14. Pauta de comunicaciÃ³n interna
+Daily de avance interno: 15 minutos diarios contigo y Lukas durante el perÃ­odo de desarrollo.
+Cualquier bloqueo que dependa del cliente debe escalarse a Lukas el mismo dÃ­a. El cliente comprometiÃ³ respuesta en 24 horas.
+Toda decisiÃ³n tÃ©cnica que altere alcance debe quedar registrada por correo a Lukas antes de implementarse.
+El repositorio Git es la Ãºnica fuente de verdad del cÃ³digo. Commits descriptivos en espaÃ±ol.
+
+Cualquier duda sobre este brief, escrÃ­beme directamente.
+â€” Lukas Escobar | Director de Marketing Digital y TecnologÃ­a | AWNA

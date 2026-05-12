@@ -1,0 +1,20 @@
+// GORE Valparaiso - Plataforma de Participacion Ciudadana
+// Punto de entrada SCSS. Variables de marca antes de Bootstrap para overridear.
+
+// 1. Variables de marca GORE (placeholders — actualizar con Normas Graficas oficiales)
+$gore-primary:   #003a70;  // azul institucional placeholder
+$gore-secondary: #b8860b;  // dorado/ocre placeholder
+$gore-success:   #198754;
+$gore-danger:    #dc3545;
+$gore-warning:   #ffc107;
+
+$primary:   $gore-primary;
+$secondary: $gore-secondary;
+
+// 2. Bootstrap 5
+@import "bootstrap/scss/bootstrap";
+
+// 3. Bootstrap Icons
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+// 4. Overrides de proyecto (vacio por ahora — se llena en Etapa 2 UX/UI)
