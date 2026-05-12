@@ -5,17 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name') }}</title>
+    <title>@yield('title', 'Backoffice') &middot; {{ config('app.name') }}</title>
+
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
-<body class="bg-light">
+<body>
     <div class="min-vh-100 d-flex flex-column">
         @include('layouts.navigation')
 
         @isset($header)
-            <header class="bg-white border-bottom shadow-sm">
-                <div class="container py-3">
+            <header class="bg-white border-bottom" style="border-color: var(--gore-border) !important;">
+                <div class="container py-4">
                     {{ $header }}
                 </div>
             </header>
@@ -25,9 +28,12 @@
             {{ $slot }}
         </main>
 
-        <footer class="bg-white border-top mt-auto py-3">
-            <div class="container small text-muted text-center">
-                Gobierno Regional de Valparaiso &middot; AWNA &middot; v{{ app()->version() }}
+        <footer class="border-top py-3 mt-auto bg-white"
+                style="border-color: var(--gore-border) !important;">
+            <div class="container small d-flex justify-content-between flex-wrap gap-2"
+                 style="color: var(--gore-ink-soft);">
+                <span>Gobierno Regional de Valparaiso &middot; Backoffice</span>
+                <span>Laravel v{{ app()->version() }} &middot; AWNA</span>
             </div>
         </footer>
     </div>
