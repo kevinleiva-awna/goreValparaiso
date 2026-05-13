@@ -5,11 +5,30 @@ use App\Http\Controllers\Admin\ConsultationDocumentController;
 use App\Http\Controllers\Admin\ConsultationStageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\ConsultationController as PublicConsultationController;
+use App\Models\Consultation;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    // Las 3 consultas mas recientes en estado activo o publicado para el hero.
+    $featured = Consultation::query()
+        ->whereIn('status', [Consultation::STATUS_ACTIVE, Consultation::STATUS_PUBLISHED])
+        ->withCount('observations')
+        ->orderByDesc('starts_at')
+        ->limit(3)
+        ->get();
+
+    return view('welcome', ['featured' => $featured]);
 })->name('home');
+
+// Portal Ciudadano (publico, sin auth)
+Route::prefix('consultas')->group(function () {
+    Route::get('/', [PublicConsultationController::class, 'index'])->name('public.consultations.index');
+    Route::get('/{slug}', [PublicConsultationController::class, 'show'])->name('public.consultations.show');
+    Route::get('/{slug}/antecedentes/{fileGroupId}/descargar',
+        [PublicConsultationController::class, 'download'])
+        ->name('public.consultations.documents.download');
+});
 
 // Backoffice (funcionarios y super-admin)
 Route::prefix('admin')

@@ -30,17 +30,20 @@
                 <ul class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
-                           href="{{ url('/') }}">Inicio</a>
+                           href="{{ route('home') }}">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#consultas">Consultas vigentes</a>
+                        <a class="nav-link {{ request()->routeIs('public.consultations.*') ? 'active' : '' }}"
+                           href="{{ route('public.consultations.index') }}">Consultas</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#como-funciona">Como funciona</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#preguntas">Preguntas frecuentes</a>
-                    </li>
+                    @if (request()->routeIs('home'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#como-funciona">Como funciona</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#preguntas">Preguntas frecuentes</a>
+                        </li>
+                    @endif
                 </ul>
 
                 <div class="d-flex gap-2">
@@ -80,7 +83,7 @@
                     <h3 class="gore-footer-title">Navegacion</h3>
                     <ul class="list-unstyled mb-0 small">
                         <li class="mb-2"><a href="{{ url('/') }}">Inicio</a></li>
-                        <li class="mb-2"><a href="#consultas">Consultas vigentes</a></li>
+                        <li class="mb-2"><a href="{{ route('public.consultations.index') }}">Consultas vigentes</a></li>
                         <li class="mb-2"><a href="#como-funciona">Como funciona</a></li>
                         <li class="mb-2"><a href="#preguntas">Preguntas frecuentes</a></li>
                     </ul>

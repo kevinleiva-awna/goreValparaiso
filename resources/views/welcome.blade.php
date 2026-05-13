@@ -132,45 +132,62 @@
                 </div>
             </div>
 
-            <div class="row g-4">
-                {{-- Placeholder: estos se generaran dinamicamente desde la BD en D15 --}}
-                @foreach ([
-                    ['type' => 'PROT', 'title' => 'Plan Regional de Ordenamiento Territorial 2026', 'days' => 32, 'observations' => 1247],
-                    ['type' => 'IPT', 'title' => 'Instrumento Planificacion Vina del Mar', 'days' => 18, 'observations' => 643],
-                    ['type' => 'ZUBC', 'title' => 'Zonificacion Borde Costero zona norte', 'days' => 45, 'observations' => 312],
-                ] as $consulta)
-                    <div class="col-md-6 col-lg-4">
-                        <a href="#" class="gore-consultation-card">
-                            <div class="gore-consultation-meta">
-                                <span class="gore-badge gore-badge-brand">{{ $consulta['type'] }}</span>
-                                <span class="gore-badge gore-badge-success">
-                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
-                                    Activa
-                                </span>
-                            </div>
-                            <h3 class="gore-consultation-title">{{ $consulta['title'] }}</h3>
-                            <p class="mb-0 small text-muted">
-                                Proceso de consulta publica regulado por la Ley N°21.074
-                                y el Decreto N°237 de regionalizacion.
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center pt-3 mt-auto"
-                                 style="border-top: 1px solid var(--gore-border);">
-                                <span class="small text-muted">
-                                    <i class="bi bi-clock me-1"></i>
-                                    Cierra en {{ $consulta['days'] }} dias
-                                </span>
-                                <span class="small fw-semibold" style="color: var(--gore-primary);">
-                                    Ver detalles <i class="bi bi-arrow-right ms-1"></i>
-                                </span>
-                            </div>
-                        </a>
-                    </div>
-                @endforeach
-            </div>
+            @if ($featured->isEmpty())
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-6 text-muted d-block mb-3"></i>
+                    <p class="text-muted">No hay consultas vigentes en este momento.</p>
+                </div>
+            @else
+                <div class="row g-4">
+                    @foreach ($featured as $c)
+                        @php
+                            $daysLeft = $c->ends_at ? max(0, floor(now()->diffInDays($c->ends_at, false))) : null;
+                            $isOpen = $c->status === 'active';
+                        @endphp
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ route('public.consultations.show', $c->slug) }}"
+                               class="gore-consultation-card">
+                                <div class="gore-consultation-meta">
+                                    <span class="gore-badge gore-badge-brand">{{ $c->instrument_type }}</span>
+                                    @if ($isOpen)
+                                        <span class="gore-badge gore-badge-success">
+                                            <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                                            Activa
+                                        </span>
+                                    @else
+                                        <span class="gore-badge gore-badge-info">Por iniciar</span>
+                                    @endif
+                                </div>
+                                <h3 class="gore-consultation-title">{{ $c->title }}</h3>
+                                @if ($c->summary)
+                                    <p class="mb-0 small text-muted" style="-webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ $c->summary }}
+                                    </p>
+                                @endif
+                                <div class="d-flex justify-content-between align-items-center pt-3 mt-auto"
+                                     style="border-top: 1px solid var(--gore-border);">
+                                    <span class="small text-muted">
+                                        @if ($isOpen && $daysLeft !== null && $daysLeft > 0)
+                                            <i class="bi bi-clock me-1"></i>
+                                            Cierra en {{ $daysLeft }} dias
+                                        @elseif ($c->starts_at)
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            Inicia {{ $c->starts_at->format('d/m/Y') }}
+                                        @endif
+                                    </span>
+                                    <span class="small fw-semibold" style="color: var(--gore-primary);">
+                                        Ver detalles <i class="bi bi-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
 
             <div class="text-center mt-5">
-                <a href="#" class="btn btn-outline-primary">
-                    Ver historial completo de consultas
+                <a href="{{ route('public.consultations.index') }}" class="btn btn-outline-primary">
+                    Ver todas las consultas
                     <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
