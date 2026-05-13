@@ -5,6 +5,9 @@ use App\Http\Controllers\Admin\ConsultationDocumentController;
 use App\Http\Controllers\Admin\ConsultationStageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\Auth\AuthenticatedCitizenSessionController;
+use App\Http\Controllers\Public\Auth\EmailVerificationController;
+use App\Http\Controllers\Public\Auth\RegisteredCitizenController;
 use App\Http\Controllers\Public\ConsultationController as PublicConsultationController;
 use App\Models\Consultation;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +31,37 @@ Route::prefix('consultas')->group(function () {
     Route::get('/{slug}/antecedentes/{fileGroupId}/descargar',
         [PublicConsultationController::class, 'download'])
         ->name('public.consultations.documents.download');
+});
+
+// Auth ciudadana: registro manual con verificacion por correo obligatoria.
+// Esta separada de /admin/login que sigue siendo solo para staff.
+Route::middleware('guest')->group(function () {
+    Route::get('/registrarme', [RegisteredCitizenController::class, 'create'])
+        ->name('citizen.register');
+    Route::post('/registrarme', [RegisteredCitizenController::class, 'store'])
+        ->name('citizen.register.store');
+
+    Route::get('/ingresar', [AuthenticatedCitizenSessionController::class, 'create'])
+        ->name('citizen.login');
+    Route::post('/ingresar', [AuthenticatedCitizenSessionController::class, 'store'])
+        ->name('citizen.login.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/cerrar-sesion', [AuthenticatedCitizenSessionController::class, 'destroy'])
+        ->name('citizen.logout');
+
+    // Verificacion de email del ciudadano
+    Route::get('/email/verificar', [EmailVerificationController::class, 'notice'])
+        ->name('citizen.verification.notice');
+
+    Route::get('/email/verificar/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('citizen.verification.verify');
+
+    Route::post('/email/reenviar-verificacion', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')
+        ->name('citizen.verification.resend');
 });
 
 // Backoffice (funcionarios y super-admin)

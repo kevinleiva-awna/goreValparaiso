@@ -46,14 +46,66 @@
                     @endif
                 </ul>
 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 align-items-center">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-grid-1x2 me-1"></i> Ir al backoffice
-                        </a>
+                        @if (Auth::user()->isStaff())
+                            {{-- Funcionario o super-admin: acceso al backoffice --}}
+                            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-grid-1x2 me-1"></i> Ir al backoffice
+                            </a>
+                        @else
+                            {{-- Ciudadano autenticado: dropdown con perfil --}}
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="d-inline-flex align-items-center justify-content-center"
+                                          style="width: 28px; height: 28px; background: var(--gore-primary); color: #fff; border-radius: 50%; font-size: 0.75rem; font-weight: 600;">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    </span>
+                                    <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="min-width: 240px;">
+                                    <li>
+                                        <div class="dropdown-item-text px-3 py-2">
+                                            <div class="fw-semibold text-truncate" style="color: var(--gore-ink);">
+                                                {{ Auth::user()->name }} {{ Auth::user()->last_name }}
+                                            </div>
+                                            <div class="small text-truncate" style="color: var(--gore-ink-soft);">
+                                                {{ Auth::user()->email }}
+                                            </div>
+                                            @unless (Auth::user()->hasVerifiedEmail())
+                                                <span class="gore-badge gore-badge-warning mt-2">
+                                                    <i class="bi bi-exclamation-triangle me-1" style="font-size: 0.6rem;"></i>
+                                                    Correo sin verificar
+                                                </span>
+                                            @endunless
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    @unless (Auth::user()->hasVerifiedEmail())
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('citizen.verification.notice') }}">
+                                                <i class="bi bi-envelope-check me-2"></i>Verificar correo
+                                            </a>
+                                        </li>
+                                    @endunless
+                                    <li>
+                                        <form method="POST" action="{{ route('citizen.logout') }}" class="m-0">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        @endif
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-shield-lock me-1"></i> Acceso funcionarios
+                        <a href="{{ route('citizen.login') }}" class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
+                            Ingresar
+                        </a>
+                        <a href="{{ route('citizen.register') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-person-plus me-1"></i> Crear cuenta
                         </a>
                     @endauth
                 </div>
@@ -110,9 +162,15 @@
                 </div>
             </div>
 
-            <div class="gore-footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div class="gore-footer-bottom d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center">
                 <span>&copy; {{ date('Y') }} Gobierno Regional de Valparaiso. Todos los derechos reservados.</span>
-                <span>Desarrollo: <a href="https://awna.cl" target="_blank" rel="noopener">AWNA</a></span>
+                <span class="d-flex gap-3 align-items-center">
+                    <a href="{{ route('login') }}" class="text-decoration-none">
+                        <i class="bi bi-shield-lock me-1"></i> Acceso funcionarios
+                    </a>
+                    <span class="text-white-50">&middot;</span>
+                    <span>Desarrollo: <a href="https://awna.cl" target="_blank" rel="noopener">AWNA</a></span>
+                </span>
             </div>
         </div>
     </footer>

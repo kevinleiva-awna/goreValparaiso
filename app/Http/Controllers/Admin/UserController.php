@@ -54,7 +54,10 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        User::create($request->validated());
+        // Los funcionarios creados desde aqui quedan verificados de
+        // inmediato: el super-admin ya valido su identidad y les comunica
+        // las credenciales directamente.
+        User::create($request->validated() + ['email_verified_at' => now()]);
 
         return redirect()
             ->route('admin.users.index')
