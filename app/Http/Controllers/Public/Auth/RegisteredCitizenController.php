@@ -38,6 +38,11 @@ class RegisteredCitizenController extends Controller
 
         Auth::login($user);
 
+        // El metodo de autenticacion se guarda en sesion y luego se inyecta
+        // como auth_method_used en cada observacion del ciudadano. ClaveUnica
+        // (T4.2) sobrescribira este valor a 'claveunica' al volver del OIDC.
+        session(['auth_method' => 'manual']);
+
         return redirect()->route('citizen.verification.notice');
     }
 }

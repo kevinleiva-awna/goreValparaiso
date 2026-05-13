@@ -173,42 +173,172 @@
                         </div>
                     @endif
 
-                    {{-- CTA observacion --}}
-                    <div id="participar" class="card border-0 shadow-sm mb-4"
-                         style="background: linear-gradient(135deg, var(--gore-primary-dark) 0%, var(--gore-primary) 100%); color: white;">
-                        <div class="card-body p-4 p-md-5 text-center">
-                            @if ($isOpenForObservations)
-                                <h2 class="h3 fw-bold mb-2">Participa en este proceso</h2>
-                                <p class="mb-4" style="opacity: 0.85;">
-                                    Tu opinion sera registrada con identidad verificada y timestamp inalterable.
-                                </p>
-                                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
-                                    {{-- Por ahora apuntan a un placeholder. Se implementan en D17/D18. --}}
-                                    <a href="#" class="btn btn-light btn-lg fw-semibold" aria-disabled="true">
-                                        <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                                    </a>
-                                    <a href="#" class="btn btn-outline-light btn-lg" aria-disabled="true">
-                                        Registro manual
-                                    </a>
+                    {{-- BLOQUE PARTICIPACION ========================================
+                         Renderiza distinto segun el estado del gatekeeper:
+                         - gate.can=true              -> form de envio de observacion
+                         - gate.reason=guest          -> CTA login/registro
+                         - gate.reason=not_verified   -> CTA verificar correo
+                         - gate.reason=not_open       -> mensaje de proceso cerrado
+                         - gate.reason=wrong_auth_method -> mensaje de incompatibilidad
+                         - gate.reason=wrong_role     -> CTA salir de staff
+                       =============================================================== --}}
+
+                    @if ($gate['can'])
+                        {{-- Form de envio --}}
+                        <div id="participar" class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <h2 class="h5 mb-0 d-flex align-items-center">
+                                    <i class="bi bi-pencil-square me-2" style="color: var(--gore-primary);"></i>
+                                    Enviar mi observacion
+                                </h2>
+                            </div>
+                            <div class="card-body p-4 p-md-5">
+                                <div class="alert alert-success small d-flex mb-4">
+                                    <i class="bi bi-shield-check me-2 flex-shrink-0" style="font-size: 1.1rem;"></i>
+                                    <div>
+                                        Estas identificado(a) como
+                                        <strong>{{ Auth::user()->name }} {{ Auth::user()->last_name }}</strong>
+                                        ({{ Auth::user()->email }}).
+                                        Tu observacion quedara registrada con timestamp inalterable.
+                                    </div>
                                 </div>
-                                <p class="small mt-3 mb-0" style="opacity: 0.7;">
-                                    El envio de observaciones se habilitara cuando se cierre la integracion con ClaveUnica.
-                                </p>
-                            @elseif ($isClosed)
-                                <h2 class="h3 fw-bold mb-2">Proceso cerrado</h2>
-                                <p class="mb-0" style="opacity: 0.85;">
-                                    La ventana de participacion termino el {{ $consultation->ends_at?->format('d/m/Y') }}.
-                                    Puedes consultar los antecedentes del proceso a continuacion.
-                                </p>
-                            @else
-                                <h2 class="h3 fw-bold mb-2">Participacion no habilitada aun</h2>
-                                <p class="mb-0" style="opacity: 0.85;">
-                                    Este proceso aun no esta en periodo de recepcion de observaciones.
-                                    Vuelve a revisar pronto.
-                                </p>
-                            @endif
+
+                                <form method="POST"
+                                      action="{{ route('public.observations.store', $consultation->slug) }}">
+                                    @csrf
+
+                                    <div class="mb-3">
+                                        <x-input-label for="obs_subject" value="Asunto (opcional)" />
+                                        <x-text-input id="obs_subject" name="subject" type="text"
+                                                      :value="old('subject')" maxlength="255"
+                                                      placeholder="Ej: Observacion sobre el uso de suelo en Concon" />
+                                        <x-input-error :messages="$errors->get('subject')" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <x-input-label for="obs_category" value="Categoria (opcional)" />
+                                        <select id="obs_category" name="category" class="form-select">
+                                            <option value="">Sin categoria especifica</option>
+                                            @foreach (['Uso de suelo', 'Vialidad', 'Areas verdes', 'Patrimonio', 'Equipamiento', 'Riesgo natural', 'Otro'] as $cat)
+                                                <option value="{{ $cat }}" @selected(old('category') === $cat)>{{ $cat }}</option>
+                                            @endforeach
+                                        </select>
+                                        <x-input-error :messages="$errors->get('category')" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <x-input-label for="obs_body" value="Tu observacion *" />
+                                        <textarea id="obs_body" name="body" class="form-control" rows="8"
+                                                  required minlength="10" maxlength="10000"
+                                                  placeholder="Describe tu observacion con el mayor detalle posible. Minimo 10 caracteres, maximo 10.000.">{{ old('body') }}</textarea>
+                                        <div class="form-text">
+                                            <span id="obs_charcount">0</span> / 10.000 caracteres
+                                        </div>
+                                        <x-input-error :messages="$errors->get('body')" />
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <p class="small text-muted mb-0">
+                                            Al enviar aceptas que tu observacion sera parte del expediente
+                                            publico del proceso.
+                                        </p>
+                                        <x-primary-button class="btn-lg">
+                                            <i class="bi bi-send me-1"></i> Enviar observacion
+                                        </x-primary-button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+
+                        <script>
+                            (function () {
+                                const txt = document.getElementById('obs_body');
+                                const counter = document.getElementById('obs_charcount');
+                                if (!txt || !counter) return;
+                                const update = () => counter.textContent = txt.value.length.toLocaleString('es-CL');
+                                txt.addEventListener('input', update);
+                                update();
+                            })();
+                        </script>
+                    @else
+                        {{-- Gate cerrado: mensaje contextual segun la razon --}}
+                        <div id="participar" class="card border-0 shadow-sm mb-4"
+                             style="background: linear-gradient(135deg, var(--gore-primary-dark) 0%, var(--gore-primary) 100%); color: white;">
+                            <div class="card-body p-4 p-md-5 text-center">
+                                @switch($gate['reason'])
+                                    @case('guest')
+                                        <h2 class="h3 fw-bold mb-2">Participa en este proceso</h2>
+                                        <p class="mb-4" style="opacity: 0.85;">
+                                            Para enviar una observacion necesitas identificarte.
+                                            Tu identidad queda asociada de forma inalterable a lo que envies.
+                                        </p>
+                                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                                            <a href="#" class="btn btn-light btn-lg fw-semibold opacity-50"
+                                               aria-disabled="true"
+                                               title="Disponible cuando se integre ClaveUnica">
+                                                <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
+                                            </a>
+                                            <a href="{{ route('citizen.login') }}" class="btn btn-outline-light btn-lg">
+                                                Ingresar con correo
+                                            </a>
+                                        </div>
+                                        <p class="small mt-3 mb-0" style="opacity: 0.7;">
+                                            ¿Primera vez? <a href="{{ route('citizen.register') }}" class="text-white fw-semibold">
+                                                Crear cuenta
+                                            </a>
+                                        </p>
+                                        @break
+
+                                    @case('not_verified')
+                                        <h2 class="h3 fw-bold mb-2">Verifica tu correo para participar</h2>
+                                        <p class="mb-4" style="opacity: 0.85;">
+                                            Te enviamos un enlace de verificacion a tu correo. Una vez verificado,
+                                            podras enviar observaciones a esta consulta.
+                                        </p>
+                                        <a href="{{ route('citizen.verification.notice') }}"
+                                           class="btn btn-light btn-lg fw-semibold">
+                                            <i class="bi bi-envelope-check me-1"></i> Ir a verificar mi correo
+                                        </a>
+                                        @break
+
+                                    @case('not_open')
+                                        @if ($isClosed)
+                                            <h2 class="h3 fw-bold mb-2">Proceso cerrado</h2>
+                                            <p class="mb-0" style="opacity: 0.85;">
+                                                La ventana de participacion termino el {{ $consultation->ends_at?->format('d/m/Y') }}.
+                                                Puedes consultar los antecedentes del proceso a continuacion.
+                                            </p>
+                                        @else
+                                            <h2 class="h3 fw-bold mb-2">Participacion no habilitada aun</h2>
+                                            <p class="mb-0" style="opacity: 0.85;">
+                                                Este proceso aun no esta en periodo de recepcion de observaciones.
+                                                Vuelve a revisar pronto.
+                                            </p>
+                                        @endif
+                                        @break
+
+                                    @case('wrong_auth_method')
+                                        <h2 class="h3 fw-bold mb-2">Metodo de identificacion no admitido</h2>
+                                        <p class="mb-0" style="opacity: 0.85;">
+                                            Esta consulta requiere identificacion via ClaveUnica.
+                                            Por favor cierra sesion y vuelve a ingresar usando ClaveUnica.
+                                        </p>
+                                        @break
+
+                                    @case('wrong_role')
+                                        <h2 class="h3 fw-bold mb-2">Cuenta institucional</h2>
+                                        <p class="mb-0" style="opacity: 0.85;">
+                                            Estas autenticado como funcionario. Para participar como ciudadano(a),
+                                            cierra sesion del backoffice y registrate por separado.
+                                        </p>
+                                        @break
+
+                                    @default
+                                        <h2 class="h3 fw-bold mb-2">No es posible enviar observaciones</h2>
+                                @endswitch
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Sidebar --}}

@@ -70,10 +70,55 @@ class ConsultationController extends Controller
             ->withCount('observations')
             ->firstOrFail();
 
+        // Calcula si el ciudadano logueado puede enviar observacion ahora.
+        // La vista usa este flag y el detalle del 'gatekeeper' para mostrar
+        // el form, un CTA de login, o el motivo por el que no puede participar.
+        $gatekeeper = $this->resolveSubmissionGate($consultation);
+
         return view('public.consultas.show', [
             'consultation' => $consultation,
             'isOpenForObservations' => $consultation->isOpenForObservations(),
+            'gate' => $gatekeeper,
         ]);
+    }
+
+    /**
+     * Resuelve el estado del "boton enviar observacion" para el usuario
+     * actual y la consulta dada. Retorna un array con dos claves:
+     *
+     *   ['can' => bool, 'reason' => 'guest' | 'not_verified' | 'not_open'
+     *                              | 'wrong_auth_method' | 'wrong_role' | null]
+     *
+     * Si can=true, reason=null. Si can=false, reason explica el bloqueo
+     * para que la vista muestre el mensaje contextual correcto.
+     */
+    private function resolveSubmissionGate(Consultation $consultation): array
+    {
+        if (! auth()->check()) {
+            return ['can' => false, 'reason' => 'guest'];
+        }
+
+        $user = auth()->user();
+
+        if (! $user->isCitizen()) {
+            return ['can' => false, 'reason' => 'wrong_role'];
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return ['can' => false, 'reason' => 'not_verified'];
+        }
+
+        if (! $consultation->isOpenForObservations()) {
+            return ['can' => false, 'reason' => 'not_open'];
+        }
+
+        $authMethod = session('auth_method', 'manual');
+        $allowed = (array) ($consultation->auth_methods ?? []);
+        if (! in_array($authMethod, $allowed, true)) {
+            return ['can' => false, 'reason' => 'wrong_auth_method'];
+        }
+
+        return ['can' => true, 'reason' => null];
     }
 
     /**

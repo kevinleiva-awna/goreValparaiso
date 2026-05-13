@@ -21,6 +21,10 @@ class AuthenticatedCitizenSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        // Guardar metodo de auth en sesion -> se inyecta como auth_method_used
+        // en cada observacion. T4.2 (ClaveUnica) lo sobrescribira a 'claveunica'.
+        session(['auth_method' => 'manual']);
+
         // Si el usuario fue redirigido aqui desde una ruta protegida,
         // intended() lo lleva de vuelta. Si no, va al inicio.
         return redirect()->intended(route('home', absolute: false));

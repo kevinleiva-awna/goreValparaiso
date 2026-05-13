@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\Auth\AuthenticatedCitizenSessionController;
 use App\Http\Controllers\Public\Auth\EmailVerificationController;
 use App\Http\Controllers\Public\Auth\RegisteredCitizenController;
 use App\Http\Controllers\Public\ConsultationController as PublicConsultationController;
+use App\Http\Controllers\Public\ObservationController as PublicObservationController;
 use App\Models\Consultation;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,19 @@ Route::prefix('consultas')->group(function () {
     Route::get('/{slug}/antecedentes/{fileGroupId}/descargar',
         [PublicConsultationController::class, 'download'])
         ->name('public.consultations.documents.download');
+
+    // Envio de observaciones: requiere ciudadano autenticado y verificado.
+    // El StoreObservationRequest::authorize() valida nuevamente.
+    // Rate limit: 5 envios por minuto por IP+usuario (anti-flood).
+    Route::post('/{consultation:slug}/observaciones',
+        [PublicObservationController::class, 'store'])
+        ->middleware(['auth', 'throttle:5,1'])
+        ->name('public.observations.store');
+
+    Route::get('/{slug}/observaciones/{publicId}/exito',
+        [PublicObservationController::class, 'success'])
+        ->middleware('auth')
+        ->name('public.observations.success');
 });
 
 // Auth ciudadana: registro manual con verificacion por correo obligatoria.
