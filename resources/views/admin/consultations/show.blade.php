@@ -178,6 +178,117 @@
                         </div>
                     @endif
                 </div>
+
+                {{-- ========== ANTECEDENTES TECNICOS ========== --}}
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                        <h2 class="h6 mb-0 d-flex align-items-center">
+                            Antecedentes tecnicos
+                            <span class="gore-badge gore-badge-muted ms-2">
+                                {{ $consultation->documents->count() }}
+                            </span>
+                        </h2>
+                        <button type="button" class="btn btn-sm btn-primary"
+                                data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+                            <i class="bi bi-cloud-arrow-up me-1"></i> Subir documento
+                        </button>
+                    </div>
+
+                    @if ($consultation->documents->isEmpty())
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-file-earmark-arrow-up display-6 text-muted d-block mb-2"></i>
+                            <p class="text-muted small mb-3">Aun no hay antecedentes subidos.</p>
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+                                Subir el primer documento
+                            </button>
+                        </div>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="small text-uppercase" style="color: var(--gore-ink-soft);">
+                                    <tr>
+                                        <th>Titulo</th>
+                                        <th>Etapa</th>
+                                        <th class="text-end">Tamano</th>
+                                        <th class="text-center">Version</th>
+                                        <th>Subido por</th>
+                                        <th class="text-end">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($consultation->documents as $doc)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-file-earmark-text me-2" style="color: var(--gore-primary);"></i>
+                                                    <div>
+                                                        <div class="fw-semibold">{{ $doc->title }}</div>
+                                                        <div class="small text-muted text-truncate" style="max-width: 28ch;">
+                                                            {{ $doc->original_filename }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="small">
+                                                @if ($doc->stage_id)
+                                                    <span class="gore-badge gore-badge-brand">
+                                                        {{ $consultation->stages->firstWhere('id', $doc->stage_id)?->name ?? 'Etapa' }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted small fst-italic">Proceso</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-end small text-muted">
+                                                @php
+                                                    $bytes = $doc->size_bytes;
+                                                    $size = $bytes >= 1048576
+                                                        ? round($bytes / 1048576, 1) . ' MB'
+                                                        : ($bytes >= 1024 ? round($bytes / 1024, 1) . ' KB' : $bytes . ' B');
+                                                @endphp
+                                                {{ $size }}
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="gore-badge gore-badge-muted">v{{ $doc->version }}</span>
+                                            </td>
+                                            <td class="small text-muted">
+                                                {{ $doc->uploader?->name ?? '-' }}
+                                                <div class="small">{{ $doc->created_at->format('d/m/Y') }}</div>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ route('admin.consultations.documents.download', [$consultation, $doc]) }}"
+                                                       class="btn btn-outline-secondary" title="Descargar">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-secondary"
+                                                            title="Reemplazar (nueva version)"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#replaceDocumentModal"
+                                                            data-action="{{ route('admin.consultations.documents.replace', [$consultation, $doc]) }}"
+                                                            data-doc-title="{{ $doc->title }}"
+                                                            data-doc-version="{{ $doc->version }}">
+                                                        <i class="bi bi-arrow-repeat"></i>
+                                                    </button>
+                                                    <form method="POST"
+                                                          action="{{ route('admin.consultations.documents.destroy', [$consultation, $doc]) }}"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('Archivar el documento &quot;{{ $doc->title }}&quot;? El archivo se conserva pero deja de listarse.');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="btn btn-outline-danger" title="Archivar">
+                                                            <i class="bi bi-archive"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <div class="col-lg-4">
@@ -239,4 +350,130 @@
             </div>
         </div>
     </div>
+
+    {{-- ========== MODAL: Subir documento ========== --}}
+    <div class="modal fade" id="uploadDocumentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST"
+                      action="{{ route('admin.consultations.documents.store', $consultation) }}"
+                      enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Subir antecedente tecnico</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <x-input-label for="document_file" value="Archivo *" />
+                            <input id="document_file" name="file" type="file" required
+                                   class="form-control"
+                                   accept=".pdf,.jpg,.jpeg,.png,.dwg,.dxf,.zip,.mp4,.xlsx,.docx">
+                            <div class="form-text">
+                                PDF, JPG, PNG, DWG, DXF, ZIP, MP4, XLSX, DOCX. Maximo 100 MB.
+                            </div>
+                            <x-input-error :messages="$errors->get('file')" />
+                        </div>
+
+                        <div class="mb-3">
+                            <x-input-label for="document_title" value="Titulo *" />
+                            <x-text-input id="document_title" name="title" type="text"
+                                          placeholder="Ej: Memoria explicativa, Plano regulador, Estudio impacto"
+                                          required maxlength="255" />
+                            <x-input-error :messages="$errors->get('title')" />
+                        </div>
+
+                        <div class="mb-3">
+                            <x-input-label for="document_stage" value="Asociar a etapa (opcional)" />
+                            <select id="document_stage" name="stage_id" class="form-select">
+                                <option value="">Documento a nivel del proceso (todas las etapas)</option>
+                                @foreach ($consultation->stages as $stage)
+                                    <option value="{{ $stage->id }}">
+                                        {{ $stage->position }}. {{ $stage->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('stage_id')" />
+                        </div>
+
+                        <div class="mb-3">
+                            <x-input-label for="document_description" value="Descripcion (opcional)" />
+                            <textarea id="document_description" name="description" rows="2" maxlength="1000"
+                                      class="form-control"></textarea>
+                            <x-input-error :messages="$errors->get('description')" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cloud-arrow-up me-1"></i> Subir
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========== MODAL: Reemplazar (nueva version) ========== --}}
+    <div class="modal fade" id="replaceDocumentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" enctype="multipart/form-data" data-replace-form>
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            Reemplazar documento
+                            <span class="small text-muted ms-2" data-replace-title></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            La version actual (<span data-replace-version></span>) se archivara automaticamente.
+                            La nueva sera <strong data-replace-next></strong>. Ambas se conservan en disco para auditoria.
+                        </div>
+
+                        <div class="mb-3">
+                            <x-input-label for="replace_file" value="Nuevo archivo *" />
+                            <input id="replace_file" name="file" type="file" required
+                                   class="form-control"
+                                   accept=".pdf,.jpg,.jpeg,.png,.dwg,.dxf,.zip,.mp4,.xlsx,.docx">
+                            <div class="form-text">Maximo 100 MB.</div>
+                        </div>
+
+                        {{-- title es required en StoreConsultationDocumentRequest,
+                             pero en replace conservamos el titulo del documento original.
+                             Lo enviamos como hidden poblado por JS para que pase validacion. --}}
+                        <input type="hidden" name="title" data-replace-title-input>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-arrow-repeat me-1"></i> Subir nueva version
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('replaceDocumentModal')?.addEventListener('show.bs.modal', function (event) {
+            const trigger = event.relatedTarget;
+            const action = trigger.getAttribute('data-action');
+            const title = trigger.getAttribute('data-doc-title');
+            const version = parseInt(trigger.getAttribute('data-doc-version'), 10);
+            const form = this.querySelector('[data-replace-form]');
+            form.action = action;
+            this.querySelector('[data-replace-title]').textContent = title;
+            this.querySelector('[data-replace-version]').textContent = 'v' + version;
+            this.querySelector('[data-replace-next]').textContent = 'v' + (version + 1);
+            this.querySelector('[data-replace-title-input]').value = title;
+        });
+    </script>
 </x-app-layout>

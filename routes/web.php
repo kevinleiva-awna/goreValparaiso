@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ConsultationController;
+use App\Http\Controllers\Admin\ConsultationDocumentController;
 use App\Http\Controllers\Admin\ConsultationStageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,26 @@ Route::prefix('admin')
             ->scopeBindings()
             ->whereIn('direction', ['up', 'down'])
             ->name('admin.consultations.stages.move');
+
+        // Antecedentes tecnicos (documentos) anidados bajo cada consulta.
+        Route::post('consultations/{consultation}/documents',
+            [ConsultationDocumentController::class, 'store'])
+            ->name('admin.consultations.documents.store');
+
+        Route::get('consultations/{consultation}/documents/{document}/download',
+            [ConsultationDocumentController::class, 'download'])
+            ->scopeBindings()
+            ->name('admin.consultations.documents.download');
+
+        Route::post('consultations/{consultation}/documents/{document}/replace',
+            [ConsultationDocumentController::class, 'replace'])
+            ->scopeBindings()
+            ->name('admin.consultations.documents.replace');
+
+        Route::delete('consultations/{consultation}/documents/{document}',
+            [ConsultationDocumentController::class, 'destroy'])
+            ->scopeBindings()
+            ->name('admin.consultations.documents.destroy');
     });
 
 require __DIR__.'/auth.php';
