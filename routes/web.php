@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\ConsultationDocumentController;
 use App\Http\Controllers\Admin\ConsultationStageController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,18 @@ Route::prefix('admin')
             [ConsultationDocumentController::class, 'destroy'])
             ->scopeBindings()
             ->name('admin.consultations.documents.destroy');
+
+        // Gestion de funcionarios y super-admin: restringido a super-admin.
+        // Los ciudadanos NO se gestionan aqui — se autoregistran via
+        // ClaveUnica o flujo manual (Etapa 4).
+        Route::middleware('role:super-admin')->group(function () {
+            Route::resource('users', UserController::class)
+                ->except(['show'])
+                ->names('admin.users');
+
+            Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])
+                ->name('admin.users.toggle-active');
+        });
     });
 
 require __DIR__.'/auth.php';
