@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\ConsultationDocumentController;
 use App\Http\Controllers\Admin\ConsultationStageController;
+use App\Http\Controllers\Admin\ObservationController as AdminObservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\Auth\AuthenticatedCitizenSessionController;
@@ -125,6 +126,16 @@ Route::prefix('admin')
             [ConsultationDocumentController::class, 'destroy'])
             ->scopeBindings()
             ->name('admin.consultations.documents.destroy');
+
+        // Observaciones recibidas: listado con filtros + export. Disponible
+        // para funcionario y super-admin.
+        Route::get('observations', [AdminObservationController::class, 'index'])
+            ->name('admin.observations.index');
+        Route::get('observations/export/{format}', [AdminObservationController::class, 'export'])
+            ->whereIn('format', ['xlsx', 'csv'])
+            ->name('admin.observations.export');
+        Route::get('observations/{observation}', [AdminObservationController::class, 'show'])
+            ->name('admin.observations.show');
 
         // Gestion de funcionarios y super-admin: restringido a super-admin.
         // Los ciudadanos NO se gestionan aqui — se autoregistran via

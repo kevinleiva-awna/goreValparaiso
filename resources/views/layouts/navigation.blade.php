@@ -23,6 +23,12 @@
                         <i class="bi bi-file-earmark-text me-1"></i> Consultas
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.observations.index') }}"
+                       class="nav-link {{ request()->routeIs('admin.observations.*') ? 'active' : '' }}">
+                        <i class="bi bi-chat-square-text me-1"></i> Observaciones
+                    </a>
+                </li>
                 @if (Auth::user()->isSuperAdmin())
                     <li class="nav-item">
                         <a href="{{ route('admin.users.index') }}"
