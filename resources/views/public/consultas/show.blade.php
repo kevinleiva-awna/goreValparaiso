@@ -273,9 +273,8 @@
                                             Tu identidad queda asociada de forma inalterable a lo que envies.
                                         </p>
                                         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
-                                            <a href="#" class="btn btn-light btn-lg fw-semibold opacity-50"
-                                               aria-disabled="true"
-                                               title="Disponible cuando se integre ClaveUnica">
+                                            <a href="{{ route('citizen.claveunica.redirect') }}"
+                                               class="btn btn-light btn-lg fw-semibold">
                                                 <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
                                             </a>
                                             <a href="{{ route('citizen.login') }}" class="btn btn-outline-light btn-lg">

@@ -20,17 +20,19 @@
 
                     <div class="card border-0 shadow-sm">
                         <div class="card-body p-4 p-md-5">
-                            {{-- ClaveUnica (placeholder, se conecta en T4.2) --}}
                             <div class="d-grid mb-3">
-                                <button class="btn btn-primary btn-lg fw-semibold" disabled
-                                        title="Disponible cuando se integre ClaveUnica">
+                                <a href="{{ route('citizen.claveunica.redirect') }}"
+                                   class="btn btn-primary btn-lg fw-semibold">
                                     <i class="bi bi-shield-check me-2"></i>
                                     Ingresar con ClaveUnica
-                                </button>
+                                </a>
                             </div>
-                            <p class="text-center small text-muted mb-3">
-                                ClaveUnica se habilita una vez completada la integracion con el portal del Estado.
-                            </p>
+                            @if (config('claveunica.mode') === 'mock')
+                                <p class="text-center small text-warning mb-3">
+                                    <i class="bi bi-cone-striped me-1"></i>
+                                    Modo desarrollo: usa el simulador local.
+                                </p>
+                            @endif
 
                             <div class="position-relative my-4">
                                 <hr class="m-0">

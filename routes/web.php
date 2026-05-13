@@ -6,7 +6,9 @@ use App\Http\Controllers\Admin\ConsultationStageController;
 use App\Http\Controllers\Admin\ObservationController as AdminObservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Dev\MockClaveUnicaController;
 use App\Http\Controllers\Public\Auth\AuthenticatedCitizenSessionController;
+use App\Http\Controllers\Public\Auth\ClaveUnicaController;
 use App\Http\Controllers\Public\Auth\EmailVerificationController;
 use App\Http\Controllers\Public\Auth\RegisteredCitizenController;
 use App\Http\Controllers\Public\ConsultationController as PublicConsultationController;
@@ -60,7 +62,24 @@ Route::middleware('guest')->group(function () {
         ->name('citizen.login');
     Route::post('/ingresar', [AuthenticatedCitizenSessionController::class, 'store'])
         ->name('citizen.login.store');
+
+    // ClaveUnica (flujo OIDC, mock o live segun config)
+    Route::get('/auth/claveunica/redirect', [ClaveUnicaController::class, 'redirect'])
+        ->name('citizen.claveunica.redirect');
+    Route::get('/auth/claveunica/callback', [ClaveUnicaController::class, 'callback'])
+        ->name('citizen.claveunica.callback');
 });
+
+// Simulador local de ClaveUnica. Solo se registra cuando config('claveunica.mode')
+// es 'mock'. En produccion estas rutas NO existen — el provider real las reemplaza.
+if (config('claveunica.mode') === 'mock') {
+    Route::prefix('dev/claveunica')->group(function () {
+        Route::get('/simulate', [MockClaveUnicaController::class, 'simulate'])
+            ->name('mock.claveunica.simulate');
+        Route::post('/complete', [MockClaveUnicaController::class, 'complete'])
+            ->name('mock.claveunica.complete');
+    });
+}
 
 Route::middleware('auth')->group(function () {
     Route::post('/cerrar-sesion', [AuthenticatedCitizenSessionController::class, 'destroy'])
