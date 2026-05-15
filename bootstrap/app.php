@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
         ]);
 
+        // Confiar en headers X-Forwarded-* de proxies (Cloudflare, AWS ELB,
+        // Nginx reverse proxy, tuneles tipo cloudflared/ngrok). Sin esto,
+        // Laravel detras de proxy generaria URLs http en vez de https y
+        // veria la IP del proxy en lugar de la IP real del cliente.
+        $middleware->trustProxies(at: '*');
+
         // Cabeceras de seguridad + CSP estricta aplicadas a todas las rutas web (D21).
         $middleware->web(append: [
             SecurityHeaders::class,
