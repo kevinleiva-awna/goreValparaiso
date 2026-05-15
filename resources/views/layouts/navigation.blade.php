@@ -36,6 +36,12 @@
                             <i class="bi bi-people me-1"></i> Usuarios
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.activity-log.index') }}"
+                           class="nav-link {{ request()->routeIs('admin.activity-log.*') ? 'active' : '' }}">
+                            <i class="bi bi-clock-history me-1"></i> Bitacora
+                        </a>
+                    </li>
                 @endif
             </ul>
 

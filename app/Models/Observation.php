@@ -7,10 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Observation extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    /**
+     * Las observaciones son inalterables: solo se audita su CREACION,
+     * nunca updates ni deletes (que ademas no deberian ocurrir).
+     */
+    protected static $recordEvents = ['created'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'public_id', 'consultation_id', 'stage_id',
+                'subject', 'category', 'auth_method_used',
+            ])
+            ->dontSubmitEmptyLogs()
+            ->useLogName('observation');
+    }
 
     public const AUTH_CLAVEUNICA = 'claveunica';
     public const AUTH_MANUAL = 'manual';
