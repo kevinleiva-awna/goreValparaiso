@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Spatie\Csp\AddCspHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
+        ]);
+
+        // Cabeceras de seguridad + CSP estricta aplicadas a todas las rutas web (D21).
+        $middleware->web(append: [
+            SecurityHeaders::class,
+            AddCspHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

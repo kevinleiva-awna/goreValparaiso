@@ -594,6 +594,39 @@ npm run dev      # Vite con HMR
 npm run build    # Build de producción
 ```
 
+### Testing y QA
+
+```bash
+# Correr toda la suite Pest (~8 segundos, BD en memoria)
+composer test
+# o equivalente
+vendor/bin/pest
+
+# Filtrar por archivo o nombre
+vendor/bin/pest tests/Feature/Admin/InstitutionalResponseTest.php
+vendor/bin/pest --filter='publica un borrador'
+
+# Load test contra el servidor local (requiere k6 instalado)
+k6 run -e BASE_URL=http://localhost:8000 tests/k6/observation-submission.js
+k6 run -e BASE_URL=http://localhost:8000 \
+       -e EMAIL=claudio@gorevalparaiso.cl \
+       -e PASSWORD=password \
+       tests/k6/admin-listing.js
+
+# OWASP ZAP baseline scan (requiere Docker)
+BASE_URL=http://host.docker.internal:8000 ./scripts/owasp-zap-smoke.sh
+```
+
+### Auditoría (D20)
+
+```bash
+# Consultar últimas entradas de la bitácora
+php artisan tinker
+> Spatie\Activitylog\Models\Activity::with('causer')->latest()->take(10)->get();
+
+# O navegar como super-admin a /admin/activity-log
+```
+
 ### Git
 
 ```bash
@@ -673,14 +706,19 @@ Las cuatro fases del despliegue inicial están descritas en el [Documento de Arq
 
 ## Roadmap y próximos pasos
 
-### Implementado (Etapas 1-4)
+### Implementado (Etapas 1-5a)
 
 - ✓ **Etapa 1** — Planificación + 3 entregables formales en `docs/etapa-1/`
 - ✓ **Etapa 2** — Sistema de diseño completo aplicado (Bootstrap 5 + variables institucionales)
 - ✓ **Etapa 3** — Backoffice operativo: CRUD consultas, etapas, antecedentes, usuarios, observaciones, export
 - ✓ **Etapa 4** — Portal público + auth dual (manual + ClaveÚnica mock) + envío de observaciones + backup 48h
+- ✓ **D14** — Respuestas institucionales (individual + lote con `batch_id` compartido) + portal público + mail al ciudadano
+- ✓ **D20** — Audit log inmutable con `spatie/laravel-activitylog` en 6 modelos + backoffice `/admin/activity-log`
+- ✓ **T4.6** — Suite Pest del dominio: **46 tests verdes, 145 aserciones**
+- ✓ **D21** — Hardening: `SecurityHeaders` middleware + CSP estricta (`spatie/laravel-csp`) + rate limits anti-flood + HTTPS forzado en producción
+- ✓ Reporte QA completo en [docs/etapa-5/qa-report.md](docs/etapa-5/qa-report.md)
 
-### Pendiente — Etapa 5 (Despliegue + Transferencia)
+### Pendiente — Etapa 5b y 5c (Despliegue + Transferencia)
 
 **Bloqueantes del cliente (gestiones con Lukas)**:
 
@@ -692,40 +730,13 @@ Las cuatro fases del despliegue inicial están descritas en el [Documento de Arq
 
 **Tareas técnicas pendientes (estimación interna)**:
 
-#### T4.6 — Pruebas integrales y de carga (1 día)
-- [ ] Suite Pest cubriendo flujos críticos:
-  - [ ] `tests/Feature/Public/CitizenRegistrationTest.php`
-  - [ ] `tests/Feature/Public/ObservationSubmissionTest.php`
-  - [ ] `tests/Feature/Admin/ConsultationCrudTest.php`
-  - [ ] `tests/Feature/Admin/ObservationExportTest.php`
-- [ ] Load test con k6 simulando 1.000-5.000 usuarios concurrentes
-- [ ] Pen test con OWASP ZAP en modo baseline
-
-#### D14 — Gestión de respuestas institucionales (1 día)
-- [ ] Form en `/admin/observations/{id}` para escribir respuesta
-- [ ] Acción "Responder en lote" para múltiples observaciones con el mismo texto (usa `batch_id` UUID que ya está en el modelo)
-- [ ] Estado de publicación (draft → published)
-- [ ] Email al ciudadano cuando se publica respuesta
-- [ ] Vista pública de la respuesta en la ficha de la observación
-
-#### D20 — Audit log con `spatie/laravel-activitylog` (medio día)
-- [ ] `composer require spatie/laravel-activitylog`
-- [ ] Configurar traits en Consultation, ConsultationStage, ConsultationDocument, User, Observation, InstitutionalResponse
-- [ ] Vista `/admin/audit-log` solo para super-admin
-- [ ] Cumplimiento explícito del D.S. N°7/2023 sobre logs inmutables
-
-#### Etapa 5a — Hardening (1 día)
-- [ ] Headers de seguridad en Nginx: `HSTS`, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Content-Security-Policy`, `Referrer-Policy`
-- [ ] Rate limiting global vía AWS WAF
-- [ ] Revisar y bloquear endpoints de cuenta (login/register) con throttle
-- [ ] Checklist completo D.S. N°7/2023 documentado en `docs/cumplimiento-ds-7-2023.md`
-
-#### Etapa 5b — Despliegue AWS (2-3 días)
 - [ ] Terraform/CloudFormation para provisioning reproducible
 - [ ] Pipeline CI/CD en GitHub Actions con `deploy-prod.yml`
 - [ ] Migrar comando `gore:backup-observations` a EventBridge → SSM
 - [ ] Configurar SES con dominio verificado
-- [ ] Smoke test post-deploy + k6 contra producción
+- [ ] Smoke test post-deploy + k6 contra producción staging (scripts ya disponibles en `tests/k6/`)
+- [ ] OWASP ZAP baseline contra staging (script en `scripts/owasp-zap-smoke.sh`)
+- [ ] Configurar AWS WAF para rate limiting global complementario
 
 #### Etapa 5c — Transferencia (1-2 días)
 - [ ] Manual de Instalación AWS (paso a paso reproducible)
