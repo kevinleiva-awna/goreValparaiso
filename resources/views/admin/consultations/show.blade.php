@@ -130,16 +130,14 @@
                                                 <span class="gore-badge {{ $cls }}">{{ $stage->status }}</span>
                                             </td>
                                             <td class="text-end">
-                                                {{-- btn-group + display:contents en los forms para mantener el
-                                                     efecto cohesivo del grupo. Sin display:contents, los <form>
-                                                     romperian la cadena de hijos directos y Bootstrap aplicaria
-                                                     border-radius completo a cada boton. --}}
+                                                {{-- Los <form> CSRF anidados son hijos directos del btn-group;
+                                                     Bootstrap solo aplica border-radius:0 a hijos > .btn directos.
+                                                     El override CSS en app.scss extiende esa logica a > form > .btn. --}}
                                                 <div class="btn-group btn-group-sm" role="group">
                                                     {{-- Mover arriba --}}
                                                     @if ($idx > 0)
                                                         <form method="POST"
-                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'up']) }}"
-                                                              style="display: contents;">
+                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'up']) }}">
                                                             @csrf
                                                             <button class="btn btn-outline-secondary" title="Subir">
                                                                 <i class="bi bi-arrow-up"></i>
@@ -149,8 +147,7 @@
                                                     {{-- Mover abajo --}}
                                                     @if ($idx < $consultation->stages->count() - 1)
                                                         <form method="POST"
-                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'down']) }}"
-                                                              style="display: contents;">
+                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'down']) }}">
                                                             @csrf
                                                             <button class="btn btn-outline-secondary" title="Bajar">
                                                                 <i class="bi bi-arrow-down"></i>
@@ -165,7 +162,7 @@
                                                     {{-- Eliminar --}}
                                                     <form method="POST"
                                                           action="{{ route('admin.consultations.stages.destroy', [$consultation, $stage]) }}"
-                                                          style="display: contents;"
+
                                                           onsubmit="return confirm('Eliminar la etapa &quot;{{ $stage->name }}&quot;? Las observaciones asociadas no se pueden eliminar.');">
                                                         @csrf
                                                         @method('DELETE')
@@ -276,7 +273,7 @@
                                                     </button>
                                                     <form method="POST"
                                                           action="{{ route('admin.consultations.documents.destroy', [$consultation, $doc]) }}"
-                                                          style="display: contents;"
+
                                                           onsubmit="return confirm('Archivar el documento &quot;{{ $doc->title }}&quot;? El archivo se conserva pero deja de listarse.');">
                                                         @csrf
                                                         @method('DELETE')
