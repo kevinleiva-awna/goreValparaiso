@@ -130,13 +130,18 @@
                                                 <span class="gore-badge {{ $cls }}">{{ $stage->status }}</span>
                                             </td>
                                             <td class="text-end">
-                                                <div class="d-inline-flex gap-1 justify-content-end">
+                                                {{-- btn-group + display:contents en los forms para mantener el
+                                                     efecto cohesivo del grupo. Sin display:contents, los <form>
+                                                     romperian la cadena de hijos directos y Bootstrap aplicaria
+                                                     border-radius completo a cada boton. --}}
+                                                <div class="btn-group btn-group-sm" role="group">
                                                     {{-- Mover arriba --}}
                                                     @if ($idx > 0)
                                                         <form method="POST"
-                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'up']) }}">
+                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'up']) }}"
+                                                              style="display: contents;">
                                                             @csrf
-                                                            <button class="btn btn-sm btn-outline-secondary" title="Subir">
+                                                            <button class="btn btn-outline-secondary" title="Subir">
                                                                 <i class="bi bi-arrow-up"></i>
                                                             </button>
                                                         </form>
@@ -144,25 +149,27 @@
                                                     {{-- Mover abajo --}}
                                                     @if ($idx < $consultation->stages->count() - 1)
                                                         <form method="POST"
-                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'down']) }}">
+                                                              action="{{ route('admin.consultations.stages.move', [$consultation, $stage, 'down']) }}"
+                                                              style="display: contents;">
                                                             @csrf
-                                                            <button class="btn btn-sm btn-outline-secondary" title="Bajar">
+                                                            <button class="btn btn-outline-secondary" title="Bajar">
                                                                 <i class="bi bi-arrow-down"></i>
                                                             </button>
                                                         </form>
                                                     @endif
                                                     {{-- Editar --}}
                                                     <a href="{{ route('admin.consultations.stages.edit', [$consultation, $stage]) }}"
-                                                       class="btn btn-sm btn-outline-secondary" title="Editar">
+                                                       class="btn btn-outline-secondary" title="Editar">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
                                                     {{-- Eliminar --}}
                                                     <form method="POST"
                                                           action="{{ route('admin.consultations.stages.destroy', [$consultation, $stage]) }}"
+                                                          style="display: contents;"
                                                           onsubmit="return confirm('Eliminar la etapa &quot;{{ $stage->name }}&quot;? Las observaciones asociadas no se pueden eliminar.');">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                        <button class="btn btn-outline-danger" title="Eliminar">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </form>
@@ -253,12 +260,12 @@
                                                 <div class="small">{{ $doc->created_at->format('d/m/Y') }}</div>
                                             </td>
                                             <td class="text-end">
-                                                <div class="d-inline-flex gap-1 justify-content-end">
+                                                <div class="btn-group btn-group-sm" role="group">
                                                     <a href="{{ route('admin.consultations.documents.download', [$consultation, $doc]) }}"
-                                                       class="btn btn-sm btn-outline-secondary" title="Descargar">
+                                                       class="btn btn-outline-secondary" title="Descargar">
                                                         <i class="bi bi-download"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    <button type="button" class="btn btn-outline-secondary"
                                                             title="Reemplazar (nueva version)"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#replaceDocumentModal"
@@ -269,10 +276,11 @@
                                                     </button>
                                                     <form method="POST"
                                                           action="{{ route('admin.consultations.documents.destroy', [$consultation, $doc]) }}"
+                                                          style="display: contents;"
                                                           onsubmit="return confirm('Archivar el documento &quot;{{ $doc->title }}&quot;? El archivo se conserva pero deja de listarse.');">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button class="btn btn-sm btn-outline-danger" title="Archivar">
+                                                        <button class="btn btn-outline-danger" title="Archivar">
                                                             <i class="bi bi-archive"></i>
                                                         </button>
                                                     </form>
