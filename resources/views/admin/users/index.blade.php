@@ -122,23 +122,22 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <div class="btn-group btn-group-sm">
+                                    <div class="d-inline-flex gap-1 justify-content-end">
                                         <a href="{{ route('admin.users.edit', $user) }}"
-                                           class="btn btn-outline-secondary" title="Editar">
+                                           class="btn btn-sm btn-outline-secondary" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         @if ($user->id !== auth()->id())
                                             <form method="POST"
                                                   action="{{ route('admin.users.toggle-active', $user) }}"
-                                                  class="d-inline"
                                                   onsubmit="return confirm('{{ $user->is_active ? 'Desactivar' : 'Reactivar' }} la cuenta de {{ $user->name }}?');">
                                                 @csrf
                                                 @if ($user->is_active)
-                                                    <button class="btn btn-outline-warning" title="Desactivar">
+                                                    <button class="btn btn-sm btn-outline-warning" title="Desactivar">
                                                         <i class="bi bi-pause-fill"></i>
                                                     </button>
                                                 @else
-                                                    <button class="btn btn-outline-success" title="Reactivar">
+                                                    <button class="btn btn-sm btn-outline-success" title="Reactivar">
                                                         <i class="bi bi-play-fill"></i>
                                                     </button>
                                                 @endif
