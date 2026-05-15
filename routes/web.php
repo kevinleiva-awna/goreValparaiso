@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\ConsultationDocumentController;
 use App\Http\Controllers\Admin\ConsultationStageController;
+use App\Http\Controllers\Admin\InstitutionalResponseController;
 use App\Http\Controllers\Admin\ObservationController as AdminObservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
@@ -52,19 +54,23 @@ Route::prefix('consultas')->group(function () {
 
 // Auth ciudadana: registro manual con verificacion por correo obligatoria.
 // Esta separada de /admin/login que sigue siendo solo para staff.
+// Rate limits anti-flood para login/registro (D21).
 Route::middleware('guest')->group(function () {
     Route::get('/registrarme', [RegisteredCitizenController::class, 'create'])
         ->name('citizen.register');
     Route::post('/registrarme', [RegisteredCitizenController::class, 'store'])
+        ->middleware('throttle:5,1')
         ->name('citizen.register.store');
 
     Route::get('/ingresar', [AuthenticatedCitizenSessionController::class, 'create'])
         ->name('citizen.login');
     Route::post('/ingresar', [AuthenticatedCitizenSessionController::class, 'store'])
+        ->middleware('throttle:10,1')
         ->name('citizen.login.store');
 
     // ClaveUnica (flujo OIDC, mock o live segun config)
     Route::get('/auth/claveunica/redirect', [ClaveUnicaController::class, 'redirect'])
+        ->middleware('throttle:10,1')
         ->name('citizen.claveunica.redirect');
     Route::get('/auth/claveunica/callback', [ClaveUnicaController::class, 'callback'])
         ->name('citizen.claveunica.callback');
@@ -153,8 +159,30 @@ Route::prefix('admin')
         Route::get('observations/export/{format}', [AdminObservationController::class, 'export'])
             ->whereIn('format', ['xlsx', 'csv'])
             ->name('admin.observations.export');
+
+        // Respuestas institucionales en lote: deben definirse ANTES de la ruta
+        // `observations/{observation}` para que 'batch' no matchee como id.
+        Route::get('observations/batch', [InstitutionalResponseController::class, 'batchCreate'])
+            ->name('admin.observations.batch.create');
+        Route::post('observations/batch', [InstitutionalResponseController::class, 'batchStore'])
+            ->name('admin.observations.batch.store');
+
         Route::get('observations/{observation}', [AdminObservationController::class, 'show'])
             ->name('admin.observations.show');
+
+        // Respuesta institucional por observacion individual.
+        Route::post('observations/{observation}/response',
+            [InstitutionalResponseController::class, 'store'])
+            ->name('admin.observations.response.store');
+        Route::put('observations/{observation}/response',
+            [InstitutionalResponseController::class, 'update'])
+            ->name('admin.observations.response.update');
+        Route::post('observations/{observation}/response/publish',
+            [InstitutionalResponseController::class, 'publish'])
+            ->name('admin.observations.response.publish');
+        Route::delete('observations/{observation}/response',
+            [InstitutionalResponseController::class, 'destroyDraft'])
+            ->name('admin.observations.response.destroy');
 
         // Gestion de funcionarios y super-admin: restringido a super-admin.
         // Los ciudadanos NO se gestionan aqui — se autoregistran via
@@ -166,6 +194,10 @@ Route::prefix('admin')
 
             Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])
                 ->name('admin.users.toggle-active');
+
+            // Bitacora de auditoria (D20) — solo super-admin puede consultarla.
+            Route::get('activity-log', [ActivityLogController::class, 'index'])
+                ->name('admin.activity-log.index');
         });
     });
 

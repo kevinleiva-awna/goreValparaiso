@@ -85,76 +85,163 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="small text-uppercase" style="color: var(--gore-ink-soft);">
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Ciudadano</th>
-                            <th>Proceso / Etapa</th>
-                            <th>Asunto</th>
-                            <th class="text-center">Auth</th>
-                            <th class="text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($observations as $obs)
+        <form method="GET" action="{{ route('admin.observations.batch.create') }}" id="batch-form">
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="small text-uppercase" style="color: var(--gore-ink-soft);">
                             <tr>
-                                <td class="small text-nowrap">
-                                    <div>{{ $obs->submitted_at->format('d/m/Y') }}</div>
-                                    <div class="text-muted">{{ $obs->submitted_at->format('H:i') }}</div>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">{{ $obs->snapshot_full_name }}</div>
-                                    <div class="small text-muted">
-                                        {{ $obs->snapshot_national_id }} &middot; {{ $obs->snapshot_email }}
-                                    </div>
-                                </td>
-                                <td class="small">
-                                    <div>{{ Str::limit($obs->consultation?->title, 40) }}</div>
-                                    <div class="text-muted">{{ $obs->stage?->name }}</div>
-                                </td>
-                                <td class="small">
-                                    @if ($obs->subject)
-                                        <div class="fw-semibold">{{ Str::limit($obs->subject, 50) }}</div>
-                                    @endif
-                                    <div class="text-muted">{{ Str::limit($obs->body, 80) }}</div>
-                                </td>
-                                <td class="text-center">
-                                    @if ($obs->auth_method_used === 'claveunica')
-                                        <span class="gore-badge gore-badge-brand">
-                                            <i class="bi bi-shield-check me-1" style="font-size: 0.6rem;"></i>CU
-                                        </span>
-                                    @else
-                                        <span class="gore-badge gore-badge-info">Manual</span>
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    <a href="{{ route('admin.observations.show', $obs) }}"
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-eye me-1"></i> Ver
-                                    </a>
-                                </td>
+                                <th style="width: 36px;">
+                                    <input type="checkbox" class="form-check-input" id="select-all"
+                                           title="Seleccionar todas las visibles">
+                                </th>
+                                <th>Fecha</th>
+                                <th>Ciudadano</th>
+                                <th>Proceso / Etapa</th>
+                                <th>Asunto</th>
+                                <th class="text-center">Auth</th>
+                                <th class="text-center">Respuesta</th>
+                                <th class="text-end">Acciones</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
-                                    No hay observaciones que coincidan con los filtros.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse ($observations as $obs)
+                                @php
+                                    $hasResponse = $obs->response !== null;
+                                    $responsePublished = $hasResponse && $obs->response->status === 'published';
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <input type="checkbox"
+                                               class="form-check-input row-check"
+                                               name="observation_ids[]"
+                                               value="{{ $obs->id }}"
+                                               @disabled($hasResponse)
+                                               @if ($hasResponse) title="Esta observacion ya tiene respuesta" @endif>
+                                    </td>
+                                    <td class="small text-nowrap">
+                                        <div>{{ $obs->submitted_at->format('d/m/Y') }}</div>
+                                        <div class="text-muted">{{ $obs->submitted_at->format('H:i') }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ $obs->snapshot_full_name }}</div>
+                                        <div class="small text-muted">
+                                            {{ $obs->snapshot_national_id }} &middot; {{ $obs->snapshot_email }}
+                                        </div>
+                                    </td>
+                                    <td class="small">
+                                        <div>{{ Str::limit($obs->consultation?->title, 40) }}</div>
+                                        <div class="text-muted">{{ $obs->stage?->name }}</div>
+                                    </td>
+                                    <td class="small">
+                                        @if ($obs->subject)
+                                            <div class="fw-semibold">{{ Str::limit($obs->subject, 50) }}</div>
+                                        @endif
+                                        <div class="text-muted">{{ Str::limit($obs->body, 80) }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if ($obs->auth_method_used === 'claveunica')
+                                            <span class="gore-badge gore-badge-brand">
+                                                <i class="bi bi-shield-check me-1" style="font-size: 0.6rem;"></i>CU
+                                            </span>
+                                        @else
+                                            <span class="gore-badge gore-badge-info">Manual</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        @if ($responsePublished)
+                                            <span class="gore-badge gore-badge-success">
+                                                <i class="bi bi-check2-circle me-1" style="font-size: 0.6rem;"></i>
+                                                Publicada
+                                            </span>
+                                        @elseif ($hasResponse)
+                                            <span class="gore-badge gore-badge-info">Borrador</span>
+                                        @else
+                                            <span class="gore-badge gore-badge-muted">Sin respuesta</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ route('admin.observations.show', $obs) }}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye me-1"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                                        No hay observaciones que coincidan con los filtros.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if ($observations->hasPages())
+                    <div class="card-footer bg-white border-top-0">
+                        {{ $observations->links() }}
+                    </div>
+                @endif
             </div>
 
-            @if ($observations->hasPages())
-                <div class="card-footer bg-white border-top-0">
-                    {{ $observations->links() }}
+            {{-- Barra de acciones masivas: aparece cuando hay 1+ checkbox marcado --}}
+            <div id="bulk-bar"
+                 class="position-fixed bottom-0 start-50 translate-middle-x mb-3 d-none"
+                 style="z-index: 1050;">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body d-flex align-items-center gap-3 py-2 px-3">
+                        <span class="small">
+                            <strong id="bulk-count">0</strong> observacion(es) seleccionada(s)
+                        </span>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-reply-all me-1"></i> Responder en lote
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-clear">
+                            Cancelar
+                        </button>
+                    </div>
                 </div>
-            @endif
-        </div>
+            </div>
+        </form>
+
+        <script>
+            (function () {
+                const selectAll = document.getElementById('select-all');
+                const rowChecks = Array.from(document.querySelectorAll('.row-check'));
+                const bar = document.getElementById('bulk-bar');
+                const countEl = document.getElementById('bulk-count');
+                const clearBtn = document.getElementById('bulk-clear');
+
+                function refresh() {
+                    const checked = rowChecks.filter(c => c.checked && !c.disabled);
+                    if (countEl) countEl.textContent = checked.length.toString();
+                    if (bar) bar.classList.toggle('d-none', checked.length === 0);
+                }
+
+                if (selectAll) {
+                    selectAll.addEventListener('change', () => {
+                        rowChecks.forEach(c => {
+                            if (! c.disabled) c.checked = selectAll.checked;
+                        });
+                        refresh();
+                    });
+                }
+
+                rowChecks.forEach(c => c.addEventListener('change', refresh));
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        rowChecks.forEach(c => c.checked = false);
+                        if (selectAll) selectAll.checked = false;
+                        refresh();
+                    });
+                }
+
+                refresh();
+            })();
+        </script>
 
         <p class="text-center text-muted small mt-3 mb-0">
             Mostrando {{ $observations->firstItem() ?? 0 }} - {{ $observations->lastItem() ?? 0 }}

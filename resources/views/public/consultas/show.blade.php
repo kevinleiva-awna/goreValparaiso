@@ -338,6 +338,13 @@
                             </div>
                         </div>
                     @endif
+
+                    {{-- Respuestas institucionales publicadas (D14). Solo se muestran
+                         cuando hay al menos una respuesta con status=published. --}}
+                    @include('public.consultas._responses', [
+                        'publishedResponses' => $publishedResponses,
+                        'consultation' => $consultation,
+                    ])
                 </div>
 
                 {{-- Sidebar --}}

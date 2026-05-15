@@ -36,15 +36,14 @@
                     </div>
                 </div>
 
-                {{-- Placeholder para respuesta institucional (D14) --}}
-                <div class="card border-0 shadow-sm mb-3" style="border: 1px dashed var(--gore-border) !important;">
-                    <div class="card-body p-4 text-center">
-                        <i class="bi bi-reply display-6 text-muted d-block mb-2"></i>
-                        <p class="text-muted small mb-0">
-                            La gestion de respuestas institucionales por observacion se habilita en una proxima iteracion.
-                        </p>
+                @if (session('status'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('status') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                </div>
+                @endif
+
+                @include('admin.observations._response_card', ['observation' => $observation])
             </div>
 
             {{-- Sidebar: trazabilidad --}}

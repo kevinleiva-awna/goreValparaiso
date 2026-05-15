@@ -25,10 +25,12 @@ class ConsultationController extends Controller
             Consultation::STATUS_CLOSED,
         ];
 
+        // CASE WHEN en lugar de FIELD() para soporte cross-DB (MariaDB en prod,
+        // SQLite en tests). Resultado: activas primero, despues publicadas, despues cerradas.
         $query = Consultation::query()
             ->whereIn('status', $visibleStatuses)
             ->withCount('observations')
-            ->orderByRaw("FIELD(status, 'active', 'published', 'closed')")
+            ->orderByRaw("CASE status WHEN 'active' THEN 1 WHEN 'published' THEN 2 WHEN 'closed' THEN 3 ELSE 4 END")
             ->orderByDesc('starts_at');
 
         if ($request->filled('type')) {
@@ -70,6 +72,18 @@ class ConsultationController extends Controller
             ->withCount('observations')
             ->firstOrFail();
 
+        // Respuestas institucionales publicadas para esta consulta. Se exponen
+        // solo las que tienen status=published y se evita filtrar RUT/email
+        // del ciudadano en la vista publica.
+        $publishedResponses = $consultation->observations()
+            ->whereHas('response', fn ($q) => $q->where('status', 'published'))
+            ->with([
+                'response' => fn ($q) => $q->with('responder:id,name,last_name'),
+                'stage:id,name',
+            ])
+            ->latest('submitted_at')
+            ->paginate(10, ['*'], 'respuestas');
+
         // Calcula si el ciudadano logueado puede enviar observacion ahora.
         // La vista usa este flag y el detalle del 'gatekeeper' para mostrar
         // el form, un CTA de login, o el motivo por el que no puede participar.
@@ -79,6 +93,7 @@ class ConsultationController extends Controller
             'consultation' => $consultation,
             'isOpenForObservations' => $consultation->isOpenForObservations(),
             'gate' => $gatekeeper,
+            'publishedResponses' => $publishedResponses,
         ]);
     }
 

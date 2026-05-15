@@ -31,7 +31,7 @@ class ObservationController extends Controller
 
     public function show(Observation $observation): View
     {
-        $observation->load(['consultation', 'stage', 'user']);
+        $observation->load(['consultation', 'stage', 'user', 'response.responder']);
 
         return view('admin.observations.show', [
             'observation' => $observation,
@@ -63,7 +63,11 @@ class ObservationController extends Controller
     private function buildFilteredQuery(Request $request): Builder
     {
         $query = Observation::query()
-            ->with(['consultation:id,slug,title,instrument_type', 'stage:id,name'])
+            ->with([
+                'consultation:id,slug,title,instrument_type',
+                'stage:id,name',
+                'response:id,observation_id,status,published_at',
+            ])
             ->latest('submitted_at');
 
         if ($request->filled('consultation_id')) {
