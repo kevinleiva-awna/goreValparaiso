@@ -56,8 +56,13 @@ class GoreCspPolicy extends Policy
             // Media (audio/video): self.
             ->addDirective(Directive::MEDIA, Keyword::SELF);
 
-        // En produccion forzar HTTPS sobre cualquier recurso sub-loaded.
-        if (app()->environment('production')) {
+        // En produccion forzar HTTPS sobre cualquier recurso sub-loaded,
+        // pero solo si APP_URL ya es https://. En preprod sin cert (APP_URL=
+        // http://IP) esto rompia los assets porque el browser hacia auto-
+        // upgrade y el server no escucha en 443. Cuando se agregue ACM y
+        // APP_URL pase a https, el upgrade se activa solo.
+        if (app()->environment('production')
+            && str_starts_with((string) config('app.url'), 'https://')) {
             $this->addDirective(Directive::UPGRADE_INSECURE_REQUESTS, []);
         }
     }
