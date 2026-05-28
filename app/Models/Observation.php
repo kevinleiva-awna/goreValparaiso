@@ -33,6 +33,7 @@ class Observation extends Model
 
     public const AUTH_CLAVEUNICA = 'claveunica';
     public const AUTH_MANUAL = 'manual';
+    public const AUTH_GUEST = 'guest';
 
     protected $fillable = [
         'public_id',
@@ -42,6 +43,10 @@ class Observation extends Model
         'subject',
         'body',
         'category',
+        'attachment_path',
+        'attachment_original_name',
+        'attachment_mime_type',
+        'attachment_size_bytes',
         'auth_method_used',
         'snapshot_national_id',
         'snapshot_full_name',
@@ -50,6 +55,11 @@ class Observation extends Model
         'ip_address',
         'user_agent',
     ];
+
+    public function hasAttachment(): bool
+    {
+        return ! empty($this->attachment_path);
+    }
 
     protected function casts(): array
     {

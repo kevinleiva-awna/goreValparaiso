@@ -99,41 +99,48 @@ class ConsultationController extends Controller
 
     /**
      * Resuelve el estado del "boton enviar observacion" para el usuario
-     * actual y la consulta dada. Retorna un array con dos claves:
+     * actual y la consulta dada. Retorna:
      *
-     *   ['can' => bool, 'reason' => 'guest' | 'not_verified' | 'not_open'
-     *                              | 'wrong_auth_method' | 'wrong_role' | null]
+     *   ['can' => bool,
+     *    'mode' => 'auth' | 'guest' | null,
+     *    'reason' => 'guest' | 'not_verified' | 'not_open'
+     *              | 'wrong_auth_method' | 'wrong_role' | null]
      *
-     * Si can=true, reason=null. Si can=false, reason explica el bloqueo
-     * para que la vista muestre el mensaje contextual correcto.
+     * Si can=true, mode='auth' o 'guest' y reason=null.
+     * Si can=false, mode=null y reason explica el bloqueo.
      */
     private function resolveSubmissionGate(Consultation $consultation): array
     {
         if (! auth()->check()) {
-            return ['can' => false, 'reason' => 'guest'];
+            // Sin login pero la consulta admite participacion como invitado:
+            // gate abierto en modo guest (la vista muestra inputs nombre+email).
+            if ($consultation->allowsGuest() && $consultation->isOpenForObservations()) {
+                return ['can' => true, 'mode' => 'guest', 'reason' => null];
+            }
+            return ['can' => false, 'mode' => null, 'reason' => 'guest'];
         }
 
         $user = auth()->user();
 
         if (! $user->isCitizen()) {
-            return ['can' => false, 'reason' => 'wrong_role'];
+            return ['can' => false, 'mode' => null, 'reason' => 'wrong_role'];
         }
 
         if (! $user->hasVerifiedEmail()) {
-            return ['can' => false, 'reason' => 'not_verified'];
+            return ['can' => false, 'mode' => null, 'reason' => 'not_verified'];
         }
 
         if (! $consultation->isOpenForObservations()) {
-            return ['can' => false, 'reason' => 'not_open'];
+            return ['can' => false, 'mode' => null, 'reason' => 'not_open'];
         }
 
         $authMethod = session('auth_method', 'manual');
         $allowed = (array) ($consultation->auth_methods ?? []);
         if (! in_array($authMethod, $allowed, true)) {
-            return ['can' => false, 'reason' => 'wrong_auth_method'];
+            return ['can' => false, 'mode' => null, 'reason' => 'wrong_auth_method'];
         }
 
-        return ['can' => true, 'reason' => null];
+        return ['can' => true, 'mode' => 'auth', 'reason' => null];
     }
 
     /**

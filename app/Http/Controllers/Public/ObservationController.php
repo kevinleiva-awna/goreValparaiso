@@ -10,6 +10,8 @@ use App\Models\ConsultationStage;
 use App\Models\Observation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ObservationController extends Controller
@@ -26,33 +28,61 @@ class ObservationController extends Controller
             ->where('status', ConsultationStage::STATUS_ACTIVE)
             ->firstOrFail();
 
+        $attachmentMeta = [];
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            // Nombre aleatorio en el storage; conservamos el nombre original
+            // como metadato para mostrarlo al ciudadano y al funcionario.
+            $stored = $file->store(
+                'observations/' . $consultation->id,
+                ['disk' => 's3']
+            );
+            $attachmentMeta = [
+                'attachment_path' => $stored,
+                'attachment_original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
+                'attachment_mime_type' => $file->getMimeType(),
+                'attachment_size_bytes' => $file->getSize(),
+            ];
+        }
+
+        // Branchea segun haya usuario logueado o sea participacion guest.
+        // El FormRequest ya garantizo que el camino guest solo se llega si
+        // la consulta tiene 'guest' en auth_methods.
+        $identityBranch = $user
+            ? [
+                'user_id' => $user->id,
+                'auth_method_used' => session('auth_method', Observation::AUTH_MANUAL),
+                'snapshot_national_id' => $user->national_id,
+                'snapshot_full_name' => trim($user->name . ' ' . $user->last_name),
+                'snapshot_email' => $user->email,
+            ]
+            : [
+                'user_id' => null,
+                'auth_method_used' => Observation::AUTH_GUEST,
+                'snapshot_national_id' => null,
+                'snapshot_full_name' => $data['guest_name'],
+                'snapshot_email' => $data['guest_email'],
+            ];
+
         $observation = Observation::create([
             'consultation_id' => $consultation->id,
             'stage_id' => $stage->id,
-            'user_id' => $user->id,
 
             'subject' => $data['subject'] ?? null,
             'body' => $data['body'],
             'category' => $data['category'] ?? null,
 
-            // Metodo de auth en la sesion vigente. T4.3 lo setea a 'manual'.
-            // T4.2 (ClaveUnica) lo seteara a 'claveunica' al completar el OIDC.
-            'auth_method_used' => session('auth_method', Observation::AUTH_MANUAL),
-
-            // Snapshot inalterable de identidad. Si el usuario edita su perfil
-            // despues, la observacion conserva lo que era cierto al enviarla.
-            'snapshot_national_id' => $user->national_id,
-            'snapshot_full_name' => trim($user->name . ' ' . $user->last_name),
-            'snapshot_email' => $user->email,
-
             // Trazabilidad operativa
             'ip_address' => $request->ip(),
             'user_agent' => substr((string) $request->userAgent(), 0, 500),
+
+            ...$identityBranch,
+            ...$attachmentMeta,
         ]);
 
-        // Mail de confirmacion encolado (queue driver database). El usuario
-        // recibe respuesta inmediata, el mail se procesa async.
-        Mail::to($user->email)->queue(new ObservationSubmitted($observation));
+        // Mail de confirmacion al autor (user logueado o guest auto-declarado).
+        $emailTo = $user ? $user->email : $data['guest_email'];
+        Mail::to($emailTo)->queue(new ObservationSubmitted($observation));
 
         return redirect()->route('public.observations.success', [
             'slug' => $consultation->slug,
@@ -68,9 +98,15 @@ class ObservationController extends Controller
             ->with('consultation')
             ->firstOrFail();
 
-        // Solo el autor puede ver su pagina de exito (evita filtrar el body
-        // de observaciones de otros via URL adivinada).
-        abort_unless(auth()->id() === $observation->user_id, 404);
+        // Observacion con usuario: solo el autor logueado puede verla
+        // (evita filtrar el body via URL adivinada).
+        // Observacion guest: cualquiera con el UUID del publicId puede verla;
+        // el UUID es secreto-suficiente para la pagina de confirmacion (no
+        // expone datos sensibles mas alla del propio body) y el ciudadano
+        // accede via redirect post-submit o por el link del mail.
+        if ($observation->user_id !== null) {
+            abort_unless(auth()->id() === $observation->user_id, 404);
+        }
 
         return view('public.observations.success', [
             'observation' => $observation,

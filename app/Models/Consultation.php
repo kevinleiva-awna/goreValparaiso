@@ -41,6 +41,12 @@ class Consultation extends Model
 
     public const AUTH_CLAVEUNICA = 'claveunica';
     public const AUTH_MANUAL = 'manual';
+    public const AUTH_GUEST = 'guest';
+
+    public function allowsGuest(): bool
+    {
+        return in_array(self::AUTH_GUEST, (array) ($this->auth_methods ?? []), true);
+    }
 
     protected $fillable = [
         'public_id',

@@ -61,7 +61,9 @@
                             <dd class="mb-2 fw-semibold">{{ $observation->snapshot_full_name }}</dd>
 
                             <dt class="text-muted">RUT</dt>
-                            <dd class="mb-2">{{ $observation->snapshot_national_id }}</dd>
+                            <dd class="mb-2">
+                                {{ $observation->snapshot_national_id ?? '— (no aplica)' }}
+                            </dd>
 
                             <dt class="text-muted">Correo electronico</dt>
                             <dd class="mb-2 text-break">{{ $observation->snapshot_email }}</dd>
@@ -73,6 +75,11 @@
                                         <i class="bi bi-shield-check me-1" style="font-size: 0.6rem;"></i>
                                         ClaveUnica
                                     </span>
+                                @elseif ($observation->auth_method_used === 'guest')
+                                    <span class="gore-badge gore-badge-muted">
+                                        <i class="bi bi-person me-1" style="font-size: 0.6rem;"></i>
+                                        Sin registro
+                                    </span>
                                 @else
                                     <span class="gore-badge gore-badge-info">Registro manual</span>
                                 @endif
@@ -80,6 +87,30 @@
                         </dl>
                     </div>
                 </div>
+
+                @if ($observation->hasAttachment())
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h2 class="h6 mb-0">
+                                <i class="bi bi-paperclip me-2" style="color: var(--gore-primary);"></i>
+                                Archivo adjunto
+                            </h2>
+                        </div>
+                        <div class="card-body small">
+                            <div class="text-truncate mb-2 fw-semibold" title="{{ $observation->attachment_original_name }}">
+                                {{ $observation->attachment_original_name }}
+                            </div>
+                            <div class="text-muted mb-3">
+                                {{ $observation->attachment_mime_type }} ·
+                                {{ number_format(($observation->attachment_size_bytes ?? 0) / 1024, 0, ',', '.') }} KB
+                            </div>
+                            <a href="{{ route('admin.observations.attachment.download', $observation) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i> Descargar
+                            </a>
+                        </div>
+                    </div>
+                @endif
 
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-header bg-white border-bottom py-3">

@@ -41,9 +41,13 @@ Route::prefix('consultas')->group(function () {
     // Envio de observaciones: requiere ciudadano autenticado y verificado.
     // El StoreObservationRequest::authorize() valida nuevamente.
     // Rate limit: 5 envios por minuto por IP+usuario (anti-flood).
+    // Sin middleware 'auth' aqui: el FormRequest decide quien puede postear.
+    // - Si hay user y es citizen verificado -> permitido (camino normal).
+    // - Si no hay user pero la consulta admite 'guest' -> permitido sin login.
+    // Cualquier otro caso lo rechaza authorize() con 403.
     Route::post('/{consultation:slug}/observaciones',
         [PublicObservationController::class, 'store'])
-        ->middleware(['auth', 'throttle:5,1'])
+        ->middleware('throttle:5,1')
         ->name('public.observations.store');
 
     Route::get('/{slug}/observaciones/{publicId}/exito',
@@ -169,6 +173,9 @@ Route::prefix('admin')
 
         Route::get('observations/{observation}', [AdminObservationController::class, 'show'])
             ->name('admin.observations.show');
+        Route::get('observations/{observation}/attachment',
+            [AdminObservationController::class, 'downloadAttachment'])
+            ->name('admin.observations.attachment.download');
 
         // Respuesta institucional por observacion individual.
         Route::post('observations/{observation}/response',

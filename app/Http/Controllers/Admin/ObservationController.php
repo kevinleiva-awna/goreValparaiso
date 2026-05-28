@@ -8,9 +8,11 @@ use App\Models\Consultation;
 use App\Models\Observation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ObservationController extends Controller
 {
@@ -36,6 +38,16 @@ class ObservationController extends Controller
         return view('admin.observations.show', [
             'observation' => $observation,
         ]);
+    }
+
+    public function downloadAttachment(Observation $observation): StreamedResponse
+    {
+        abort_unless($observation->hasAttachment(), 404);
+
+        return Storage::disk('s3')->download(
+            $observation->attachment_path,
+            $observation->attachment_original_name ?? 'archivo-adjunto'
+        );
     }
 
     public function export(Request $request, string $format = 'xlsx'): BinaryFileResponse

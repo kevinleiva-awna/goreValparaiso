@@ -8,7 +8,7 @@ correctamente en la plataforma del Gobierno Regional de Valparaiso.
 
 **Codigo de seguimiento:** `{{ $observation->public_id }}`
 **Fecha de registro:** {{ $observation->submitted_at->format('d/m/Y H:i') }} hrs (CLT)
-**Metodo de identificacion:** {{ $observation->auth_method_used === 'claveunica' ? 'ClaveUnica' : 'Registro manual' }}
+**Metodo de identificacion:** @switch($observation->auth_method_used)@case('claveunica')ClaveUnica@break @case('guest')Sin registro (invitado)@break @default Registro manual @endswitch
 
 ---
 

@@ -193,19 +193,50 @@
                                 </h2>
                             </div>
                             <div class="card-body p-4 p-md-5">
-                                <div class="alert alert-success small d-flex mb-4">
-                                    <i class="bi bi-shield-check me-2 flex-shrink-0" style="font-size: 1.1rem;"></i>
-                                    <div>
-                                        Estas identificado(a) como
-                                        <strong>{{ Auth::user()->name }} {{ Auth::user()->last_name }}</strong>
-                                        ({{ Auth::user()->email }}).
-                                        Tu observacion quedara registrada con timestamp inalterable.
+                                @if ($gate['mode'] === 'auth')
+                                    <div class="alert alert-success small d-flex mb-4">
+                                        <i class="bi bi-shield-check me-2 flex-shrink-0" style="font-size: 1.1rem;"></i>
+                                        <div>
+                                            Estas identificado(a) como
+                                            <strong>{{ Auth::user()->name }} {{ Auth::user()->last_name }}</strong>
+                                            ({{ Auth::user()->email }}).
+                                            Tu observacion quedara registrada con timestamp inalterable.
+                                        </div>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="alert alert-info small d-flex mb-4">
+                                        <i class="bi bi-info-circle me-2 flex-shrink-0" style="font-size: 1.1rem;"></i>
+                                        <div>
+                                            Esta consulta admite participacion <strong>sin registro</strong>.
+                                            Tu nombre y correo quedaran asociados a la observacion para
+                                            trazabilidad institucional, pero no necesitas crear una cuenta.
+                                        </div>
+                                    </div>
+                                @endif
 
                                 <form method="POST"
-                                      action="{{ route('public.observations.store', $consultation->slug) }}">
+                                      action="{{ route('public.observations.store', $consultation->slug) }}"
+                                      enctype="multipart/form-data">
                                     @csrf
+
+                                    @if ($gate['mode'] === 'guest')
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                <x-input-label for="guest_name" value="Tu nombre *" />
+                                                <x-text-input id="guest_name" name="guest_name" type="text"
+                                                              :value="old('guest_name')" maxlength="150" required
+                                                              placeholder="Nombre y apellido" />
+                                                <x-input-error :messages="$errors->get('guest_name')" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <x-input-label for="guest_email" value="Tu correo electronico *" />
+                                                <x-text-input id="guest_email" name="guest_email" type="email"
+                                                              :value="old('guest_email')" maxlength="255" required
+                                                              placeholder="ejemplo@correo.cl" />
+                                                <x-input-error :messages="$errors->get('guest_email')" />
+                                            </div>
+                                        </div>
+                                    @endif
 
                                     <div class="mb-3">
                                         <x-input-label for="obs_subject" value="Asunto (opcional)" />
@@ -235,6 +266,17 @@
                                             <span id="obs_charcount">0</span> / 10.000 caracteres
                                         </div>
                                         <x-input-error :messages="$errors->get('body')" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <x-input-label for="obs_attachment" value="Archivo adjunto (opcional)" />
+                                        <input id="obs_attachment" name="attachment" type="file"
+                                               class="form-control"
+                                               accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.odt,.ods,.txt" />
+                                        <div class="form-text">
+                                            PDF, imagen, Word, Excel o texto plano. Maximo 10 MB.
+                                        </div>
+                                        <x-input-error :messages="$errors->get('attachment')" />
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">

@@ -66,6 +66,7 @@
                             <option value="">Todos</option>
                             <option value="claveunica" @selected(($filters['auth_method'] ?? '') === 'claveunica')>ClaveUnica</option>
                             <option value="manual" @selected(($filters['auth_method'] ?? '') === 'manual')>Manual</option>
+                            <option value="guest" @selected(($filters['auth_method'] ?? '') === 'guest')>Sin registro</option>
                         </select>
                     </div>
                     <div class="col-md-1">
@@ -144,6 +145,8 @@
                                             <span class="gore-badge gore-badge-brand">
                                                 <i class="bi bi-shield-check me-1" style="font-size: 0.6rem;"></i>CU
                                             </span>
+                                        @elseif ($obs->auth_method_used === 'guest')
+                                            <span class="gore-badge gore-badge-muted">Guest</span>
                                         @else
                                             <span class="gore-badge gore-badge-info">Manual</span>
                                         @endif
