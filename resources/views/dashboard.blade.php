@@ -15,7 +15,8 @@
 
         <div class="row g-3 mt-2">
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100">
+                <a href="{{ route('admin.consultations.index') }}"
+                   class="card border-0 shadow-sm h-100 text-decoration-none text-reset">
                     <div class="card-body">
                         <h5 class="card-title">
                             <i class="bi bi-file-earmark-text text-primary me-2"></i>Consultas
@@ -23,12 +24,13 @@
                         <p class="card-text text-muted small">
                             Gestion de procesos de consulta publica.
                         </p>
-                        <span class="text-muted small">Disponible en Etapa 3 (D9-D14)</span>
+                        <span class="link-primary small">Ir a consultas <i class="bi bi-arrow-right"></i></span>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100">
+                <a href="{{ route('admin.observations.index') }}"
+                   class="card border-0 shadow-sm h-100 text-decoration-none text-reset">
                     <div class="card-body">
                         <h5 class="card-title">
                             <i class="bi bi-chat-square-text text-primary me-2"></i>Observaciones
@@ -36,23 +38,26 @@
                         <p class="card-text text-muted small">
                             Listado, filtros y exportacion de observaciones ciudadanas.
                         </p>
-                        <span class="text-muted small">Disponible en Etapa 3 (D12)</span>
+                        <span class="link-primary small">Ir a observaciones <i class="bi bi-arrow-right"></i></span>
                     </div>
-                </div>
+                </a>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-people text-primary me-2"></i>Usuarios
-                        </h5>
-                        <p class="card-text text-muted small">
-                            Gestion de funcionarios y permisos.
-                        </p>
-                        <span class="text-muted small">Disponible en Etapa 3 (D11)</span>
-                    </div>
+            @if(Auth::user()->isSuperAdmin())
+                <div class="col-md-4">
+                    <a href="{{ route('admin.users.index') }}"
+                       class="card border-0 shadow-sm h-100 text-decoration-none text-reset">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-people text-primary me-2"></i>Usuarios
+                            </h5>
+                            <p class="card-text text-muted small">
+                                Gestion de funcionarios y permisos.
+                            </p>
+                            <span class="link-primary small">Ir a usuarios <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 </x-app-layout>
