@@ -17,8 +17,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
-        // Forzar HTTPS en produccion (D21). En dev local seguimos en HTTP.
-        if ($this->app->environment('production')) {
+        // Forzar HTTPS sólo si APP_URL ya lo declara. Asi preprod sin cert
+        // (APP_URL=http://IP) sigue generando enlaces http y los assets cargan;
+        // cuando se agregue dominio + ACM y APP_URL pase a https, el force se
+        // activa solo. Antes era incondicional para production y rompia assets.
+        if ($this->app->environment('production')
+            && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
     }
