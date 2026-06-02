@@ -11,17 +11,24 @@
                 <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
                     <i class="bi bi-download me-1"></i> Exportar
                 </button>
+                {{-- Los items NO usan href estatico: leen el estado actual del
+                     formulario de filtros via JS (data-export-format). De lo
+                     contrario, si el usuario cambia un filtro pero NO clickea
+                     "Filtrar", el href ya estaria precalculado con $filters
+                     vacios y exportaria todo (bug reportado por GORE). --}}
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg">
                     <li>
-                        <a class="dropdown-item"
-                           href="{{ route('admin.observations.export', ['format' => 'xlsx']) }}?{{ http_build_query($filters) }}">
+                        <a class="dropdown-item" href="#"
+                           data-export-format="xlsx"
+                           data-export-base="{{ route('admin.observations.export', ['format' => 'xlsx']) }}">
                             <i class="bi bi-file-earmark-excel me-2 text-success"></i>
                             Excel (.xlsx)
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item"
-                           href="{{ route('admin.observations.export', ['format' => 'csv']) }}?{{ http_build_query($filters) }}">
+                        <a class="dropdown-item" href="#"
+                           data-export-format="csv"
+                           data-export-base="{{ route('admin.observations.export', ['format' => 'csv']) }}">
                             <i class="bi bi-filetype-csv me-2 text-info"></i>
                             CSV (.csv)
                         </a>
@@ -41,7 +48,7 @@
 
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
-                <form method="GET" class="row g-2 align-items-end">
+                <form method="GET" class="row g-2 align-items-end" id="observations-filter-form">
                     <div class="col-md-4">
                         <label class="form-label small text-muted mb-1">Busqueda</label>
                         <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
@@ -65,7 +72,6 @@
                         <select name="auth_method" class="form-select">
                             <option value="">Todos</option>
                             <option value="claveunica" @selected(($filters['auth_method'] ?? '') === 'claveunica')>ClaveUnica</option>
-                            <option value="manual" @selected(($filters['auth_method'] ?? '') === 'manual')>Manual</option>
                             <option value="guest" @selected(($filters['auth_method'] ?? '') === 'guest')>Sin registro</option>
                         </select>
                     </div>
@@ -243,6 +249,27 @@
                 }
 
                 refresh();
+            })();
+
+            // Construye la URL del export leyendo el estado ACTUAL del form
+            // de filtros (no $filters precalculado). Esto asegura que si el
+            // funcionario cambia un filtro y clickea "Exportar" sin haber
+            // hecho submit del form, el export respete su seleccion.
+            (function () {
+                const filterForm = document.getElementById('observations-filter-form');
+                document.querySelectorAll('[data-export-format]').forEach(link => {
+                    link.addEventListener('click', e => {
+                        e.preventDefault();
+                        const base = link.getAttribute('data-export-base');
+                        const formData = new FormData(filterForm);
+                        const params = new URLSearchParams();
+                        for (const [key, value] of formData.entries()) {
+                            if (value !== '' && value !== null) params.append(key, value);
+                        }
+                        const qs = params.toString();
+                        window.location.href = qs ? `${base}?${qs}` : base;
+                    });
+                });
             })();
         </script>
 

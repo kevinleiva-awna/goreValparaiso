@@ -65,7 +65,10 @@
                                 {{ $observation->snapshot_national_id ?? '— (no aplica)' }}
                             </dd>
 
-                            <dt class="text-muted">Correo electronico</dt>
+                            <dt class="text-muted">Correo electronico
+                                <i class="bi bi-info-circle ms-1" style="font-size: 0.75rem;"
+                                   title="Canal oficial: la respuesta institucional se enviara a este correo."></i>
+                            </dt>
                             <dd class="mb-2 text-break">{{ $observation->snapshot_email }}</dd>
 
                             <dt class="text-muted">Metodo de identificacion</dt>
@@ -81,7 +84,9 @@
                                         Sin registro
                                     </span>
                                 @else
-                                    <span class="gore-badge gore-badge-info">Registro manual</span>
+                                    {{-- Observaciones historicas con metodos descontinuados
+                                         (registro manual antes de junio 2026). --}}
+                                    <span class="gore-badge gore-badge-info">{{ $observation->auth_method_used }}</span>
                                 @endif
                             </dd>
                         </dl>

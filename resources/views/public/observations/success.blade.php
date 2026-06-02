@@ -47,8 +47,8 @@
                                             <i class="bi bi-shield-check me-1" style="color: var(--gore-primary);"></i>
                                             ClaveUnica
                                         @else
-                                            <i class="bi bi-envelope-check me-1" style="color: var(--gore-primary);"></i>
-                                            Registro manual
+                                            <i class="bi bi-person me-1" style="color: var(--gore-primary);"></i>
+                                            Sin registro
                                         @endif
                                     </div>
                                 </div>
@@ -84,6 +84,7 @@
                             Te enviamos una copia de tu observacion al correo
                             <strong>{{ $observation->snapshot_email }}</strong>.
                             Tu observacion sera revisada por la Unidad de Ordenamiento Territorial.
+                            Si recibe respuesta institucional, te llegara al mismo correo.
                         </div>
                     </div>
 

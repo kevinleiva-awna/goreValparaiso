@@ -1,50 +1,73 @@
 {{-- Logo institucional GORE Valparaiso.
 
-     Archivos esperados en public/img/brand/:
-       - escudo_gore_b.png  (logo completo sobre fondo NEGRO)
-       - escudo_gore_w.png  (logo completo sobre fondo BLANCO, pendiente de entrega)
+     Archivos disponibles en public/img/brand/:
+       - Logo_A.png  Banner completo a COLOR (escudo + Gobierno Regional + #Valparaiso Region de Derechos).
+                     Para usar sobre fondos claros (navbar, hero claro).
+       - Logo_B.png  Mismo banner pero VERSION CLARA sobre fondo NEGRO.
+       - Logo_C_Core.png  Banner triple (Gobierno Regional + Slogan + CORE) a color.
+       - Logo_D_CORE.png  Banner triple en azul monocromo.
+       - Logo_E_core.png  Banner triple en blanco (para fondos oscuros).
+       - escudo_gore_b.png  Banner sobre fondo negro (idem Logo_B).
 
      Props:
        - background: 'light' (default, sobre fondo claro) | 'dark' (sobre fondo oscuro)
-       - variant:    'compact' (solo escudo) | 'full' (escudo + texto)
+       - variant:    'full' (default, banner doble: escudo + slogan)
+                     | 'compact' (alto reducido para navbar mobile)
+                     | 'triple'  (escudo + slogan + CORE)
+       - height:     altura en pixeles (default 44 para full, 36 para compact, 52 para triple).
+                     Override explicito si necesitas otra cosa.
 --}}
 @props([
     'background' => 'light',
     'variant' => 'full',
+    'height' => null,
 ])
 
 @php
-    $darkLogo = public_path('img/brand/escudo_gore_b.png');
-    $lightLogo = public_path('img/brand/escudo_gore_w.png');
-    $hasDark = file_exists($darkLogo);
-    $hasLight = file_exists($lightLogo);
-    $useDark = $background === 'dark';
-    $imagePath = $useDark
-        ? ($hasDark ? asset('img/brand/escudo_gore_b.png') : null)
-        : ($hasLight ? asset('img/brand/escudo_gore_w.png') : null);
+    $isDark = $background === 'dark';
+
+    // Mapa de archivos por (variant, background). El primer archivo existente
+    // gana. Si NINGUNO existe, caemos al placeholder al final.
+    $candidates = match ($variant) {
+        'triple'  => $isDark ? ['Logo_E_core.png'] : ['Logo_C_Core.png', 'Logo_D_CORE.png'],
+        default   => $isDark ? ['Logo_B.png', 'escudo_gore_b.png'] : ['Logo_A.png'],
+    };
+
+    $imagePath = null;
+    foreach ($candidates as $file) {
+        if (file_exists(public_path('img/brand/' . $file))) {
+            $imagePath = asset('img/brand/' . $file);
+            break;
+        }
+    }
+
+    $heightPx = $height ?: match ($variant) {
+        'compact' => 36,
+        'triple'  => 52,
+        default   => 44,
+    };
 @endphp
 
 <span {{ $attributes->merge(['class' => 'gore-logo d-inline-flex align-items-center']) }}>
     @if ($imagePath)
-        {{-- Tenemos imagen para este fondo: la usamos directamente --}}
         <img src="{{ $imagePath }}"
-             alt="Gobierno Regional de Valparaiso"
+             alt="Gobierno Regional de la Region de Valparaiso"
              class="gore-logo-image"
-             style="height: {{ $variant === 'compact' ? '36px' : '44px' }}; width: auto; object-fit: contain;">
+             style="height: {{ $heightPx }}px; width: auto; object-fit: contain; display: block;">
     @else
-        {{-- Fallback: placeholder de escudo + texto.
-             Esto se ve cuando no existe el archivo correspondiente al fondo. --}}
+        {{-- Fallback solo si NO existe ningun archivo (no deberia pasar en
+             produccion; queda por defensa). --}}
         <span class="d-inline-flex align-items-center justify-content-center me-2"
-              style="width: 36px; height: 36px; background: {{ $useDark ? '#fff' : 'var(--gore-primary)' }}; color: {{ $useDark ? 'var(--gore-primary)' : '#fff' }}; border-radius: 8px;">
+              style="width: 36px; height: 36px; background: {{ $isDark ? '#fff' : 'var(--gore-primary)' }}; color: {{ $isDark ? 'var(--gore-primary)' : '#fff' }}; border-radius: 8px;">
             <i class="bi bi-shield-fill" style="font-size: 1.125rem;"></i>
         </span>
-
         @if ($variant !== 'compact')
-            <span class="navbar-brand-text">
-                <span style="color: {{ $useDark ? '#fff' : 'var(--gore-ink)' }};">Gobierno Regional</span>
-                <span class="navbar-brand-text-secondary"
-                      style="color: {{ $useDark ? 'rgba(255,255,255,0.7)' : 'var(--gore-ink-soft)' }};">
-                    Region de Valparaiso
+            <span style="line-height: 1.15;">
+                <span style="color: {{ $isDark ? '#fff' : 'var(--gore-ink)' }}; font-weight: 600; font-size: 0.875rem; display: block;">
+                    Gobierno Regional
+                </span>
+                <span style="color: {{ $isDark ? 'rgba(255,255,255,0.72)' : 'var(--gore-ink-soft)' }}; font-weight: 500; font-size: 0.75rem;">
+                    Regi&oacute;n de Valpara&iacute;so
                 </span>
             </span>
         @endif

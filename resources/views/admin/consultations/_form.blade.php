@@ -62,20 +62,11 @@
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox"
-                       name="auth_methods[]" value="manual"
-                       id="auth_manual"
-                       @checked(in_array('manual', (array) $authMethods))>
-                <label class="form-check-label" for="auth_manual">
-                    Registro manual
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox"
                        name="auth_methods[]" value="guest"
                        id="auth_guest"
                        @checked(in_array('guest', (array) $authMethods))>
                 <label class="form-check-label" for="auth_guest">
-                    Sin registro <span class="text-muted small">(nombre + email)</span>
+                    Sin registro <span class="text-muted small">(nombre/raz&oacute;n social + email)</span>
                 </label>
             </div>
         </div>

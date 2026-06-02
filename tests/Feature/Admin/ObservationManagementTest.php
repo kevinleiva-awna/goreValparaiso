@@ -55,15 +55,23 @@ it('filtra por metodo de autenticacion', function () {
         ->forConsultation($this->consultation, $this->stage)
         ->byUser($citizen)
         ->create(['auth_method_used' => Observation::AUTH_CLAVEUNICA, 'subject' => 'ConClaveUnica']);
+    // 'guest' como segunda categoria visible en el listado: el registro
+    // manual fue eliminado en junio 2026, solo quedan claveunica y guest.
     Observation::factory()
         ->forConsultation($this->consultation, $this->stage)
-        ->byUser($citizen)
-        ->create(['auth_method_used' => Observation::AUTH_MANUAL, 'subject' => 'ConManual']);
+        ->create([
+            'user_id' => null,
+            'auth_method_used' => Observation::AUTH_GUEST,
+            'snapshot_national_id' => null,
+            'snapshot_full_name' => 'Guest Anonimo',
+            'snapshot_email' => 'guest@example.com',
+            'subject' => 'ConGuest',
+        ]);
 
     $response = $this->get(route('admin.observations.index', ['auth_method' => 'claveunica']));
     $response->assertOk();
     $response->assertSeeText('ConClaveUnica');
-    $response->assertDontSeeText('ConManual');
+    $response->assertDontSeeText('ConGuest');
 });
 
 it('exporta observaciones en formato xlsx', function () {

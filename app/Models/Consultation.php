@@ -40,7 +40,6 @@ class Consultation extends Model
     public const TYPE_OTHER = 'OTRO';
 
     public const AUTH_CLAVEUNICA = 'claveunica';
-    public const AUTH_MANUAL = 'manual';
     public const AUTH_GUEST = 'guest';
 
     public function allowsGuest(): bool

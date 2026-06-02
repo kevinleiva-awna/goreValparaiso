@@ -70,9 +70,12 @@ class ClaveUnicaController extends Controller
      */
     public function callback(Request $request): RedirectResponse
     {
+        // Sin sesion previa de ClaveUnica -> redirige al listado publico de
+        // consultas con un mensaje, en lugar de mandar al ex-citizen.login
+        // (ruta eliminada en B.1).
         if ($request->input('state') !== session('claveunica.state')) {
-            return redirect()->route('citizen.login')
-                ->withErrors(['email' => 'Sesion de ClaveUnica invalida. Intenta nuevamente.']);
+            return redirect()->route('public.consultations.index')
+                ->withErrors(['claveunica' => 'Sesion de ClaveUnica invalida. Intenta nuevamente.']);
         }
 
         $userInfo = config('claveunica.mode') === 'mock'
@@ -80,8 +83,8 @@ class ClaveUnicaController extends Controller
             : $this->fetchUserInfoLive($request);
 
         if (! $userInfo || empty($userInfo['run'])) {
-            return redirect()->route('citizen.login')
-                ->withErrors(['email' => 'No se pudo obtener tu identidad desde ClaveUnica.']);
+            return redirect()->route('public.consultations.index')
+                ->withErrors(['claveunica' => 'No se pudo obtener tu identidad desde ClaveUnica.']);
         }
 
         $user = $this->upsertUser($userInfo);
@@ -92,6 +95,18 @@ class ClaveUnicaController extends Controller
         $request->session()->regenerate();
 
         return redirect()->intended(route('home'));
+    }
+
+    /**
+     * Cierra la sesion del ciudadano. Reemplaza al ex-AuthenticatedCitizen
+     * SessionController::destroy eliminado en B.1.
+     */
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('home');
     }
 
     /**

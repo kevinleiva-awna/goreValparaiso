@@ -9,14 +9,13 @@ use App\Http\Controllers\Admin\ObservationController as AdminObservationControll
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Dev\MockClaveUnicaController;
-use App\Http\Controllers\Public\Auth\AuthenticatedCitizenSessionController;
 use App\Http\Controllers\Public\Auth\ClaveUnicaController;
-use App\Http\Controllers\Public\Auth\EmailVerificationController;
-use App\Http\Controllers\Public\Auth\RegisteredCitizenController;
 use App\Http\Controllers\Public\ConsultationController as PublicConsultationController;
 use App\Http\Controllers\Public\ObservationController as PublicObservationController;
 use App\Models\Consultation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     // Las 3 consultas mas recientes en estado activo o publicado para el hero.
@@ -27,8 +26,61 @@ Route::get('/', function () {
         ->limit(3)
         ->get();
 
-    return view('welcome', ['featured' => $featured]);
+    // Stats agregados para el hero (acta junio 2026, punto 1: mas llamativo).
+    $stats = [
+        'active_processes' => Consultation::query()
+            ->where('status', Consultation::STATUS_ACTIVE)
+            ->count(),
+        'total_observations' => \App\Models\Observation::query()->count(),
+        'closed_processes' => Consultation::query()
+            ->where('status', Consultation::STATUS_CLOSED)
+            ->count(),
+    ];
+
+    return view('welcome', ['featured' => $featured, 'stats' => $stats]);
 })->name('home');
+
+// Health-check enriquecido: verifica conectividad a BD y al disk de storage
+// configurado. Sin auth (para que el load balancer / monitoring lo consulte)
+// pero rate-limited a 30/min por IP para evitar abuso. Distinto a /up (que
+// Laravel ya provee y solo valida bootstrap).
+Route::get('/healthz', function () {
+    $startedAt = microtime(true);
+    $dbOk = false;
+    $storageOk = false;
+    $dbError = null;
+    $storageError = null;
+
+    try {
+        DB::connection()->getPdo();
+        DB::select('SELECT 1');
+        $dbOk = true;
+    } catch (\Throwable $e) {
+        $dbError = $e->getMessage();
+    }
+
+    try {
+        $disk = config('filesystems.default');
+        // Touch no-op: probamos lectura del root listing en disk default.
+        Storage::disk($disk)->files('healthz');
+        $storageOk = true;
+    } catch (\Throwable $e) {
+        $storageError = $e->getMessage();
+    }
+
+    $status = ($dbOk && $storageOk) ? 'ok' : 'degraded';
+    $code = ($dbOk && $storageOk) ? 200 : 503;
+
+    return response()->json([
+        'status' => $status,
+        'checks' => [
+            'database' => ['ok' => $dbOk, 'error' => $dbError],
+            'storage' => ['ok' => $storageOk, 'disk' => config('filesystems.default'), 'error' => $storageError],
+        ],
+        'app_env' => config('app.env'),
+        'elapsed_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+    ], $code);
+})->middleware('throttle:30,1')->name('healthz');
 
 // Portal Ciudadano (publico, sin auth)
 Route::prefix('consultas')->group(function () {
@@ -56,23 +108,11 @@ Route::prefix('consultas')->group(function () {
         ->name('public.observations.success');
 });
 
-// Auth ciudadana: registro manual con verificacion por correo obligatoria.
-// Esta separada de /admin/login que sigue siendo solo para staff.
-// Rate limits anti-flood para login/registro (D21).
+// Auth ciudadana: SOLO ClaveUnica. El registro manual con email/password
+// fue eliminado en junio 2026 (acta de observaciones GORE, punto 2): el
+// flujo "sin ClaveUnica" se atiende como guest dentro del formulario de
+// observacion, no via cuenta de usuario.
 Route::middleware('guest')->group(function () {
-    Route::get('/registrarme', [RegisteredCitizenController::class, 'create'])
-        ->name('citizen.register');
-    Route::post('/registrarme', [RegisteredCitizenController::class, 'store'])
-        ->middleware('throttle:5,1')
-        ->name('citizen.register.store');
-
-    Route::get('/ingresar', [AuthenticatedCitizenSessionController::class, 'create'])
-        ->name('citizen.login');
-    Route::post('/ingresar', [AuthenticatedCitizenSessionController::class, 'store'])
-        ->middleware('throttle:10,1')
-        ->name('citizen.login.store');
-
-    // ClaveUnica (flujo OIDC, mock o live segun config)
     Route::get('/auth/claveunica/redirect', [ClaveUnicaController::class, 'redirect'])
         ->middleware('throttle:10,1')
         ->name('citizen.claveunica.redirect');
@@ -91,21 +131,11 @@ if (config('claveunica.mode') === 'mock') {
     });
 }
 
+// Logout del ciudadano autenticado via ClaveUnica. Lo maneja directamente
+// el ClaveUnicaController porque ya no hay AuthenticatedCitizenSession.
 Route::middleware('auth')->group(function () {
-    Route::post('/cerrar-sesion', [AuthenticatedCitizenSessionController::class, 'destroy'])
+    Route::post('/cerrar-sesion', [ClaveUnicaController::class, 'logout'])
         ->name('citizen.logout');
-
-    // Verificacion de email del ciudadano
-    Route::get('/email/verificar', [EmailVerificationController::class, 'notice'])
-        ->name('citizen.verification.notice');
-
-    Route::get('/email/verificar/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('citizen.verification.verify');
-
-    Route::post('/email/reenviar-verificacion', [EmailVerificationController::class, 'resend'])
-        ->middleware('throttle:6,1')
-        ->name('citizen.verification.resend');
 });
 
 // Backoffice (funcionarios y super-admin)

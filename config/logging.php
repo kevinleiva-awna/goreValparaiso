@@ -69,7 +69,10 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => env('LOG_DAILY_DAYS', 14),
+            // 30 dias por defecto: en preprod queremos visibilidad amplia de
+            // errores (cliente exige cero downtime, punto 8 del acta); en
+            // local puede ajustarse con LOG_DAILY_DAYS si crece mucho.
+            'days' => env('LOG_DAILY_DAYS', 30),
             'replace_placeholders' => true,
         ],
 

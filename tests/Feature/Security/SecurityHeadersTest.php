@@ -44,25 +44,15 @@ it('inyecta Content-Security-Policy estricta con default-src self', function () 
     expect($csp)->toContain('https://fonts.bunny.net');
 });
 
-it('aplica rate limit al endpoint de registro ciudadano', function () {
-    // 5 envios permitidos por minuto. Al 6to debe responder 429.
-    for ($i = 0; $i < 5; $i++) {
-        $response = $this->post(route('citizen.register.store'), [
-            'name' => 'Test',
-            'last_name' => 'Smith',
-            'national_id' => '11111111-1',
-            'email' => "spam{$i}@example.com",
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
-        // No nos importa el status del POST en si — 422 o 302 son OK.
-        // Solo que no bloquee por rate limit aun.
+it('aplica rate limit al endpoint de ClaveUnica redirect', function () {
+    // 10 GET permitidos por minuto al endpoint que inicia el flujo OIDC.
+    // El registro manual fue eliminado en junio 2026, asi que el rate-limit
+    // mas relevante para anti-flood es este (anti spam de redirect).
+    for ($i = 0; $i < 10; $i++) {
+        $response = $this->get(route('citizen.claveunica.redirect'));
         expect($response->status())->not->toBe(429);
     }
 
-    $blocked = $this->post(route('citizen.register.store'), [
-        'name' => 'Spammer',
-        'email' => 'overflow@example.com',
-    ]);
+    $blocked = $this->get(route('citizen.claveunica.redirect'));
     $blocked->assertStatus(429);
 });

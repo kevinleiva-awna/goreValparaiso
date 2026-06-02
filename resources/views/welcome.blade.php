@@ -1,64 +1,65 @@
 <x-public-layout>
     @section('title', 'Inicio')
 
-    {{-- HERO --}}
+    {{-- HERO estilo Stripe — fondo claro con aurora calida derramandose
+         desde la derecha. Headline grande con palabras destacadas en gradient
+         multicolor coherente con el aurora. Stats reales al pie. --}}
     <section class="gore-hero">
-        <div class="container position-relative">
-            <div class="row align-items-center">
-                <div class="col-lg-8 gore-fade-up">
-                    <span class="gore-hero-eyebrow">
-                        <i class="bi bi-megaphone"></i>
-                        Region de Valparaiso &middot; Participacion Ciudadana
-                    </span>
+        <div class="gore-hero-blob" aria-hidden="true"></div>
+
+        <div class="container">
+            <div class="row align-items-end g-4">
+                <div class="col-lg-9 col-xl-8 gore-reveal gore-stagger">
+                    {{-- Eyebrow estilo Stripe: texto plano con stat numerico al lado --}}
+                    <div class="gore-hero-eyebrow">
+                        Region de Valpara&iacute;so &middot; Participaci&oacute;n Ciudadana
+                        <span class="gore-hero-eyebrow-stat">
+                            &middot; {{ number_format($stats['total_observations'], 0, ',', '.') }}
+                            observaciones registradas
+                        </span>
+                    </div>
+
                     <h1 class="gore-hero-title">
-                        Tu voz construye el ordenamiento territorial de la region.
+                        Tu voz construye el
+                        <span class="gore-hero-accent">ordenamiento territorial</span>
+                        de la regi&oacute;n.
                     </h1>
+
                     <p class="gore-hero-lead">
-                        Plataforma oficial para participar en los procesos de consulta publica
-                        sobre Instrumentos de Planificacion y Ordenamiento Territorial (IPT, PROT y ZUBC)
-                        del Gobierno Regional de Valparaiso.
+                        Plataforma oficial del Gobierno Regional para participar en
+                        consultas p&uacute;blicas sobre Instrumentos de Planificaci&oacute;n y
+                        Ordenamiento Territorial. Identif&iacute;cate con ClaveUnica o como
+                        invitado/a en pocos pasos.
                     </p>
 
-                    <div class="d-flex flex-wrap gap-3 mt-4">
-                        <a href="#consultas" class="btn btn-light btn-lg fw-semibold">
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a href="#consultas" class="gore-hero-cta-primary">
                             Ver consultas vigentes
-                            <i class="bi bi-arrow-down ms-1"></i>
+                            <span class="gore-hero-cta-chevron">&rsaquo;</span>
                         </a>
-                        <a href="#como-funciona" class="btn btn-outline-light btn-lg">
-                            Como funciona
+                        <a href="#como-funciona" class="gore-hero-cta-secondary">
+                            <i class="bi bi-info-circle"></i>
+                            C&oacute;mo funciona
                         </a>
                     </div>
-                </div>
 
-                <div class="col-lg-4 d-none d-lg-block">
-                    <div class="position-relative" style="aspect-ratio: 1; max-width: 380px; margin-left: auto;">
-                        <div class="position-absolute top-0 end-0 bg-white rounded-4 p-4 shadow-lg"
-                             style="width: 220px; transform: rotate(-3deg);">
-                            <div class="small text-uppercase fw-semibold mb-1"
-                                 style="color: var(--gore-primary); letter-spacing: 0.05em;">
-                                PROT activo
-                            </div>
-                            <div class="fw-bold mb-2" style="color: var(--gore-ink);">
-                                Plan Regional de Ordenamiento Territorial
-                            </div>
-                            <div class="d-flex justify-content-between small text-muted">
-                                <span><i class="bi bi-clock me-1"></i>32 dias restantes</span>
-                                <span><i class="bi bi-people me-1"></i>1.247</span>
+                    {{-- Stats inline al pie del hero, horizontales (no card oscura) --}}
+                    <div class="d-flex flex-wrap gap-4 gap-md-5 mt-5 pt-4"
+                         style="border-top: 1px solid rgba(15, 23, 42, 0.08);">
+                        <div class="gore-stat">
+                            <div class="gore-stat-value">{{ number_format($stats['active_processes'], 0, ',', '.') }}</div>
+                            <div class="gore-stat-label">
+                                {{ $stats['active_processes'] === 1 ? 'Proceso activo' : 'Procesos activos' }}
                             </div>
                         </div>
-                        <div class="position-absolute bottom-0 start-0 bg-white rounded-4 p-4 shadow-lg"
-                             style="width: 210px; transform: rotate(2deg);">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div class="d-inline-flex align-items-center justify-content-center"
-                                     style="width: 32px; height: 32px; background: rgba(16,185,129,0.12); color: #059669; border-radius: 8px;">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                </div>
-                                <div class="fw-semibold small" style="color: var(--gore-ink);">
-                                    Observacion enviada
-                                </div>
-                            </div>
-                            <div class="small text-muted">
-                                Quedo registrada con identidad verificada via ClaveUnica.
+                        <div class="gore-stat">
+                            <div class="gore-stat-value">{{ number_format($stats['total_observations'], 0, ',', '.') }}</div>
+                            <div class="gore-stat-label">Observaciones ciudadanas</div>
+                        </div>
+                        <div class="gore-stat">
+                            <div class="gore-stat-value">{{ number_format($stats['closed_processes'], 0, ',', '.') }}</div>
+                            <div class="gore-stat-label">
+                                {{ $stats['closed_processes'] === 1 ? 'Proceso cerrado' : 'Procesos cerrados' }}
                             </div>
                         </div>
                     </div>
@@ -68,9 +69,9 @@
     </section>
 
     {{-- BENEFICIOS --}}
-    <section class="py-5 py-lg-6" id="beneficios">
+    <section class="py-5 py-lg-6 gore-aurora-bg" id="beneficios">
         <div class="container py-4">
-            <div class="row mb-5">
+            <div class="row mb-5 gore-reveal">
                 <div class="col-lg-8 mx-auto text-center">
                     <span class="gore-badge gore-badge-brand mb-3">Por que participar</span>
                     <h2 class="h1 fw-bold mb-3" style="letter-spacing: -0.02em;">
@@ -83,12 +84,12 @@
                 </div>
             </div>
 
-            <div class="row g-4">
+            <div class="row g-4 gore-reveal gore-stagger">
                 <div class="col-md-6 col-lg-3">
                     <div class="gore-feature-card">
                         <div class="gore-feature-icon"><i class="bi bi-shield-check"></i></div>
                         <h3>Identidad verificada</h3>
-                        <p>Iniciar sesion con ClaveUnica o registro manual con RUT y correo institucionalmente validado.</p>
+                        <p>Identificate via ClaveUnica o participa como invitado/a (persona natural, juridica u organizacion) declarando tus datos.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -119,7 +120,7 @@
     {{-- CONSULTAS VIGENTES --}}
     <section class="py-5 py-lg-6 bg-white" id="consultas" style="border-top: 1px solid var(--gore-border);">
         <div class="container py-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-end mb-5 gap-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-end mb-5 gap-3 gore-reveal">
                 <div>
                     <span class="gore-badge gore-badge-brand mb-2">Procesos abiertos</span>
                     <h2 class="h1 fw-bold mb-2" style="letter-spacing: -0.02em;">Consultas vigentes</h2>
@@ -138,11 +139,19 @@
                     <p class="text-muted">No hay consultas vigentes en este momento.</p>
                 </div>
             @else
-                <div class="row g-4">
+                <div class="row g-4 gore-reveal gore-stagger">
                     @foreach ($featured as $c)
                         @php
                             $daysLeft = $c->ends_at ? max(0, floor(now()->diffInDays($c->ends_at, false))) : null;
                             $isOpen = $c->status === 'active';
+                            // Urgencia visual (acta junio 2026, punto 1):
+                            // >7 dias verde, 3-7 dias ambar, <3 dias rojo.
+                            $urgencyColor = match (true) {
+                                ! $isOpen || $daysLeft === null => null,
+                                $daysLeft < 3 => '#dc2626',
+                                $daysLeft <= 7 => '#d97706',
+                                default => '#059669',
+                            };
                         @endphp
                         <div class="col-md-6 col-lg-4">
                             <a href="{{ route('public.consultations.show', $c->slug) }}"
@@ -164,15 +173,28 @@
                                         {{ $c->summary }}
                                     </p>
                                 @endif
-                                <div class="d-flex justify-content-between align-items-center pt-3 mt-auto"
+                                <div class="d-flex justify-content-between align-items-center pt-3 mt-auto gap-2 flex-wrap"
                                      style="border-top: 1px solid var(--gore-border);">
-                                    <span class="small text-muted">
+                                    <span class="small d-flex align-items-center gap-2 flex-wrap"
+                                          style="color: var(--gore-ink-soft);">
                                         @if ($isOpen && $daysLeft !== null && $daysLeft > 0)
-                                            <i class="bi bi-clock me-1"></i>
-                                            Cierra en {{ $daysLeft }} dias
+                                            <span class="d-inline-flex align-items-center"
+                                                  style="@if($urgencyColor) color: {{ $urgencyColor }}; font-weight: 600;@endif">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ $daysLeft }} {{ $daysLeft === 1.0 ? 'dia' : 'dias' }} restantes
+                                            </span>
                                         @elseif ($c->starts_at)
-                                            <i class="bi bi-calendar-event me-1"></i>
-                                            Inicia {{ $c->starts_at->format('d/m/Y') }}
+                                            <span>
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                Inicia {{ $c->starts_at->format('d/m/Y') }}
+                                            </span>
+                                        @endif
+                                        @if ($c->observations_count > 0)
+                                            <span class="text-muted">
+                                                &middot;
+                                                <i class="bi bi-chat-left-text me-1"></i>
+                                                {{ number_format($c->observations_count, 0, ',', '.') }} obs.
+                                            </span>
                                         @endif
                                     </span>
                                     <span class="small fw-semibold" style="color: var(--gore-primary);">
@@ -195,10 +217,10 @@
     </section>
 
     {{-- COMO FUNCIONA --}}
-    <section class="py-5 py-lg-6" id="como-funciona">
+    <section class="py-5 py-lg-6 gore-aurora-bg" id="como-funciona">
         <div class="container py-4">
             <div class="row align-items-center g-5">
-                <div class="col-lg-5">
+                <div class="col-lg-5 gore-reveal">
                     <span class="gore-badge gore-badge-brand mb-3">Paso a paso</span>
                     <h2 class="h1 fw-bold mb-3" style="letter-spacing: -0.02em;">
                         Como participar en 4 pasos
@@ -213,11 +235,11 @@
                 </div>
 
                 <div class="col-lg-7">
-                    <div class="row g-3">
+                    <div class="row g-3 gore-reveal gore-stagger">
                         @foreach ([
                             ['n' => '01', 'title' => 'Selecciona la consulta', 'text' => 'Revisa las consultas vigentes y elige el proceso en el que quieres participar.'],
                             ['n' => '02', 'title' => 'Revisa los antecedentes', 'text' => 'Descarga los documentos tecnicos oficiales del instrumento.'],
-                            ['n' => '03', 'title' => 'Identificate', 'text' => 'Inicia sesion con ClaveUnica o registrate con tus datos personales.'],
+                            ['n' => '03', 'title' => 'Identificate', 'text' => 'Ingresa con ClaveUnica o participa sin cuenta declarando nombre y correo. Persona natural, juridica u organizacion.'],
                             ['n' => '04', 'title' => 'Envia tu observacion', 'text' => 'Redacta tu observacion formal. Quedara con timestamp inalterable y recibiras confirmacion por correo.'],
                         ] as $step)
                             <div class="col-md-6">
@@ -240,7 +262,7 @@
     <section class="py-5 py-lg-6 bg-white" id="preguntas" style="border-top: 1px solid var(--gore-border);">
         <div class="container py-4">
             <div class="row">
-                <div class="col-lg-8 mx-auto">
+                <div class="col-lg-8 mx-auto gore-reveal">
                     <div class="text-center mb-5">
                         <span class="gore-badge gore-badge-brand mb-3">FAQ</span>
                         <h2 class="h1 fw-bold mb-2" style="letter-spacing: -0.02em;">Preguntas frecuentes</h2>
@@ -248,7 +270,7 @@
 
                     <div class="accordion accordion-flush" id="faq">
                         @foreach ([
-                            ['q' => 'Quien puede participar en las consultas?', 'a' => 'Cualquier persona natural mayor de edad puede participar identificandose via ClaveUnica o mediante registro manual con su RUT y correo electronico.'],
+                            ['q' => 'Quien puede participar en las consultas?', 'a' => 'Cualquier persona natural mayor de 14 anos puede participar identificandose via ClaveUnica o como invitado/a entregando nombre, correo y RUT/pasaporte. Tambien pueden participar personas juridicas y organizaciones sin personalidad juridica entregando razon social, RUT y correo.'],
                             ['q' => 'Puedo enviar mas de una observacion en una misma consulta?', 'a' => 'Si. Un mismo usuario puede enviar multiples observaciones a una misma consulta. Cada observacion se registra como un acto independiente y queda asociada a su identidad verificada.'],
                             ['q' => 'Que pasa con mi observacion despues de enviarla?', 'a' => 'Tu observacion ingresa al expediente del proceso. La Unidad de Ordenamiento Territorial del GORE la revisa y, segun el proceso, recibira una respuesta institucional formal.'],
                             ['q' => 'Mis datos personales son publicos?', 'a' => 'No. Tu correo, RUT y datos de contacto no son publicos. Solo el contenido de tu observacion es publico segun los plazos definidos por la Ley N°21.074. El GORE custodia tus datos personales bajo D.S. N°7/2023.'],
@@ -276,12 +298,15 @@
         </div>
     </section>
 
-    {{-- CTA FINAL --}}
+    {{-- CTA FINAL con aurora vibrante para cerrar la pagina con impacto --}}
     <section class="py-5 py-lg-6">
         <div class="container py-4">
-            <div class="rounded-4 p-5 p-md-6 position-relative overflow-hidden"
-                 style="background: linear-gradient(135deg, var(--gore-primary-dark) 0%, var(--gore-primary) 100%); color: #fff;">
-                <div class="row align-items-center g-4 position-relative">
+            <div class="rounded-4 p-5 p-md-6 position-relative overflow-hidden gore-reveal"
+                 style="background: radial-gradient(circle at 80% 20%, rgba(173,162,103,0.30) 0%, transparent 50%),
+                                    radial-gradient(circle at 20% 80%, rgba(143,190,154,0.20) 0%, transparent 50%),
+                                    linear-gradient(135deg, var(--gore-primary-dark) 0%, var(--gore-primary) 100%);
+                        color: #fff; isolation: isolate;">
+                <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
                     <div class="col-lg-8">
                         <h2 class="display-6 fw-bold mb-2" style="letter-spacing: -0.02em;">
                             Listo para hacer escuchar tu voz?

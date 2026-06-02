@@ -42,7 +42,6 @@ class UpdateConsultationRequest extends FormRequest
             'auth_methods' => ['required', 'array', 'min:1'],
             'auth_methods.*' => [Rule::in([
                 Consultation::AUTH_CLAVEUNICA,
-                Consultation::AUTH_MANUAL,
                 Consultation::AUTH_GUEST,
             ])],
         ];

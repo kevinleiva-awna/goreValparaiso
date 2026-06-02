@@ -45,7 +45,7 @@ class ConsultationController extends Controller
         return view('admin.consultations.create', [
             'consultation' => new Consultation([
                 'status' => Consultation::STATUS_DRAFT,
-                'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_MANUAL],
+                'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_GUEST],
             ]),
         ]);
     }

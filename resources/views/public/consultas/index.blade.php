@@ -98,6 +98,14 @@
                                 'closed' => 'Cerrada',
                                 default => $c->status,
                             };
+                            // Urgencia (acta junio 2026, punto 1):
+                            // >7 dias verde, 3-7 ambar, <3 rojo. Solo para 'active'.
+                            $urgencyColor = match (true) {
+                                ! $isOpen || $daysLeft === null => null,
+                                $daysLeft < 3 => '#dc2626',
+                                $daysLeft <= 7 => '#d97706',
+                                default => '#059669',
+                            };
                         @endphp
                         <div class="col-md-6 col-lg-4">
                             <a href="{{ route('public.consultations.show', $c->slug) }}"
@@ -117,18 +125,33 @@
                                         {{ $c->summary }}
                                     </p>
                                 @endif
-                                <div class="d-flex justify-content-between align-items-center pt-3 mt-auto"
+                                <div class="d-flex justify-content-between align-items-center pt-3 mt-auto gap-2 flex-wrap"
                                      style="border-top: 1px solid var(--gore-border);">
-                                    <span class="small text-muted">
+                                    <span class="small d-flex align-items-center gap-2 flex-wrap"
+                                          style="color: var(--gore-ink-soft);">
                                         @if ($isOpen && $daysLeft !== null && $daysLeft > 0)
-                                            <i class="bi bi-clock me-1"></i>
-                                            Cierra en {{ floor($daysLeft) }} {{ floor($daysLeft) === 1 ? 'dia' : 'dias' }}
+                                            <span class="d-inline-flex align-items-center"
+                                                  style="@if($urgencyColor) color: {{ $urgencyColor }}; font-weight: 600;@endif">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ floor($daysLeft) }} {{ floor($daysLeft) === 1 ? 'dia' : 'dias' }} restantes
+                                            </span>
                                         @elseif ($isClosed)
-                                            <i class="bi bi-clock-history me-1"></i>
-                                            Proceso cerrado
+                                            <span>
+                                                <i class="bi bi-clock-history me-1"></i>
+                                                Proceso cerrado
+                                            </span>
                                         @elseif ($c->starts_at)
-                                            <i class="bi bi-calendar-event me-1"></i>
-                                            Inicia el {{ $c->starts_at->format('d/m/Y') }}
+                                            <span>
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                Inicia el {{ $c->starts_at->format('d/m/Y') }}
+                                            </span>
+                                        @endif
+                                        @if ($c->observations_count > 0)
+                                            <span class="text-muted">
+                                                &middot;
+                                                <i class="bi bi-chat-left-text me-1"></i>
+                                                {{ number_format($c->observations_count, 0, ',', '.') }} obs.
+                                            </span>
                                         @endif
                                     </span>
                                     <span class="small fw-semibold" style="color: var(--gore-primary);">

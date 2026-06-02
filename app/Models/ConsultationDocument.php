@@ -36,6 +36,7 @@ class ConsultationDocument extends Model
         'mime_type',
         'size_bytes',
         'storage_path',
+        'storage_disk',
         'file_group_id',
         'version',
         'sha256',

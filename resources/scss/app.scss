@@ -5,12 +5,19 @@
 
 // 1. DESIGN TOKENS ========================================================
 
-// Paleta institucional (color principal entregado por el GORE)
-$gore-primary:        #151c68;   // azul institucional
-$gore-primary-dark:   #0d1247;   // hover/active y elementos densos
-$gore-primary-light:  #2934a8;   // acentos y highlights
-$gore-accent:         #c8a86b;   // dorado del escudo, para CTAs secundarios
-$gore-accent-dark:    #a88847;
+// Paleta institucional GORE Valparaiso (sampled del manual grafico oficial:
+// escudo, slogan "Region de Derechos" y logo CORE).
+$gore-primary:        #1f2862;   // azul institucional del slogan + escudo
+$gore-primary-dark:   #131a47;   // hover/active y elementos densos
+$gore-primary-light:  #3a4796;   // acentos y highlights
+$gore-accent:         #ada267;   // dorado/oliva del escudo (corona + base)
+$gore-accent-dark:    #8a8154;
+$gore-green:          #8fbe9a;   // verde del puente del escudo
+$gore-green-dark:     #5b9466;
+// Acentos del logo CORE (multicolor) — uso ocasional en stats / highlights
+$gore-core-amber:     #f4b942;
+$gore-core-blue:      #4a90e2;
+$gore-core-green:     #6cb86c;
 
 // Neutrales
 $gore-ink:            #0f172a;   // texto principal
@@ -31,12 +38,28 @@ $gore-info:           #06b6d4;
 $gore-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
                   Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-// Sombras suaves (estilo moderno)
-$gore-shadow-xs:  0 1px 2px 0 rgba(15, 23, 42, 0.04);
-$gore-shadow-sm:  0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
-$gore-shadow-md:  0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
-$gore-shadow-lg:  0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
-$gore-shadow-xl:  0 20px 25px -5px rgba(15, 23, 42, 0.10), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+// Sombras suaves con tinte azul institucional (mas integrado a la paleta).
+$gore-shadow-xs:  0 1px 2px 0 rgba(31, 40, 98, 0.05);
+$gore-shadow-sm:  0 1px 3px 0 rgba(31, 40, 98, 0.07), 0 1px 2px -1px rgba(31, 40, 98, 0.06);
+$gore-shadow-md:  0 4px 6px -1px rgba(31, 40, 98, 0.09), 0 2px 4px -2px rgba(31, 40, 98, 0.07);
+$gore-shadow-lg:  0 12px 24px -6px rgba(31, 40, 98, 0.12), 0 4px 8px -4px rgba(31, 40, 98, 0.06);
+$gore-shadow-xl:  0 25px 50px -12px rgba(31, 40, 98, 0.18), 0 8px 16px -8px rgba(31, 40, 98, 0.08);
+// Glow institucional para hover de cards.
+$gore-glow-primary: 0 0 0 1px rgba(31, 40, 98, 0.1), 0 20px 40px -12px rgba(31, 40, 98, 0.25);
+$gore-glow-accent:  0 0 0 1px rgba(173, 162, 103, 0.15), 0 20px 40px -12px rgba(173, 162, 103, 0.30);
+
+// Motion tokens (consistencia en duraciones y easings)
+$gore-ease-out:     cubic-bezier(0.22, 1, 0.36, 1);     // sale rapido, decelera
+$gore-ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);     // simetrico smooth
+$gore-ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);  // overshoot sutil para hovers
+$gore-dur-fast:     150ms;
+$gore-dur-base:     250ms;
+$gore-dur-slow:     500ms;
+
+// Glass morphism (para navbar al hacer scroll + cards translucidas)
+$gore-glass-bg:     rgba(255, 255, 255, 0.72);
+$gore-glass-border: rgba(255, 255, 255, 0.6);
+$gore-glass-blur:   blur(16px) saturate(180%);
 
 // Radios redondeados (estilo moderno)
 $gore-radius-sm:  6px;
@@ -163,14 +186,26 @@ h3, .h3 { letter-spacing: -0.01em; }
 .text-prewrap { white-space: pre-wrap; }
 .text-balance { text-wrap: balance; }
 
-// Navbar institucional
+// Navbar estilo Stripe — minimal sin background al inicio (el hero claro
+// permite que la aurora se "vea" debajo). Al scrollear, glass sutil con
+// shadow casi imperceptible para no perder la sensacion de aire.
 .gore-navbar {
-    background-color: $gore-bg-elevated;
-    border-bottom: 1px solid $gore-border;
-    backdrop-filter: saturate(180%) blur(8px);
+    background-color: transparent;
+    border-bottom: 1px solid transparent;
     position: sticky;
     top: 0;
     z-index: 1030;
+    transition: background-color $gore-dur-base $gore-ease-out,
+                border-color $gore-dur-base $gore-ease-out,
+                box-shadow $gore-dur-base $gore-ease-out,
+                backdrop-filter $gore-dur-base $gore-ease-out;
+
+    &.gore-navbar-scrolled {
+        background-color: rgba(253, 252, 251, 0.85);
+        -webkit-backdrop-filter: $gore-glass-blur;
+        backdrop-filter: $gore-glass-blur;
+        border-bottom-color: $gore-border;
+    }
 
     .navbar-brand {
         font-weight: 700;
@@ -227,74 +262,345 @@ h3, .h3 { letter-spacing: -0.01em; }
     }
 }
 
-// Hero institucional
+// =========================================================================
+// HERO estilo Stripe — fondo claro con aurora calida derramandose desde la
+// derecha. Texto oscuro, headline con palabras destacadas en gradient
+// multicolor coherente con el aurora. La aurora usa la paleta institucional
+// (dorado escudo + verde puente + azul GORE) y los acentos CORE (ambar,
+// azul, verde) para sumar vibracion.
+// =========================================================================
 .gore-hero {
     position: relative;
-    background:
-        radial-gradient(circle at 80% 20%, rgba($gore-primary-light, 0.18) 0%, transparent 50%),
-        radial-gradient(circle at 10% 90%, rgba($gore-accent, 0.10) 0%, transparent 40%),
-        linear-gradient(135deg, $gore-primary-dark 0%, $gore-primary 100%);
-    color: #fff;
-    padding: clamp(3rem, 8vw, 6rem) 0;
+    background: #fdfcfb; // off-white calido, no blanco puro
+    color: $gore-ink;
+    padding: clamp(4rem, 9vw, 7rem) 0 clamp(3rem, 6vw, 5rem);
     overflow: hidden;
+    isolation: isolate;
 
+    // Aurora principal: gradiente conico/lineal multicolor a la mitad derecha
+    // del viewport, derramando hacia abajo-izquierda. Animado lento.
     &::before {
         content: '';
         position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-        background-size: 60px 60px;
-        opacity: 0.4;
+        top: -10%;
+        right: -20%;
+        width: 90%;
+        height: 130%;
+        background:
+            radial-gradient(circle at 30% 20%, rgba($gore-accent, 0.55) 0%, transparent 50%),
+            radial-gradient(circle at 70% 60%, rgba($gore-core-amber, 0.50) 0%, transparent 50%),
+            radial-gradient(circle at 50% 90%, rgba($gore-primary-light, 0.45) 0%, transparent 55%),
+            radial-gradient(circle at 90% 30%, rgba($gore-green, 0.35) 0%, transparent 45%);
+        filter: blur(60px);
+        opacity: 0.95;
         pointer-events: none;
+        z-index: 0;
+        animation: gore-aurora-flow 24s $gore-ease-in-out infinite alternate;
+        will-change: transform;
+        transform-origin: 70% 50%;
+    }
+
+    // Halo secundario que difumina el borde inferior contra la siguiente seccion.
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 70%;
+        height: 60%;
+        background: radial-gradient(ellipse, rgba($gore-core-blue, 0.20) 0%, transparent 60%);
+        filter: blur(80px);
+        opacity: 0.7;
+        pointer-events: none;
+        z-index: 0;
+        animation: gore-aurora-drift-b 30s $gore-ease-in-out infinite alternate;
+        will-change: transform;
+    }
+
+    // Blob opcional adicional via markup, suma una tercera curva.
+    .gore-hero-blob {
+        position: absolute;
+        top: 40%;
+        right: 5%;
+        width: 35vw;
+        height: 35vw;
+        max-width: 480px;
+        max-height: 480px;
+        border-radius: 50%;
+        filter: blur(70px);
+        opacity: 0.55;
+        background: radial-gradient(circle, rgba(#e85a4f, 0.45) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+        animation: gore-aurora-drift-c 26s $gore-ease-in-out infinite alternate;
+        will-change: transform;
+    }
+
+    // El grid del hero anterior NO va en este estilo: Stripe es muy clean.
+    .gore-hero-grid { display: none; }
+
+    > .container {
+        position: relative;
+        z-index: 1;
     }
 
     .gore-hero-eyebrow {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.375rem 0.875rem;
-        background: rgba(255,255,255,0.10);
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: $gore-radius-pill;
-        font-size: 0.8125rem;
+        font-size: 0.875rem;
         font-weight: 500;
-        letter-spacing: 0.02em;
+        color: $gore-ink-soft;
+        letter-spacing: 0;
+        text-transform: none;
         margin-bottom: 1.5rem;
+        padding: 0;
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
+
+        // Stat numeric muy sutil al lado, monoespaciado-ish.
+        .gore-hero-eyebrow-stat {
+            font-variant-numeric: tabular-nums;
+            color: $gore-muted;
+            font-weight: 500;
+            font-feature-settings: 'tnum';
+        }
     }
 
     .gore-hero-title {
-        font-size: clamp(2.25rem, 5vw, 3.5rem);
-        font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -0.03em;
-        color: #fff;
-        margin-bottom: 1rem;
+        font-size: clamp(2.5rem, 6.5vw, 4.75rem);
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+        color: $gore-ink;
+        margin-bottom: 1.5rem;
         text-wrap: balance;
+        max-width: 22ch;
+
+        // Texto destacado con gradiente multicolor coherente con el aurora.
+        .gore-hero-accent {
+            background: linear-gradient(
+                120deg,
+                $gore-accent 0%,
+                $gore-core-amber 30%,
+                #e85a4f 55%,
+                $gore-primary-light 80%,
+                $gore-core-blue 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gore-shimmer 8s linear infinite;
+            font-weight: 700;
+        }
     }
 
     .gore-hero-lead {
         font-size: clamp(1.0625rem, 1.4vw, 1.25rem);
-        color: rgba(255,255,255,0.85);
-        max-width: 60ch;
+        color: $gore-ink-soft;
+        max-width: 56ch;
         line-height: 1.55;
+        font-weight: 400;
+    }
+
+    // CTAs estilo Stripe: primario solido oscuro con flecha, secundario outline
+    // sutil con icono. Las btn-light del hero anterior NO aplican aqui.
+    .gore-hero-cta-primary {
+        background: $gore-primary;
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: $gore-radius-md;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: background $gore-dur-base $gore-ease-out,
+                    transform $gore-dur-base $gore-ease-spring,
+                    box-shadow $gore-dur-base $gore-ease-out;
+        box-shadow: 0 1px 2px rgba($gore-primary, 0.25);
+
+        &:hover, &:focus {
+            background: $gore-primary-dark;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px -8px rgba($gore-primary, 0.45);
+        }
+
+        .gore-hero-cta-chevron {
+            transition: transform $gore-dur-base $gore-ease-out;
+        }
+        &:hover .gore-hero-cta-chevron { transform: translateX(3px); }
+    }
+
+    .gore-hero-cta-secondary {
+        background: #fff;
+        color: $gore-ink;
+        border: 1px solid $gore-border-strong;
+        padding: 0.75rem 1.25rem;
+        border-radius: $gore-radius-md;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        text-decoration: none;
+        transition: background $gore-dur-base $gore-ease-out,
+                    border-color $gore-dur-base $gore-ease-out,
+                    transform $gore-dur-base $gore-ease-spring;
+
+        &:hover, &:focus {
+            background: $gore-bg;
+            color: $gore-ink;
+            border-color: $gore-border-strong;
+            transform: translateY(-1px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &::before, &::after, .gore-hero-blob, .gore-hero-accent {
+            animation: none !important;
+        }
     }
 }
 
-// Cards de feature/proceso
+// Aurora background reutilizable (para secciones que NO son el hero — mas sutil)
+.gore-aurora-bg {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: -10%;
+        background:
+            radial-gradient(ellipse at 20% 30%, rgba($gore-primary-light, 0.10) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 70%, rgba($gore-accent, 0.08) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 100%, rgba($gore-green, 0.06) 0%, transparent 50%);
+        z-index: -1;
+        pointer-events: none;
+        animation: gore-aurora-drift-a 30s $gore-ease-in-out infinite alternate;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &::before { animation: none; }
+    }
+}
+
+// Stats display — numero grande prominente para metricas institucionales.
+.gore-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .gore-stat-value {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: $gore-primary;
+        font-variant-numeric: tabular-nums;
+        background: linear-gradient(135deg, $gore-primary 0%, $gore-primary-light 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .gore-stat-label {
+        font-size: 0.875rem;
+        color: $gore-ink-soft;
+        font-weight: 500;
+    }
+
+    // Variante para hero: numeros mas claros sobre fondo oscuro
+    &.gore-stat-light {
+        .gore-stat-value {
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .gore-stat-label {
+            color: rgba(255,255,255,0.7);
+        }
+    }
+}
+
+// Scroll reveal — usado con IntersectionObserver desde JS.
+// Los elementos arrancan invisibles + desplazados; .is-visible los muestra.
+.gore-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms $gore-ease-out, transform 700ms $gore-ease-out;
+    will-change: opacity, transform;
+
+    &.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+// Stagger: cada hijo se revela con un delay incremental (40ms por defecto).
+.gore-stagger > * {
+    @for $i from 1 through 10 {
+        &:nth-child(#{$i}) { transition-delay: ($i - 1) * 60ms; }
+    }
+}
+
+// Cards de feature/proceso — hover lift + glow institucional + borde sutil
+// animado que se ilumina al hover (estilo Stripe / Linear).
 .gore-feature-card {
     background: $gore-bg-elevated;
     border: 1px solid $gore-border;
     border-radius: $gore-radius-lg;
     padding: 1.75rem;
     height: 100%;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+    overflow: hidden;
+    transition: transform $gore-dur-base $gore-ease-spring,
+                box-shadow $gore-dur-base $gore-ease-out,
+                border-color $gore-dur-base $gore-ease-out;
+
+    // Glow gradient detras (revealed con opacity al hover).
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background:
+            radial-gradient(circle at var(--mx, 50%) var(--my, 0%),
+                rgba($gore-primary-light, 0.12) 0%, transparent 60%);
+        opacity: 0;
+        transition: opacity $gore-dur-base $gore-ease-out;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    > * { position: relative; z-index: 1; }
 
     &:hover {
-        transform: translateY(-3px);
-        box-shadow: $gore-shadow-lg;
-        border-color: transparent;
+        transform: translateY(-4px);
+        box-shadow: $gore-glow-primary;
+        border-color: rgba($gore-primary, 0.15);
+
+        &::before { opacity: 1; }
+
+        .gore-feature-icon {
+            transform: scale(1.08) rotate(-3deg);
+            background: $gore-primary;
+            color: #fff;
+        }
     }
 
     .gore-feature-icon {
@@ -308,6 +614,9 @@ h3, .h3 { letter-spacing: -0.01em; }
         justify-content: center;
         font-size: 1.5rem;
         margin-bottom: 1rem;
+        transition: transform $gore-dur-base $gore-ease-spring,
+                    background-color $gore-dur-base $gore-ease-out,
+                    color $gore-dur-base $gore-ease-out;
     }
 
     h3 {
@@ -559,3 +868,88 @@ h3, .h3 { letter-spacing: -0.01em; }
     to   { opacity: 1; transform: translateY(0); }
 }
 .gore-fade-up { animation: goreFadeUp 0.4s ease both; }
+
+// =========================================================================
+// Aurora drift — keyframes que desplazan y deforman los blobs del hero.
+// Movimiento lento, organico, no agresivo. Cada blob tiene su propia curva
+// para que no se sincronicen y la composicion no se "respire" en bloque.
+// =========================================================================
+@keyframes gore-aurora-drift-a {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(-8%, 12%) scale(1.15); }
+    100% { transform: translate(5%, -8%) scale(0.95); }
+}
+@keyframes gore-aurora-drift-b {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(12%, -10%) scale(1.10); }
+    100% { transform: translate(-6%, 6%) scale(1.05); }
+}
+@keyframes gore-aurora-drift-c {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    50%  { transform: translate(8%, -6%) scale(1.20) rotate(20deg); }
+    100% { transform: translate(-10%, 8%) scale(0.90) rotate(-15deg); }
+}
+
+// Shimmer del texto destacado del hero (linear gradient se desplaza
+// horizontalmente). Reduced-motion freeze en color solido.
+@keyframes gore-shimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+// Aurora flow — usado por el hero estilo Stripe. Movimiento amplio
+// del bloque multicolor a la derecha + leve rotacion para que no se
+// repita identico.
+@keyframes gore-aurora-flow {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+    33%  { transform: translate(-5%, 4%) rotate(-3deg) scale(1.08); }
+    66%  { transform: translate(4%, -3%) rotate(2deg) scale(0.94); }
+    100% { transform: translate(-3%, 5%) rotate(-2deg) scale(1.05); }
+}
+
+// Bounce sutil del scroll indicator del hero.
+@keyframes gore-bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.55; }
+    50%      { transform: translateY(6px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    @keyframes gore-bounce {
+        0%, 100% { transform: none; }
+    }
+}
+
+// =========================================================================
+// ACCESIBILIDAD (acta junio 2026, punto 8: cero errores + WCAG 2.1 AA)
+// =========================================================================
+
+// Skip link: oculto visualmente, pero se hace visible al recibir foco con
+// teclado. Permite a usuarios de teclado / screen reader saltar el navbar.
+.gore-skip-link {
+    &:focus {
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 1080;
+        padding: 0.5rem 1rem;
+        background: $gore-primary;
+        color: #fff;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: $gore-radius-md;
+        box-shadow: $gore-shadow-md;
+    }
+}
+
+// Focus visible global para usuarios de teclado. Bootstrap maneja focus
+// con :focus-visible; reforzamos con outline de contraste alto.
+:focus-visible {
+    outline: 2px solid $gore-primary-light;
+    outline-offset: 2px;
+}
+// Mantener Bootstrap dropdown/button focus ring (mas adecuado para esos).
+.btn:focus-visible,
+.dropdown-toggle:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline: none;
+}

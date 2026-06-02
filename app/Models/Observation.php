@@ -32,8 +32,14 @@ class Observation extends Model
     }
 
     public const AUTH_CLAVEUNICA = 'claveunica';
-    public const AUTH_MANUAL = 'manual';
     public const AUTH_GUEST = 'guest';
+
+    public const ACTOR_NATURAL = 'natural';
+    public const ACTOR_PJ = 'pj';
+    public const ACTOR_ORG = 'org';
+
+    public const ID_TYPE_RUT = 'rut';
+    public const ID_TYPE_PASSPORT = 'pasaporte';
 
     protected $fillable = [
         'public_id',
@@ -44,13 +50,24 @@ class Observation extends Model
         'body',
         'category',
         'attachment_path',
+        'attachment_disk',
         'attachment_original_name',
         'attachment_mime_type',
         'attachment_size_bytes',
         'auth_method_used',
+        // Snapshot extendido (acta junio 2026, punto 3).
+        'snapshot_actor_type',
+        'snapshot_id_type',
         'snapshot_national_id',
         'snapshot_full_name',
+        'snapshot_legal_name',
+        'snapshot_trade_name',
+        'snapshot_business_id',
         'snapshot_email',
+        'snapshot_phone',
+        'snapshot_address',
+        'snapshot_comuna',
+        'snapshot_age',
         'submitted_at',
         'ip_address',
         'user_agent',
@@ -65,6 +82,7 @@ class Observation extends Model
     {
         return [
             'submitted_at' => 'datetime',
+            'snapshot_age' => 'integer',
         ];
     }
 
@@ -76,6 +94,16 @@ class Observation extends Model
             }
             if (empty($obs->submitted_at)) {
                 $obs->submitted_at = now();
+            }
+            // Invariante: PJ y Organizacion sin PJ NUNCA entran por ClaveUnica
+            // (el servicio del Estado solo identifica personas naturales).
+            // Fail-fast en BD-write si el controller manda combinaciones invalidas.
+            if (in_array($obs->snapshot_actor_type, [self::ACTOR_PJ, self::ACTOR_ORG], true)
+                && $obs->user_id !== null) {
+                throw new \LogicException(
+                    "PJ/Org no pueden tener user_id (solo entran via guest). " .
+                    "Recibido: actor_type={$obs->snapshot_actor_type}, user_id={$obs->user_id}"
+                );
             }
         });
     }

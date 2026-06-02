@@ -66,7 +66,11 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
             match ($obs->auth_method_used) {
                 'claveunica' => 'ClaveUnica',
                 'guest' => 'Sin registro',
-                default => 'Registro manual',
+                // 'manual' historico (pre-junio 2026): observaciones que
+                // existieron antes de eliminar el registro manual. Backfill
+                // las reclasifico a claveunica/guest, pero dejamos el case
+                // por defensa.
+                default => $obs->auth_method_used,
             },
             $obs->snapshot_national_id,
             $obs->snapshot_full_name,

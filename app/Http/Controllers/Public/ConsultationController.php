@@ -103,11 +103,15 @@ class ConsultationController extends Controller
      *
      *   ['can' => bool,
      *    'mode' => 'auth' | 'guest' | null,
-     *    'reason' => 'guest' | 'not_verified' | 'not_open'
-     *              | 'wrong_auth_method' | 'wrong_role' | null]
+     *    'reason' => 'guest' | 'not_open' | 'wrong_auth_method'
+     *              | 'wrong_role' | null]
      *
      * Si can=true, mode='auth' o 'guest' y reason=null.
      * Si can=false, mode=null y reason explica el bloqueo.
+     *
+     * Nota: 'not_verified' se elimino en junio 2026 con la eliminacion del
+     * registro manual. ClaveUnica ya entrega usuarios con email verificado
+     * por el Estado, asi que !hasVerifiedEmail() no deberia ocurrir.
      */
     private function resolveSubmissionGate(Consultation $consultation): array
     {
@@ -126,15 +130,11 @@ class ConsultationController extends Controller
             return ['can' => false, 'mode' => null, 'reason' => 'wrong_role'];
         }
 
-        if (! $user->hasVerifiedEmail()) {
-            return ['can' => false, 'mode' => null, 'reason' => 'not_verified'];
-        }
-
         if (! $consultation->isOpenForObservations()) {
             return ['can' => false, 'mode' => null, 'reason' => 'not_open'];
         }
 
-        $authMethod = session('auth_method', 'manual');
+        $authMethod = session('auth_method', 'claveunica');
         $allowed = (array) ($consultation->auth_methods ?? []);
         if (! in_array($authMethod, $allowed, true)) {
             return ['can' => false, 'mode' => null, 'reason' => 'wrong_auth_method'];

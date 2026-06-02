@@ -44,7 +44,12 @@ class ObservationController extends Controller
     {
         abort_unless($observation->hasAttachment(), 404);
 
-        return Storage::disk('s3')->download(
+        // Usa el disk con el que se subio cada adjunto (puede variar por fila
+        // tras migrar de 'local' a 's3'). Fallback al default si la columna
+        // todavia no fue poblada para filas anteriores a la migration.
+        $disk = $observation->attachment_disk ?: config('filesystems.default');
+
+        return Storage::disk($disk)->download(
             $observation->attachment_path,
             $observation->attachment_original_name ?? 'archivo-adjunto'
         );
@@ -88,7 +93,7 @@ class ObservationController extends Controller
         if ($request->filled('stage_id')) {
             $query->where('stage_id', $request->input('stage_id'));
         }
-        if ($request->filled('auth_method') && in_array($request->input('auth_method'), ['claveunica', 'manual'], true)) {
+        if ($request->filled('auth_method') && in_array($request->input('auth_method'), ['claveunica', 'guest'], true)) {
             $query->where('auth_method_used', $request->input('auth_method'));
         }
         if ($request->filled('from')) {

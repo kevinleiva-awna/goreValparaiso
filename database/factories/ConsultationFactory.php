@@ -31,7 +31,7 @@ class ConsultationFactory extends Factory
             'status' => Consultation::STATUS_ACTIVE,
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
-            'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_MANUAL],
+            'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_GUEST],
             'created_by' => User::factory()->functionary(),
         ];
     }

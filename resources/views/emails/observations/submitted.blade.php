@@ -8,7 +8,7 @@ correctamente en la plataforma del Gobierno Regional de Valparaiso.
 
 **Codigo de seguimiento:** `{{ $observation->public_id }}`
 **Fecha de registro:** {{ $observation->submitted_at->format('d/m/Y H:i') }} hrs (CLT)
-**Metodo de identificacion:** @switch($observation->auth_method_used)@case('claveunica')ClaveUnica@break @case('guest')Sin registro (invitado)@break @default Registro manual @endswitch
+**Metodo de identificacion:** @switch($observation->auth_method_used)@case('claveunica')ClaveUnica@break @case('guest')Sin registro (invitado)@break @default {{ $observation->auth_method_used }} @endswitch
 
 ---
 
@@ -28,7 +28,8 @@ correctamente en la plataforma del Gobierno Regional de Valparaiso.
 
 Tu observacion sera revisada por la Unidad de Ordenamiento Territorial del
 Gobierno Regional. Si corresponde, recibiras una respuesta institucional
-formal al cierre del periodo de participacion.
+formal **a este mismo correo electronico** al cierre del periodo de
+participacion. No es necesario que crees una cuenta para recibirla.
 
 <x-mail::button :url="route('public.consultations.show', $consultation->slug)">
 Ver el proceso de consulta

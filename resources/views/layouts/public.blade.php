@@ -14,20 +14,32 @@
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 <body>
+    {{-- Skip link para usuarios de teclado / screen readers. Se hace visible
+         al recibir foco (estilo en SCSS via .gore-skip-link:focus). --}}
+    <a href="#main-content" class="gore-skip-link visually-hidden-focusable">
+        Saltar al contenido principal
+    </a>
+
     {{-- Navbar institucional --}}
-    <nav class="navbar navbar-expand-lg gore-navbar">
+    <nav class="navbar navbar-expand-lg gore-navbar" aria-label="Navegacion principal">
         <div class="container">
-            <a class="navbar-brand" href="{{ url('/') }}">
-                <x-application-logo background="light" />
+            <a class="navbar-brand py-0" href="{{ url('/') }}">
+                {{-- Logo institucional oficial (Logo_A.png — banner doble:
+                     escudo a color + "Gobierno Regional / Region de Valparaiso"
+                     + slogan "#Valparaiso Region de Derechos"). Altura limitada
+                     a 40px para mantener navbar compacto a la Stripe. --}}
+                <x-application-logo background="light" :height="40" />
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#publicNav" aria-controls="publicNav" aria-expanded="false">
+                    data-bs-target="#publicNav" aria-controls="publicNav" aria-expanded="false"
+                    aria-label="Abrir menu de navegacion">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="publicNav">
-                <ul class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0">
+                {{-- Menu centrado al estilo Stripe: mx-auto en lugar de me-auto. --}}
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
                            href="{{ route('home') }}">Inicio</a>
@@ -73,22 +85,9 @@
                                             <div class="small text-truncate" style="color: var(--gore-ink-soft);">
                                                 {{ Auth::user()->email }}
                                             </div>
-                                            @unless (Auth::user()->hasVerifiedEmail())
-                                                <span class="gore-badge gore-badge-warning mt-2">
-                                                    <i class="bi bi-exclamation-triangle me-1" style="font-size: 0.6rem;"></i>
-                                                    Correo sin verificar
-                                                </span>
-                                            @endunless
                                         </div>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
-                                    @unless (Auth::user()->hasVerifiedEmail())
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('citizen.verification.notice') }}">
-                                                <i class="bi bi-envelope-check me-2"></i>Verificar correo
-                                            </a>
-                                        </li>
-                                    @endunless
                                     <li>
                                         <form method="POST" action="{{ route('citizen.logout') }}" class="m-0">
                                             @csrf
@@ -101,11 +100,12 @@
                             </div>
                         @endif
                     @else
-                        <a href="{{ route('citizen.login') }}" class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
-                            Ingresar
-                        </a>
-                        <a href="{{ route('citizen.register') }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-person-plus me-1"></i> Crear cuenta
+                        {{-- Sin login: solo ClaveUnica como entrada. El registro
+                             manual fue eliminado en junio 2026. La participacion
+                             "sin registro" se ofrece dentro del formulario de
+                             observacion de cada consulta, no como cuenta. --}}
+                        <a href="{{ route('citizen.claveunica.redirect') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
                         </a>
                     @endauth
                 </div>
@@ -113,7 +113,7 @@
         </div>
     </nav>
 
-    <main>
+    <main id="main-content" tabindex="-1">
         {{ $slot }}
     </main>
 
@@ -146,12 +146,18 @@
                     <ul class="list-unstyled mb-0 small">
                         <li class="mb-2">
                             <i class="bi bi-geo-alt me-2"></i>
-                            Melgarejo 669, Valparaiso, Chile
+                            Blanco N&deg;1791, Valpara&iacute;so, Chile
                         </li>
                         <li class="mb-2">
                             <i class="bi bi-globe me-2"></i>
-                            <a href="https://www.gorevalparaiso.cl" target="_blank" rel="noopener">
-                                gorevalparaiso.cl
+                            <a href="https://www.gobiernovalparaiso.cl" target="_blank" rel="noopener">
+                                gobiernovalparaiso.cl
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-book me-2"></i>
+                            <a href="https://www.gobiernovalparaiso.cl/normasGraficas.php" target="_blank" rel="noopener">
+                                Normas gr&aacute;ficas
                             </a>
                         </li>
                         <li>

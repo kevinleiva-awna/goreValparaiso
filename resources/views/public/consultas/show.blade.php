@@ -122,16 +122,28 @@
                                                 'closed' => 'var(--gore-ink-soft)',
                                                 default => 'var(--gore-border-strong)',
                                             };
+                                            $stageIcon = match($stageStatus) {
+                                                'active' => 'bi-play-circle-fill',
+                                                'closed' => 'bi-check-lg',
+                                                default => null,
+                                            };
+                                            // Conector vertical entre etapas: si la etapa actual esta
+                                            // finalizada, el tramo hacia la siguiente queda lleno.
+                                            $connectorFill = $stageStatus === 'closed' ? 'var(--gore-success)' : 'var(--gore-border)';
                                         @endphp
-                                        <div class="d-flex gap-3">
+                                        <div class="d-flex gap-3 gore-stage-row" @if($stageStatus === 'active') style="--ring-color: var(--gore-success);" @endif>
                                             <div class="flex-shrink-0 d-flex flex-column align-items-center">
-                                                <div class="d-flex align-items-center justify-content-center fw-bold"
+                                                <div class="d-flex align-items-center justify-content-center fw-bold gore-stage-bullet"
                                                      style="width: 36px; height: 36px; border-radius: 50%;
                                                             background: {{ $stageColor }}; color: white;">
-                                                    {{ $stage->position }}
+                                                    @if ($stageIcon)
+                                                        <i class="bi {{ $stageIcon }}"></i>
+                                                    @else
+                                                        {{ $stage->position }}
+                                                    @endif
                                                 </div>
                                                 @if (! $loop->last)
-                                                    <div style="width: 2px; flex-grow: 1; background: var(--gore-border); margin-top: 4px;"></div>
+                                                    <div style="width: 2px; flex-grow: 1; background: {{ $connectorFill }}; margin-top: 4px;"></div>
                                                 @endif
                                             </div>
                                             <div class="flex-grow-1 pb-3">
@@ -201,6 +213,7 @@
                                             <strong>{{ Auth::user()->name }} {{ Auth::user()->last_name }}</strong>
                                             ({{ Auth::user()->email }}).
                                             Tu observacion quedara registrada con timestamp inalterable.
+                                            Si recibe respuesta institucional, la enviaremos a este correo.
                                         </div>
                                     </div>
                                 @else
@@ -208,32 +221,145 @@
                                         <i class="bi bi-info-circle me-2 flex-shrink-0" style="font-size: 1.1rem;"></i>
                                         <div>
                                             Esta consulta admite participacion <strong>sin registro</strong>.
-                                            Tu nombre y correo quedaran asociados a la observacion para
-                                            trazabilidad institucional, pero no necesitas crear una cuenta.
+                                            Indica si participas como <strong>Persona Natural</strong>,
+                                            <strong>Persona Juridica</strong> u
+                                            <strong>Organizacion sin PJ</strong>.
+                                            Si recibe respuesta institucional, la enviaremos al correo que indiques.
                                         </div>
                                     </div>
                                 @endif
 
                                 <form method="POST"
                                       action="{{ route('public.observations.store', $consultation->slug) }}"
-                                      enctype="multipart/form-data">
+                                      enctype="multipart/form-data" id="observation-form">
                                     @csrf
 
                                     @if ($gate['mode'] === 'guest')
+                                        {{-- Selector de tipo de actor (acta junio 2026, punto 3).
+                                             3 cards radio. La seleccion muestra/oculta el bloque
+                                             de campos correspondiente. --}}
+                                        <fieldset class="mb-4">
+                                            <legend class="h6 mb-3">Tipo de participante *</legend>
+                                            <div class="row g-2" role="radiogroup" aria-label="Tipo de participante">
+                                                @php
+                                                    $oldActor = old('actor_type', 'natural');
+                                                    $actorCards = [
+                                                        ['value' => 'natural', 'label' => 'Persona Natural', 'icon' => 'bi-person', 'help' => 'Participas como ciudadano(a)'],
+                                                        ['value' => 'pj', 'label' => 'Persona Juridica', 'icon' => 'bi-building', 'help' => 'Empresa o entidad con RUT'],
+                                                        ['value' => 'org', 'label' => 'Organizacion sin PJ', 'icon' => 'bi-people', 'help' => 'JJVV, agrupacion u otra sin personalidad juridica'],
+                                                    ];
+                                                @endphp
+                                                @foreach ($actorCards as $card)
+                                                    <div class="col-md-4">
+                                                        <label class="actor-card border rounded p-3 d-block h-100"
+                                                               style="cursor: pointer;"
+                                                               for="actor_{{ $card['value'] }}">
+                                                            <input type="radio" name="actor_type"
+                                                                   id="actor_{{ $card['value'] }}"
+                                                                   value="{{ $card['value'] }}"
+                                                                   class="form-check-input me-2 actor-radio"
+                                                                   @checked($oldActor === $card['value'])
+                                                                   data-actor="{{ $card['value'] }}">
+                                                            <i class="bi {{ $card['icon'] }} me-1" style="color: var(--gore-primary);"></i>
+                                                            <strong>{{ $card['label'] }}</strong>
+                                                            <div class="small text-muted mt-1">{{ $card['help'] }}</div>
+                                                        </label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <x-input-error :messages="$errors->get('actor_type')" />
+                                        </fieldset>
+
+                                        {{-- Bloque comun a TODOS los caminos guest: email + telefono --}}
                                         <div class="row g-3 mb-3">
                                             <div class="col-md-6">
-                                                <x-input-label for="guest_name" value="Tu nombre *" />
-                                                <x-text-input id="guest_name" name="guest_name" type="text"
-                                                              :value="old('guest_name')" maxlength="150" required
-                                                              placeholder="Nombre y apellido" />
-                                                <x-input-error :messages="$errors->get('guest_name')" />
-                                            </div>
-                                            <div class="col-md-6">
-                                                <x-input-label for="guest_email" value="Tu correo electronico *" />
+                                                <x-input-label for="guest_email" value="Correo electronico *" />
                                                 <x-text-input id="guest_email" name="guest_email" type="email"
                                                               :value="old('guest_email')" maxlength="255" required
                                                               placeholder="ejemplo@correo.cl" />
                                                 <x-input-error :messages="$errors->get('guest_email')" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <x-input-label for="guest_phone" value="Telefono (opcional)" />
+                                                <x-text-input id="guest_phone" name="guest_phone" type="tel"
+                                                              :value="old('guest_phone')" maxlength="20"
+                                                              placeholder="+56 9 1234 5678" />
+                                                <x-input-error :messages="$errors->get('guest_phone')" />
+                                            </div>
+                                        </div>
+
+                                        {{-- Bloque Persona Natural --}}
+                                        <div class="actor-fields" data-show-for="natural">
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-6">
+                                                    <x-input-label for="guest_name" value="Tu nombre *" />
+                                                    <x-text-input id="guest_name" name="guest_name" type="text"
+                                                                  :value="old('guest_name')" maxlength="150"
+                                                                  placeholder="Nombre y apellido" />
+                                                    <x-input-error :messages="$errors->get('guest_name')" />
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <x-input-label for="guest_id_type" value="Tipo identif. *" />
+                                                    <select id="guest_id_type" name="guest_id_type" class="form-select">
+                                                        <option value="rut" @selected(old('guest_id_type', 'rut') === 'rut')>RUT</option>
+                                                        <option value="pasaporte" @selected(old('guest_id_type') === 'pasaporte')>Pasaporte</option>
+                                                    </select>
+                                                    <x-input-error :messages="$errors->get('guest_id_type')" />
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <x-input-label for="guest_national_id" value="N° identif. *" />
+                                                    <x-text-input id="guest_national_id" name="guest_national_id" type="text"
+                                                                  :value="old('guest_national_id')" maxlength="12"
+                                                                  placeholder="12345678-9" />
+                                                    <x-input-error :messages="$errors->get('guest_national_id')" />
+                                                </div>
+                                            </div>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-6">
+                                                    <x-input-label for="guest_comuna" value="Comuna (opcional)" />
+                                                    <x-text-input id="guest_comuna" name="guest_comuna" type="text"
+                                                                  :value="old('guest_comuna')" maxlength="100"
+                                                                  placeholder="Valparaiso" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <x-input-label for="guest_age" value="Edad (opcional)" />
+                                                    <input id="guest_age" name="guest_age" type="number"
+                                                           value="{{ old('guest_age') }}" min="14" max="120"
+                                                           class="form-control" placeholder="30">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Bloque PJ / Org (mismos campos) --}}
+                                        <div class="actor-fields" data-show-for="pj org">
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-8">
+                                                    <x-input-label for="guest_legal_name" value="Razon social *" />
+                                                    <x-text-input id="guest_legal_name" name="guest_legal_name" type="text"
+                                                                  :value="old('guest_legal_name')" maxlength="200"
+                                                                  placeholder="Ej: Junta de Vecinos Cerro Alegre" />
+                                                    <x-input-error :messages="$errors->get('guest_legal_name')" />
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <x-input-label for="guest_business_id" value="RUT entidad *" />
+                                                    <x-text-input id="guest_business_id" name="guest_business_id" type="text"
+                                                                  :value="old('guest_business_id')" maxlength="12"
+                                                                  placeholder="76123456-7" />
+                                                    <x-input-error :messages="$errors->get('guest_business_id')" />
+                                                </div>
+                                            </div>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-6">
+                                                    <x-input-label for="guest_trade_name" value="Nombre de fantasia (opcional)" />
+                                                    <x-text-input id="guest_trade_name" name="guest_trade_name" type="text"
+                                                                  :value="old('guest_trade_name')" maxlength="200" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <x-input-label for="guest_address" value="Direccion (opcional)" />
+                                                    <x-text-input id="guest_address" name="guest_address" type="text"
+                                                                  :value="old('guest_address')" maxlength="255"
+                                                                  placeholder="Calle, numero, comuna" />
+                                                </div>
                                             </div>
                                         </div>
                                     @endif
@@ -293,6 +419,7 @@
                         </div>
 
                         <script>
+                            // Contador de caracteres del cuerpo.
                             (function () {
                                 const txt = document.getElementById('obs_body');
                                 const counter = document.getElementById('obs_charcount');
@@ -301,7 +428,65 @@
                                 txt.addEventListener('input', update);
                                 update();
                             })();
+
+                            // Selector de tipo de actor: muestra/oculta los bloques con
+                            // [data-show-for] segun la opcion elegida. data-show-for puede
+                            // tener varios valores separados por espacio (ej. "pj org").
+                            (function () {
+                                const radios = document.querySelectorAll('.actor-radio');
+                                if (!radios.length) return;
+                                const blocks = document.querySelectorAll('.actor-fields');
+
+                                const apply = (value) => {
+                                    blocks.forEach(block => {
+                                        const matches = block.dataset.showFor.split(/\s+/).includes(value);
+                                        block.style.display = matches ? '' : 'none';
+                                        // Deshabilitar inputs ocultos para que no entren al
+                                        // form submission y los required no bloqueen el envio.
+                                        block.querySelectorAll('input, select').forEach(el => {
+                                            el.disabled = !matches;
+                                        });
+                                    });
+                                    document.querySelectorAll('.actor-card').forEach(card => {
+                                        const inp = card.querySelector('input');
+                                        card.classList.toggle('actor-card-selected', inp && inp.value === value);
+                                    });
+                                };
+
+                                radios.forEach(r => r.addEventListener('change', () => apply(r.value)));
+                                const checked = document.querySelector('.actor-radio:checked');
+                                apply(checked ? checked.value : 'natural');
+                            })();
                         </script>
+
+                        <style>
+                            .actor-card {
+                                transition: border-color 0.15s, background 0.15s;
+                                background: #fff;
+                            }
+                            .actor-card:hover {
+                                border-color: var(--gore-primary) !important;
+                            }
+                            .actor-card-selected {
+                                border-color: var(--gore-primary) !important;
+                                background: rgba(21,28,104,0.05);
+                                box-shadow: 0 0 0 1px var(--gore-primary);
+                            }
+                            /* Pulse sutil en el bullet de la etapa activa para
+                               llamar la atencion sin ser ruidoso. */
+                            .gore-stage-row[style*="--ring-color"] .gore-stage-bullet {
+                                box-shadow: 0 0 0 4px rgba(16,185,129,0.18);
+                                animation: gore-pulse-ring 2.4s ease-out infinite;
+                            }
+                            @keyframes gore-pulse-ring {
+                                0%   { box-shadow: 0 0 0 0   rgba(16,185,129,0.45); }
+                                70%  { box-shadow: 0 0 0 10px rgba(16,185,129,0);   }
+                                100% { box-shadow: 0 0 0 0   rgba(16,185,129,0);   }
+                            }
+                            @media (prefers-reduced-motion: reduce) {
+                                .gore-stage-row .gore-stage-bullet { animation: none !important; }
+                            }
+                        </style>
                     @else
                         {{-- Gate cerrado: mensaje contextual segun la razon --}}
                         <div id="participar" class="card border-0 shadow-sm mb-4"
@@ -309,37 +494,21 @@
                             <div class="card-body p-4 p-md-5 text-center">
                                 @switch($gate['reason'])
                                     @case('guest')
+                                        {{-- Esta consulta NO admite participacion sin registro:
+                                             solo ClaveUnica es valida. Desde la eliminacion del
+                                             registro manual (junio 2026), no hay alternativa de
+                                             cuenta con email/password. --}}
                                         <h2 class="h3 fw-bold mb-2">Participa en este proceso</h2>
                                         <p class="mb-4" style="opacity: 0.85;">
-                                            Para enviar una observacion necesitas identificarte.
+                                            Esta consulta requiere identificacion verificada via ClaveUnica.
                                             Tu identidad queda asociada de forma inalterable a lo que envies.
                                         </p>
-                                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                                        <div class="d-flex justify-content-center">
                                             <a href="{{ route('citizen.claveunica.redirect') }}"
                                                class="btn btn-light btn-lg fw-semibold">
                                                 <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
                                             </a>
-                                            <a href="{{ route('citizen.login') }}" class="btn btn-outline-light btn-lg">
-                                                Ingresar con correo
-                                            </a>
                                         </div>
-                                        <p class="small mt-3 mb-0" style="opacity: 0.7;">
-                                            ¿Primera vez? <a href="{{ route('citizen.register') }}" class="text-white fw-semibold">
-                                                Crear cuenta
-                                            </a>
-                                        </p>
-                                        @break
-
-                                    @case('not_verified')
-                                        <h2 class="h3 fw-bold mb-2">Verifica tu correo para participar</h2>
-                                        <p class="mb-4" style="opacity: 0.85;">
-                                            Te enviamos un enlace de verificacion a tu correo. Una vez verificado,
-                                            podras enviar observaciones a esta consulta.
-                                        </p>
-                                        <a href="{{ route('citizen.verification.notice') }}"
-                                           class="btn btn-light btn-lg fw-semibold">
-                                            <i class="bi bi-envelope-check me-1"></i> Ir a verificar mi correo
-                                        </a>
                                         @break
 
                                     @case('not_open')
@@ -470,8 +639,8 @@
                                     @foreach ((array) $consultation->auth_methods as $method)
                                         @if ($method === 'claveunica')
                                             <span class="gore-badge gore-badge-info">ClaveUnica</span>
-                                        @elseif ($method === 'manual')
-                                            <span class="gore-badge gore-badge-info">Registro manual</span>
+                                        @elseif ($method === 'guest')
+                                            <span class="gore-badge gore-badge-info">Sin registro</span>
                                         @endif
                                     @endforeach
                                 </dd>
