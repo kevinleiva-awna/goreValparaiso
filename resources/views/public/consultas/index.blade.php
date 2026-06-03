@@ -1,44 +1,40 @@
 <x-public-layout>
     @section('title', 'Consultas publicas')
 
-    {{-- Encabezado --}}
-    <section class="bg-white border-bottom" style="border-color: var(--gore-border) !important;">
-        <div class="container py-5">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <span class="gore-badge gore-badge-brand mb-2">Portal Ciudadano</span>
-                    <h1 class="display-5 fw-bold mb-2" style="letter-spacing: -0.02em;">
-                        Consultas publicas
-                    </h1>
-                    <p class="lead text-muted mb-0">
-                        Procesos de participacion ciudadana abiertos por el Gobierno Regional
-                        de Valparaiso sobre Instrumentos de Planificacion y Ordenamiento Territorial.
-                    </p>
-                </div>
-                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                    <div class="d-inline-flex flex-column align-items-end small text-muted">
-                        <span><i class="bi bi-shield-check me-1"></i> Identidad verificada</span>
-                        <span><i class="bi bi-clock-history me-1"></i> Trazabilidad inalterable</span>
+    {{-- Encabezado estilo Estonia: eyebrow + titulo sobrio + lead --}}
+    <section style="padding: clamp(3rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3rem); border-bottom: 1px solid var(--gore-border);">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-9">
+                    <div class="gore-hero-eyebrow">
+                        Portal Ciudadano
+                        <span class="gore-hero-eyebrow-stat">
+                            &middot; {{ $consultations->total() }}
+                            {{ $consultations->total() === 1 ? 'proceso encontrado' : 'procesos encontrados' }}
+                        </span>
                     </div>
+                    <h1 class="h2 fw-semibold mb-2" style="letter-spacing: -0.02em;">
+                        Consultas p&uacute;blicas
+                    </h1>
+                    <p class="mb-0" style="color: var(--gore-ink-soft); max-width: 60ch;">
+                        Procesos de participaci&oacute;n ciudadana abiertos por el Gobierno Regional
+                        de Valpara&iacute;so sobre Instrumentos de Planificaci&oacute;n y Ordenamiento
+                        Territorial.
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    {{-- Filtros --}}
-    <section class="py-4" style="background-color: var(--gore-bg);">
+    {{-- Filtros estilo Estonia: inputs limpios sin pills ni shadows --}}
+    <section class="py-4" style="border-bottom: 1px solid var(--gore-border);">
         <div class="container">
             <form method="GET" class="row g-2 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small text-muted mb-1">Buscar</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="bi bi-search text-muted"></i>
-                        </span>
-                        <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
-                               class="form-control border-start-0 ps-0"
-                               placeholder="Titulo o palabra clave...">
-                    </div>
+                    <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
+                           class="form-control"
+                           placeholder="T&iacute;tulo o palabra clave...">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-muted mb-1">Tipo de instrumento</label>
@@ -59,8 +55,8 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-grid">
-                    <button class="btn btn-primary">
-                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    <button class="gore-hero-cta-primary justify-content-center">
+                        Filtrar <i class="bi bi-arrow-right"></i>
                     </button>
                 </div>
             </form>

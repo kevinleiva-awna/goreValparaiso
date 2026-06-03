@@ -14,21 +14,53 @@
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 <body>
+    {{-- Capa de blobs azules con pulse (decorativa, detras de todo).
+         Sobre fondo blanco del body crea profundidad sin recargar. --}}
+    <div class="gore-blobs" aria-hidden="true">
+        <div class="gore-blob gore-blob-1"></div>
+        <div class="gore-blob gore-blob-2"></div>
+        <div class="gore-blob gore-blob-3"></div>
+    </div>
+
     {{-- Skip link para usuarios de teclado / screen readers. Se hace visible
          al recibir foco (estilo en SCSS via .gore-skip-link:focus). --}}
     <a href="#main-content" class="gore-skip-link visually-hidden-focusable">
         Saltar al contenido principal
     </a>
 
+    {{-- Top-bar institucional gov.cl-style: marca Estado + link al sitio
+         oficial. NO es sticky — scrollea con la pagina. --}}
+    <div class="gore-topbar" aria-label="Identidad institucional">
+        <div class="container">
+            <span class="gore-topbar-brand">
+                <span class="gore-topbar-flag" aria-hidden="true"></span>
+                Gobierno Regional &middot; Regi&oacute;n de Valpara&iacute;so
+            </span>
+            <ul class="gore-topbar-links">
+                <li>
+                    <a href="https://www.gobiernovalparaiso.cl" target="_blank" rel="noopener noreferrer">
+                        <span>Sitio institucional</span>
+                        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.gobiernovalparaiso.cl/normasGraficas.php" target="_blank" rel="noopener noreferrer">
+                        <span>Transparencia</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     {{-- Navbar institucional --}}
     <nav class="navbar navbar-expand-lg gore-navbar" aria-label="Navegacion principal">
         <div class="container">
-            <a class="navbar-brand py-0" href="{{ url('/') }}">
+            <a class="navbar-brand py-0 me-lg-4" href="{{ url('/') }}">
                 {{-- Logo institucional oficial (Logo_A.png — banner doble:
                      escudo a color + "Gobierno Regional / Region de Valparaiso"
-                     + slogan "#Valparaiso Region de Derechos"). Altura limitada
-                     a 40px para mantener navbar compacto a la Stripe. --}}
-                <x-application-logo background="light" :height="40" />
+                     + slogan "#Valparaiso Region de Derechos"). 64px para que
+                     el escudo y el slogan se lean con presencia. --}}
+                <x-application-logo background="light" :height="64" />
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
