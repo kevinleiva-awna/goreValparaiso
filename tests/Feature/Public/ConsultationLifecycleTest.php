@@ -66,6 +66,29 @@ it('en el listado /consultas etiqueta una consulta vencida como Cerrada', functi
     $response->assertDontSee('gore-badge-success');
 });
 
+it('el home no destaca ni lista una consulta activa vencida', function () {
+    // Bug #1 en la portada: una activa con fecha vencida no debe figurar como
+    // destacada ("en curso / 0 dias") ni en "Consultas vigentes".
+    Consultation::factory()->create([
+        'status' => Consultation::STATUS_ACTIVE,
+        'title' => 'Proceso Vencido Portada',
+        'starts_at' => now()->subDays(20),
+        'ends_at' => now()->subDays(6),
+    ]);
+    Consultation::factory()->create([
+        'status' => Consultation::STATUS_ACTIVE,
+        'title' => 'Proceso Vigente Portada',
+        'starts_at' => now()->subDays(3),
+        'ends_at' => now()->addDays(15),
+    ]);
+
+    $response = $this->get('/');
+
+    $response->assertOk();
+    $response->assertSeeText('Proceso Vigente Portada');
+    $response->assertDontSeeText('Proceso Vencido Portada');
+});
+
 it('mantiene abierta una consulta activa dentro de su ventana', function () {
     $consultation = Consultation::factory()->create([
         'status' => Consultation::STATUS_ACTIVE,

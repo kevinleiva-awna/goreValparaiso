@@ -18,9 +18,18 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
-    // Las 3 consultas mas recientes en estado activo o publicado para el hero.
+    // Procesos para el hero/listado del home: publicados (proximos) o activos
+    // DENTRO de su ventana. Una consulta activa cuya fecha de termino ya paso
+    // no es vigente y no debe figurar como "en curso" / "0 dias restantes"
+    // (mismo criterio que Consultation::effectiveStatus en /consultas; acta
+    // jun 2026, bug #1). Las 3 mas recientes.
     $featured = Consultation::query()
-        ->whereIn('status', [Consultation::STATUS_ACTIVE, Consultation::STATUS_PUBLISHED])
+        ->where(function ($q) {
+            $q->where('status', Consultation::STATUS_PUBLISHED)
+              ->orWhere(fn ($a) => $a
+                  ->where('status', Consultation::STATUS_ACTIVE)
+                  ->where(fn ($w) => $w->whereNull('ends_at')->orWhere('ends_at', '>=', now())));
+        })
         ->withCount('observations')
         ->orderByDesc('starts_at')
         ->limit(3)
@@ -30,6 +39,7 @@ Route::get('/', function () {
     $stats = [
         'active_processes' => Consultation::query()
             ->where('status', Consultation::STATUS_ACTIVE)
+            ->where(fn ($w) => $w->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
             ->count(),
         'total_observations' => \App\Models\Observation::query()->count(),
         'closed_processes' => Consultation::query()
