@@ -115,12 +115,20 @@ class ConsultationController extends Controller
      */
     private function resolveSubmissionGate(Consultation $consultation): array
     {
+        // El proceso debe estar abierto (estado + ventana de fecha + etapa
+        // activa). Tiene precedencia: si esta cerrado nadie participa, sin
+        // importar el login ni el metodo de identificacion.
+        if (! $consultation->isOpenForObservations()) {
+            return ['can' => false, 'mode' => null, 'reason' => 'not_open'];
+        }
+
         if (! auth()->check()) {
             // Sin login pero la consulta admite participacion como invitado:
             // gate abierto en modo guest (la vista muestra inputs nombre+email).
-            if ($consultation->allowsGuest() && $consultation->isOpenForObservations()) {
+            if ($consultation->allowsGuest()) {
                 return ['can' => true, 'mode' => 'guest', 'reason' => null];
             }
+            // Abierto pero solo admite ClaveUnica: invitar a ingresar.
             return ['can' => false, 'mode' => null, 'reason' => 'guest'];
         }
 
@@ -128,10 +136,6 @@ class ConsultationController extends Controller
 
         if (! $user->isCitizen()) {
             return ['can' => false, 'mode' => null, 'reason' => 'wrong_role'];
-        }
-
-        if (! $consultation->isOpenForObservations()) {
-            return ['can' => false, 'mode' => null, 'reason' => 'not_open'];
         }
 
         $authMethod = session('auth_method', 'claveunica');

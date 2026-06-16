@@ -3,20 +3,24 @@
     @section('meta_description', $consultation->summary ?? 'Proceso de consulta publica del Gobierno Regional de Valparaiso.')
 
     @php
+        // Estado efectivo: respeta la fecha de termino aunque el status
+        // almacenado siga 'active' por un cierre manual pendiente
+        // (ver Consultation::effectiveStatus). Mantiene badge y form coherentes.
+        $effectiveStatus = $consultation->effectiveStatus();
         $daysLeft = $consultation->ends_at ? now()->diffInDays($consultation->ends_at, false) : null;
-        $isOpen = $consultation->status === 'active';
-        $isClosed = $consultation->status === 'closed';
-        $statusClass = match($consultation->status) {
+        $isOpen = $effectiveStatus === 'active';
+        $isClosed = $effectiveStatus === 'closed';
+        $statusClass = match($effectiveStatus) {
             'active' => 'gore-badge-success',
             'published' => 'gore-badge-info',
             'closed' => 'gore-badge-muted',
             default => 'gore-badge-muted',
         };
-        $statusLabel = match($consultation->status) {
+        $statusLabel = match($effectiveStatus) {
             'active' => 'Consulta activa',
             'published' => 'Proximamente',
             'closed' => 'Consulta cerrada',
-            default => $consultation->status,
+            default => $effectiveStatus,
         };
     @endphp
 
@@ -116,7 +120,7 @@
                                 <div class="d-flex flex-column gap-3">
                                     @foreach ($consultation->stages as $stage)
                                         @php
-                                            $stageStatus = $stage->status;
+                                            $stageStatus = $stage->effectiveStatus();
                                             $stageColor = match($stageStatus) {
                                                 'active' => 'var(--gore-success)',
                                                 'closed' => 'var(--gore-ink-soft)',
@@ -243,6 +247,11 @@
                                             <div class="row g-2" role="radiogroup" aria-label="Tipo de participante">
                                                 @php
                                                     $oldActor = old('actor_type', 'natural');
+                                                    // Estado inicial server-side: solo el bloque del actor seleccionado
+                                                    // se muestra. Asi Persona Natural (default) nunca pide Razon social
+                                                    // ni RUT entidad aunque el JS no haya corrido. El JS solo refina.
+                                                    $showNatural = $oldActor === 'natural';
+                                                    $showPJ = in_array($oldActor, ['pj', 'org'], true);
                                                     $actorCards = [
                                                         ['value' => 'natural', 'label' => 'Persona Natural', 'icon' => 'bi-person', 'help' => 'Participas como ciudadano(a)'],
                                                         ['value' => 'pj', 'label' => 'Persona Juridica', 'icon' => 'bi-building', 'help' => 'Empresa o entidad con RUT'],
@@ -289,18 +298,20 @@
                                         </div>
 
                                         {{-- Bloque Persona Natural --}}
-                                        <div class="actor-fields" data-show-for="natural">
+                                        <div class="actor-fields" data-show-for="natural"
+                                             @unless($showNatural) style="display:none" @endunless>
                                             <div class="row g-3 mb-3">
                                                 <div class="col-md-6">
                                                     <x-input-label for="guest_name" value="Tu nombre *" />
                                                     <x-text-input id="guest_name" name="guest_name" type="text"
                                                                   :value="old('guest_name')" maxlength="150"
+                                                                  :disabled="! $showNatural"
                                                                   placeholder="Nombre y apellido" />
                                                     <x-input-error :messages="$errors->get('guest_name')" />
                                                 </div>
                                                 <div class="col-md-3">
                                                     <x-input-label for="guest_id_type" value="Tipo identif. *" />
-                                                    <select id="guest_id_type" name="guest_id_type" class="form-select">
+                                                    <select id="guest_id_type" name="guest_id_type" class="form-select" @disabled(! $showNatural)>
                                                         <option value="rut" @selected(old('guest_id_type', 'rut') === 'rut')>RUT</option>
                                                         <option value="pasaporte" @selected(old('guest_id_type') === 'pasaporte')>Pasaporte</option>
                                                     </select>
@@ -310,6 +321,7 @@
                                                     <x-input-label for="guest_national_id" value="N° identif. *" />
                                                     <x-text-input id="guest_national_id" name="guest_national_id" type="text"
                                                                   :value="old('guest_national_id')" maxlength="12"
+                                                                  :disabled="! $showNatural"
                                                                   placeholder="12345678-9" />
                                                     <x-input-error :messages="$errors->get('guest_national_id')" />
                                                 </div>
@@ -319,24 +331,27 @@
                                                     <x-input-label for="guest_comuna" value="Comuna (opcional)" />
                                                     <x-text-input id="guest_comuna" name="guest_comuna" type="text"
                                                                   :value="old('guest_comuna')" maxlength="100"
+                                                                  :disabled="! $showNatural"
                                                                   placeholder="Valparaiso" />
                                                 </div>
                                                 <div class="col-md-6">
                                                     <x-input-label for="guest_age" value="Edad (opcional)" />
                                                     <input id="guest_age" name="guest_age" type="number"
                                                            value="{{ old('guest_age') }}" min="14" max="120"
-                                                           class="form-control" placeholder="30">
+                                                           class="form-control" placeholder="30" @disabled(! $showNatural)>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {{-- Bloque PJ / Org (mismos campos) --}}
-                                        <div class="actor-fields" data-show-for="pj org">
+                                        <div class="actor-fields" data-show-for="pj org"
+                                             @unless($showPJ) style="display:none" @endunless>
                                             <div class="row g-3 mb-3">
                                                 <div class="col-md-8">
                                                     <x-input-label for="guest_legal_name" value="Razon social *" />
                                                     <x-text-input id="guest_legal_name" name="guest_legal_name" type="text"
                                                                   :value="old('guest_legal_name')" maxlength="200"
+                                                                  :disabled="! $showPJ"
                                                                   placeholder="Ej: Junta de Vecinos Cerro Alegre" />
                                                     <x-input-error :messages="$errors->get('guest_legal_name')" />
                                                 </div>
@@ -344,6 +359,7 @@
                                                     <x-input-label for="guest_business_id" value="RUT entidad *" />
                                                     <x-text-input id="guest_business_id" name="guest_business_id" type="text"
                                                                   :value="old('guest_business_id')" maxlength="12"
+                                                                  :disabled="! $showPJ"
                                                                   placeholder="76123456-7" />
                                                     <x-input-error :messages="$errors->get('guest_business_id')" />
                                                 </div>
@@ -352,12 +368,14 @@
                                                 <div class="col-md-6">
                                                     <x-input-label for="guest_trade_name" value="Nombre de fantasia (opcional)" />
                                                     <x-text-input id="guest_trade_name" name="guest_trade_name" type="text"
-                                                                  :value="old('guest_trade_name')" maxlength="200" />
+                                                                  :value="old('guest_trade_name')" maxlength="200"
+                                                                  :disabled="! $showPJ" />
                                                 </div>
                                                 <div class="col-md-6">
                                                     <x-input-label for="guest_address" value="Direccion (opcional)" />
                                                     <x-text-input id="guest_address" name="guest_address" type="text"
                                                                   :value="old('guest_address')" maxlength="255"
+                                                                  :disabled="! $showPJ"
                                                                   placeholder="Calle, numero, comuna" />
                                                 </div>
                                             </div>
@@ -418,46 +436,11 @@
                             </div>
                         </div>
 
-                        <script>
-                            // Contador de caracteres del cuerpo.
-                            (function () {
-                                const txt = document.getElementById('obs_body');
-                                const counter = document.getElementById('obs_charcount');
-                                if (!txt || !counter) return;
-                                const update = () => counter.textContent = txt.value.length.toLocaleString('es-CL');
-                                txt.addEventListener('input', update);
-                                update();
-                            })();
-
-                            // Selector de tipo de actor: muestra/oculta los bloques con
-                            // [data-show-for] segun la opcion elegida. data-show-for puede
-                            // tener varios valores separados por espacio (ej. "pj org").
-                            (function () {
-                                const radios = document.querySelectorAll('.actor-radio');
-                                if (!radios.length) return;
-                                const blocks = document.querySelectorAll('.actor-fields');
-
-                                const apply = (value) => {
-                                    blocks.forEach(block => {
-                                        const matches = block.dataset.showFor.split(/\s+/).includes(value);
-                                        block.style.display = matches ? '' : 'none';
-                                        // Deshabilitar inputs ocultos para que no entren al
-                                        // form submission y los required no bloqueen el envio.
-                                        block.querySelectorAll('input, select').forEach(el => {
-                                            el.disabled = !matches;
-                                        });
-                                    });
-                                    document.querySelectorAll('.actor-card').forEach(card => {
-                                        const inp = card.querySelector('input');
-                                        card.classList.toggle('actor-card-selected', inp && inp.value === value);
-                                    });
-                                };
-
-                                radios.forEach(r => r.addEventListener('change', () => apply(r.value)));
-                                const checked = document.querySelector('.actor-radio:checked');
-                                apply(checked ? checked.value : 'natural');
-                            })();
-                        </script>
+                        {{-- JS del formulario en archivo externo: la CSP estricta
+                             (script-src 'self', sin nonce) bloquea <script> inline.
+                             El estado inicial del selector ya viene resuelto
+                             server-side, asi que el form es correcto aun sin JS. --}}
+                        <script src="{{ asset('js/consulta-show.js') }}" defer></script>
 
                         <style>
                             .actor-card {

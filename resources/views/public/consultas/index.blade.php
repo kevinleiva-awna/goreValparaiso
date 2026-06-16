@@ -79,20 +79,23 @@
                 <div class="row g-4 mb-4">
                     @foreach ($consultations as $c)
                         @php
+                            // Estado efectivo: respeta ends_at aunque el status almacenado
+                            // siga 'active' (cierre manual pendiente). Coherente con la ficha.
+                            $effectiveStatus = $c->effectiveStatus();
                             $daysLeft = $c->ends_at ? now()->diffInDays($c->ends_at, false) : null;
-                            $isOpen = $c->status === 'active';
-                            $isClosed = $c->status === 'closed';
-                            $statusClass = match($c->status) {
+                            $isOpen = $effectiveStatus === 'active';
+                            $isClosed = $effectiveStatus === 'closed';
+                            $statusClass = match($effectiveStatus) {
                                 'active' => 'gore-badge-success',
                                 'published' => 'gore-badge-info',
                                 'closed' => 'gore-badge-muted',
                                 default => 'gore-badge-muted',
                             };
-                            $statusLabel = match($c->status) {
+                            $statusLabel = match($effectiveStatus) {
                                 'active' => 'Activa',
                                 'published' => 'Por iniciar',
                                 'closed' => 'Cerrada',
-                                default => $c->status,
+                                default => $effectiveStatus,
                             };
                             // Urgencia (acta junio 2026, punto 1):
                             // >7 dias verde, 3-7 ambar, <3 rojo. Solo para 'active'.

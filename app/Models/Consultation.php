@@ -108,8 +108,47 @@ class Consultation extends Model
         if ($this->status !== self::STATUS_ACTIVE) {
             return false;
         }
+        // Guard de fecha: aunque un cierre manual quede pendiente, un proceso
+        // fuera de su ventana [starts_at, ends_at] no acepta observaciones.
+        // Cierra la brecha entre el status almacenado y la fecha real.
+        if (! $this->isWithinWindow()) {
+            return false;
+        }
         return $this->stages()->where('accepts_observations', true)
             ->where('status', ConsultationStage::STATUS_ACTIVE)
             ->exists();
+    }
+
+    /**
+     * True si "ahora" cae dentro de la ventana del proceso. Un extremo nulo
+     * significa "sin limite" por ese lado.
+     */
+    public function isWithinWindow(): bool
+    {
+        if ($this->starts_at && $this->starts_at->isFuture()) {
+            return false;
+        }
+        if ($this->ends_at && $this->ends_at->isPast()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Estado "efectivo" para la vista publica: respeta la fecha aunque el
+     * status almacenado siga 'active' por un cierre manual pendiente. Asi la
+     * ficha nunca muestra "activa" sobre un proceso cuya ventana ya expiro.
+     */
+    public function effectiveStatus(): string
+    {
+        if ($this->status === self::STATUS_ACTIVE) {
+            if ($this->ends_at && $this->ends_at->isPast()) {
+                return self::STATUS_CLOSED;
+            }
+            if ($this->starts_at && $this->starts_at->isFuture()) {
+                return self::STATUS_PUBLISHED;
+            }
+        }
+        return $this->status;
     }
 }

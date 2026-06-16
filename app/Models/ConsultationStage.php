@@ -71,4 +71,17 @@ class ConsultationStage extends Model
             && $this->status === self::STATUS_ACTIVE
             && now()->between($this->starts_at, $this->ends_at);
     }
+
+    /**
+     * Estado efectivo para la vista publica: una etapa marcada 'active' cuya
+     * fecha de termino ya paso se muestra como finalizada, no "en curso".
+     */
+    public function effectiveStatus(): string
+    {
+        if ($this->status === self::STATUS_ACTIVE
+            && $this->ends_at && $this->ends_at->isPast()) {
+            return self::STATUS_CLOSED;
+        }
+        return $this->status;
+    }
 }
