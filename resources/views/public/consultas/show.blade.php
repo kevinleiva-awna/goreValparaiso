@@ -472,7 +472,7 @@
                         </style>
                     @else
                         {{-- Gate cerrado: mensaje contextual segun la razon --}}
-                        <div id="participar" class="card border-0 shadow-sm mb-4"
+                        <div id="participar" class="card border-0 shadow-sm mb-4 gore-on-dark"
                              style="background: linear-gradient(135deg, var(--gore-primary-dark) 0%, var(--gore-primary) 100%); color: white;">
                             <div class="card-body p-4 p-md-5 text-center">
                                 @switch($gate['reason'])

@@ -92,29 +92,53 @@
 
                 <div class="d-flex gap-2 align-items-center">
                     @auth
-                        @unless (Auth::user()->isStaff())
-                            {{-- Ciudadano autenticado: dropdown con perfil --}}
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2"
-                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="d-inline-flex align-items-center justify-content-center"
-                                          style="width: 28px; height: 28px; background: var(--gore-primary); color: #fff; border-radius: 50%; font-size: 0.75rem; font-weight: 600;">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                    </span>
-                                    <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="min-width: 240px;">
-                                    <li>
-                                        <div class="dropdown-item-text px-3 py-2">
-                                            <div class="fw-semibold text-truncate" style="color: var(--gore-ink);">
-                                                {{ Auth::user()->name }} {{ Auth::user()->last_name }}
-                                            </div>
-                                            <div class="small text-truncate" style="color: var(--gore-ink-soft);">
-                                                {{ Auth::user()->email }}
-                                            </div>
+                        {{-- Menu de cuenta (avatar). Ciudadano: cerrar sesion.
+                             Funcionario: perfil + panel + cerrar sesion. El acceso
+                             al backoffice vive aqui como item discreto del menu,
+                             no como boton prominente en el navbar. --}}
+                        @php $navUser = Auth::user(); @endphp
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="d-inline-flex align-items-center justify-content-center"
+                                      style="width: 28px; height: 28px; background: var(--gore-primary); color: #fff; border-radius: 50%; font-size: 0.75rem; font-weight: 600;">
+                                    {{ strtoupper(substr($navUser->name, 0, 1)) }}
+                                </span>
+                                <span class="d-none d-md-inline">{{ $navUser->name }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="min-width: 240px;">
+                                <li>
+                                    <div class="dropdown-item-text px-3 py-2">
+                                        <div class="fw-semibold text-truncate" style="color: var(--gore-ink);">
+                                            {{ $navUser->name }} {{ $navUser->last_name }}
                                         </div>
+                                        <div class="small text-truncate" style="color: var(--gore-ink-soft);">
+                                            {{ $navUser->email }}
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                @if ($navUser->isStaff())
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                            <i class="bi bi-person me-2"></i>Mi perfil
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('dashboard') }}">
+                                            <i class="bi bi-grid-1x2 me-2"></i>Ir al panel
+                                        </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesion
+                                            </button>
+                                        </form>
+                                    </li>
+                                @else
                                     <li>
                                         <form method="POST" action="{{ route('citizen.logout') }}" class="m-0">
                                             @csrf
@@ -123,11 +147,9 @@
                                             </button>
                                         </form>
                                     </li>
-                                </ul>
-                            </div>
-                        @endunless
-                        {{-- Funcionarios: el acceso al backoffice es por /admin/login;
-                             no se expone boton en el navbar publico. --}}
+                                @endif
+                            </ul>
+                        </div>
                     @else
                         {{-- Sin login: solo ClaveUnica como entrada. El registro
                              manual fue eliminado en junio 2026. La participacion

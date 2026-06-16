@@ -312,6 +312,19 @@ h3,
     letter-spacing: -0.01em;
 }
 
+// Encabezados sobre fondos oscuros: deben heredar el color claro del
+// contenedor. Bootstrap fija $headings-color oscuro y eso pisa la herencia,
+// dejando titulos negros sobre azul (login del backoffice, tarjeta de
+// "Proceso cerrado", etc.). Estos selectores devuelven la herencia solo en
+// contenedores marcados como oscuros, sin alterar las paginas claras.
+.gore-on-dark,
+.gore-auth-aside {
+    h1, h2, h3, h4, h5, h6,
+    .h1, .h2, .h3, .h4, .h5, .h6 {
+        color: inherit;
+    }
+}
+
 .text-prewrap {
     white-space: pre-wrap;
 }
