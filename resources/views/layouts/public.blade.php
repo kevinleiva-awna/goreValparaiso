@@ -92,12 +92,7 @@
 
                 <div class="d-flex gap-2 align-items-center">
                     @auth
-                        @if (Auth::user()->isStaff())
-                            {{-- Funcionario o super-admin: acceso al backoffice --}}
-                            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-grid-1x2 me-1"></i> Ir al backoffice
-                            </a>
-                        @else
+                        @unless (Auth::user()->isStaff())
                             {{-- Ciudadano autenticado: dropdown con perfil --}}
                             <div class="dropdown">
                                 <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2"
@@ -130,7 +125,9 @@
                                     </li>
                                 </ul>
                             </div>
-                        @endif
+                        @endunless
+                        {{-- Funcionarios: el acceso al backoffice es por /admin/login;
+                             no se expone boton en el navbar publico. --}}
                     @else
                         {{-- Sin login: solo ClaveUnica como entrada. El registro
                              manual fue eliminado en junio 2026. La participacion
