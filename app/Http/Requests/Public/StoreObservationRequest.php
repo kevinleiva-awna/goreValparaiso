@@ -49,13 +49,15 @@ class StoreObservationRequest extends FormRequest
         $isNaturalGuest = $isGuest && $actorType === Observation::ACTOR_NATURAL;
 
         return [
-            // Comunes a todos los caminos.
-            'subject' => ['nullable', 'string', 'max:255'],
-            'body' => ['required', 'string', 'min:10', 'max:10000'],
-            'category' => ['nullable', 'string', 'max:100'],
-            // 10 MB max. Tipos pensados para antecedentes ciudadanos comunes:
-            // PDF, imagen, oficina y CAD ligero.
-            'attachment' => [
+            // Una participacion puede incluir varias observaciones, cada una
+            // con su tema, asunto, cuerpo y adjunto. Minimo 1, tope 20.
+            'observations' => ['required', 'array', 'min:1', 'max:20'],
+            'observations.*.body' => ['required', 'string', 'min:10', 'max:10000'],
+            'observations.*.subject' => ['nullable', 'string', 'max:255'],
+            'observations.*.category' => ['nullable', Rule::in(Observation::CATEGORIES)],
+            // 10 MB max por adjunto. Tipos pensados para antecedentes ciudadanos
+            // comunes: PDF, imagen, oficina y CAD ligero.
+            'observations.*.attachment' => [
                 'nullable',
                 'file',
                 'max:10240',
@@ -105,7 +107,7 @@ class StoreObservationRequest extends FormRequest
 
             // Estado del proceso + etapa activa.
             if (! $consultation->isOpenForObservations()) {
-                $validator->errors()->add('body',
+                $validator->errors()->add('observations',
                     'Este proceso no esta aceptando observaciones en este momento.');
                 return;
             }
@@ -115,7 +117,7 @@ class StoreObservationRequest extends FormRequest
             // Sin login: chequear que la consulta admita guest.
             if (! $this->user()) {
                 if (! in_array(Consultation::AUTH_GUEST, $allowedMethods, true)) {
-                    $validator->errors()->add('body',
+                    $validator->errors()->add('observations',
                         'Esta consulta no admite comentarios sin registro.');
                 }
                 return;
@@ -124,7 +126,7 @@ class StoreObservationRequest extends FormRequest
             // Con login: chequear que el metodo de la sesion este habilitado.
             $authMethod = session('auth_method', 'claveunica');
             if (! in_array($authMethod, $allowedMethods, true)) {
-                $validator->errors()->add('body',
+                $validator->errors()->add('observations',
                     'Esta consulta no admite tu metodo de identificacion.');
             }
         });
@@ -133,11 +135,15 @@ class StoreObservationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'body.required' => 'Tu observacion no puede estar vacia.',
-            'body.min' => 'Tu observacion debe tener al menos 10 caracteres.',
-            'body.max' => 'Tu observacion no puede superar los 10.000 caracteres.',
-            'attachment.max' => 'El archivo no puede superar los 10 MB.',
-            'attachment.mimes' => 'Formato no permitido. Adjunta PDF, imagen, Word, Excel o texto plano.',
+            'observations.required' => 'Debes incluir al menos una observacion.',
+            'observations.min' => 'Debes incluir al menos una observacion.',
+            'observations.max' => 'Puedes enviar hasta 20 observaciones por vez.',
+            'observations.*.body.required' => 'Tu observacion no puede estar vacia.',
+            'observations.*.body.min' => 'Tu observacion debe tener al menos 10 caracteres.',
+            'observations.*.body.max' => 'Tu observacion no puede superar los 10.000 caracteres.',
+            'observations.*.category.in' => 'El tema seleccionado no es valido.',
+            'observations.*.attachment.max' => 'El archivo no puede superar los 10 MB.',
+            'observations.*.attachment.mimes' => 'Formato no permitido. Adjunta PDF, imagen, Word, Excel o texto plano.',
             'actor_type.required' => 'Debes indicar si participas como Persona Natural, Persona Juridica u Organizacion sin PJ.',
             'actor_type.in' => 'Tipo de participante invalido.',
             'guest_name.required' => 'Tu nombre es obligatorio para identificar la observacion.',

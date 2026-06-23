@@ -108,10 +108,10 @@ it('no acepta el envio de observacion despues de la fecha de termino', function 
         'guest_id_type' => 'rut',
         'guest_national_id' => '12345678-9',
         'guest_email' => 'tardia@example.cl',
-        'body' => 'Observacion enviada fuera de plazo que no deberia aceptarse jamas.',
+        'observations' => [['body' => 'Observacion enviada fuera de plazo que no deberia aceptarse jamas.']],
     ]);
 
-    $response->assertSessionHasErrors('body');
+    $response->assertSessionHasErrors('observations');
     expect(\App\Models\Observation::count())->toBe(0);
 });
 

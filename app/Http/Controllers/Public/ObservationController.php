@@ -7,7 +7,9 @@ use App\Http\Requests\Public\StoreObservationRequest;
 use App\Mail\ObservationSubmitted;
 use App\Models\Consultation;
 use App\Models\Observation;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -20,38 +22,10 @@ class ObservationController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
+        $disk = config('filesystems.default');
 
-        $attachmentMeta = [];
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $disk = config('filesystems.default');
-            try {
-                // Nombre aleatorio en el storage; conservamos el nombre original
-                // como metadato para mostrarlo al ciudadano y al funcionario.
-                $stored = $file->store('observations/' . $consultation->id, $disk);
-            } catch (\Throwable $e) {
-                Log::error('Upload de adjunto fallo', [
-                    'exception' => $e,
-                    'user_id' => $user?->id,
-                    'consultation_id' => $consultation->id,
-                    'disk' => $disk,
-                    'size' => $file->getSize(),
-                    'mime' => $file->getClientMimeType(),
-                ]);
-                return back()
-                    ->withErrors(['attachment' => 'No pudimos guardar tu archivo. Intentalo de nuevo o envia la observacion sin adjunto.'])
-                    ->withInput();
-            }
-            $attachmentMeta = [
-                'attachment_path' => $stored,
-                'attachment_disk' => $disk,
-                'attachment_original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
-                'attachment_mime_type' => $file->getMimeType(),
-                'attachment_size_bytes' => $file->getSize(),
-            ];
-        }
-
-        // Branchea segun el camino:
+        // Identidad resuelta UNA sola vez: todas las observaciones de este envio
+        // comparten el mismo snapshot de identidad y metodo de autenticacion.
         //  - Autenticado por ClaveUnica: actor SIEMPRE 'natural' (ClaveUnica
         //    solo identifica personas naturales chilenas). El RUT y nombre
         //    salen del modelo User; el resto del snapshot se deja nulo.
@@ -101,34 +75,97 @@ class ObservationController extends Controller
             };
         }
 
-        $observation = Observation::create([
-            'consultation_id' => $consultation->id,
+        // 1) Subimos los adjuntos (IO) ANTES de tocar la BD, recolectando los
+        //    metadatos por indice y los paths para limpiar si algo falla luego.
+        //    Nombre aleatorio en el storage; conservamos el original como metadato.
+        $attachmentMetaByIndex = [];
+        $storedPaths = [];
+        foreach ($data['observations'] as $i => $item) {
+            $file = $request->file("observations.$i.attachment");
+            if (! $file) {
+                $attachmentMetaByIndex[$i] = [];
+                continue;
+            }
+            try {
+                $stored = $file->store('observations/' . $consultation->id, $disk);
+            } catch (\Throwable $e) {
+                foreach ($storedPaths as [$d, $p]) {
+                    Storage::disk($d)->delete($p);
+                }
+                Log::error('Upload de adjunto fallo', [
+                    'exception' => $e,
+                    'user_id' => $user?->id,
+                    'consultation_id' => $consultation->id,
+                    'disk' => $disk,
+                    'index' => $i,
+                ]);
+                return back()
+                    ->withErrors(['observations' => 'No pudimos guardar uno de tus archivos. Intentalo de nuevo o envia la observacion sin adjunto.'])
+                    ->withInput();
+            }
+            $storedPaths[] = [$disk, $stored];
+            $attachmentMetaByIndex[$i] = [
+                'attachment_path' => $stored,
+                'attachment_disk' => $disk,
+                'attachment_original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
+                'attachment_mime_type' => $file->getMimeType(),
+                'attachment_size_bytes' => $file->getSize(),
+            ];
+        }
 
-            'subject' => $data['subject'] ?? null,
-            'body' => $data['body'],
-            'category' => $data['category'] ?? null,
+        // 2) Creamos las N observaciones en una transaccion, compartiendo
+        //    identidad y un mismo submission_group_id. Si algo falla, rollback
+        //    de las filas y limpieza de los archivos ya subidos.
+        $groupId = (string) Str::uuid();
+        try {
+            $observations = DB::transaction(function () use ($data, $consultation, $groupId, $identityBranch, $attachmentMetaByIndex, $request) {
+                $created = new Collection();
+                foreach ($data['observations'] as $i => $item) {
+                    $created->push(Observation::create([
+                        'consultation_id' => $consultation->id,
+                        'submission_group_id' => $groupId,
 
-            // Trazabilidad operativa
-            'ip_address' => $request->ip(),
-            'user_agent' => substr((string) $request->userAgent(), 0, 500),
+                        'subject' => $item['subject'] ?? null,
+                        'body' => $item['body'],
+                        'category' => $item['category'] ?? null,
 
-            ...$identityBranch,
-            ...$attachmentMeta,
-        ]);
+                        // Trazabilidad operativa
+                        'ip_address' => $request->ip(),
+                        'user_agent' => substr((string) $request->userAgent(), 0, 500),
 
-        // Mail de confirmacion al autor (user logueado o guest auto-declarado).
+                        ...$identityBranch,
+                        ...$attachmentMetaByIndex[$i],
+                    ]));
+                }
+                return $created;
+            });
+        } catch (\Throwable $e) {
+            foreach ($storedPaths as [$d, $p]) {
+                Storage::disk($d)->delete($p);
+            }
+            Log::error('Creacion de observaciones fallo', [
+                'exception' => $e,
+                'user_id' => $user?->id,
+                'consultation_id' => $consultation->id,
+            ]);
+            return back()
+                ->withErrors(['observations' => 'No pudimos registrar tus observaciones. Intentalo de nuevo.'])
+                ->withInput();
+        }
+
+        // Un solo correo de confirmacion que resume todas las observaciones.
         $emailTo = $user ? $user->email : $data['guest_email'];
-        Mail::to($emailTo)->queue(new ObservationSubmitted($observation));
+        Mail::to($emailTo)->queue(new ObservationSubmitted($observations));
 
         return redirect()->route('public.observations.success', [
             'slug' => $consultation->slug,
-            'publicId' => $observation->public_id,
+            'publicId' => $observations->first()->public_id,
         ]);
     }
 
     public function success(string $slug, string $publicId): View
     {
-        $observation = Observation::query()
+        $first = Observation::query()
             ->where('public_id', $publicId)
             ->whereHas('consultation', fn ($q) => $q->where('slug', $slug))
             ->with('consultation')
@@ -140,13 +177,23 @@ class ObservationController extends Controller
         // el UUID es secreto-suficiente para la pagina de confirmacion (no
         // expone datos sensibles mas alla del propio body) y el ciudadano
         // accede via redirect post-submit o por el link del mail.
-        if ($observation->user_id !== null) {
-            abort_unless(auth()->id() === $observation->user_id, 404);
+        if ($first->user_id !== null) {
+            abort_unless(auth()->id() === $first->user_id, 404);
         }
 
+        // Mostramos todas las observaciones del mismo envio (o solo esta si la
+        // fila no tiene grupo, p.ej. datos historicos previos al multi-envio).
+        $observations = $first->submission_group_id
+            ? Observation::query()
+                ->where('submission_group_id', $first->submission_group_id)
+                ->where('consultation_id', $first->consultation_id)
+                ->orderBy('id')
+                ->get()
+            : collect([$first]);
+
         return view('public.observations.success', [
-            'observation' => $observation,
-            'consultation' => $observation->consultation,
+            'observations' => $observations,
+            'consultation' => $first->consultation,
         ]);
     }
 }

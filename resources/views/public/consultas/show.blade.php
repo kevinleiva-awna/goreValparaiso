@@ -305,54 +305,50 @@
                                         </div>
                                     @endif
 
-                                    <div class="mb-3">
-                                        <x-input-label for="obs_subject" value="Asunto (opcional)" />
-                                        <x-text-input id="obs_subject" name="subject" type="text"
-                                                      :value="old('subject')" maxlength="255"
-                                                      placeholder="Ej: Observacion sobre el uso de suelo en Concon" />
-                                        <x-input-error :messages="$errors->get('subject')" />
+                                    {{-- Repetidor de observaciones: el ciudadano puede dejar
+                                         varias, cada una con su tema. El primer bloque viene
+                                         server-rendered, asi el form sirve sin JS (1 observacion). --}}
+                                    @php $oldObservations = old('observations', [[]]); @endphp
+
+                                    @if ($errors->has('observations'))
+                                        <div class="alert alert-danger small">{{ $errors->first('observations') }}</div>
+                                    @endif
+
+                                    <div id="observations-repeater">
+                                        @foreach ($oldObservations as $obsIndex => $obsValues)
+                                            @include('public.consultas._observation_block', [
+                                                'index' => $obsIndex,
+                                                'values' => $obsValues,
+                                                'display' => $loop->iteration,
+                                            ])
+                                        @endforeach
                                     </div>
 
-                                    <div class="mb-3">
-                                        <x-input-label for="obs_category" value="Categoria (opcional)" />
-                                        <select id="obs_category" name="category" class="form-select">
-                                            <option value="">Sin categoria especifica</option>
-                                            @foreach (['Uso de suelo', 'Vialidad', 'Areas verdes', 'Patrimonio', 'Equipamiento', 'Riesgo natural', 'Otro'] as $cat)
-                                                <option value="{{ $cat }}" @selected(old('category') === $cat)>{{ $cat }}</option>
-                                            @endforeach
-                                        </select>
-                                        <x-input-error :messages="$errors->get('category')" />
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <x-input-label for="obs_body" value="Tu observacion *" />
-                                        <textarea id="obs_body" name="body" class="form-control" rows="8"
-                                                  required minlength="10" maxlength="10000"
-                                                  placeholder="Describe tu observacion con el mayor detalle posible. Minimo 10 caracteres, maximo 10.000.">{{ old('body') }}</textarea>
-                                        <div class="form-text">
-                                            <span id="obs_charcount">0</span> / 10.000 caracteres
+                                    <div class="mb-4">
+                                        <button type="button" class="btn btn-outline-primary" id="obs-add" data-max="20">
+                                            <i class="bi bi-plus-lg me-1"></i> Agregar otra observacion
+                                        </button>
+                                        <div class="form-text mt-1">
+                                            Puedes incluir varias observaciones sobre distintos temas en un mismo envio.
                                         </div>
-                                        <x-input-error :messages="$errors->get('body')" />
                                     </div>
 
-                                    <div class="mb-3">
-                                        <x-input-label for="obs_attachment" value="Archivo adjunto (opcional)" />
-                                        <input id="obs_attachment" name="attachment" type="file"
-                                               class="form-control"
-                                               accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.odt,.ods,.txt" />
-                                        <div class="form-text">
-                                            PDF, imagen, Word, Excel o texto plano. Maximo 10 MB.
-                                        </div>
-                                        <x-input-error :messages="$errors->get('attachment')" />
-                                    </div>
+                                    {{-- Plantilla para clonar un bloque nuevo via JS (inerte: no se envia). --}}
+                                    <template id="obs-block-template">
+                                        @include('public.consultas._observation_block', [
+                                            'index' => '__INDEX__',
+                                            'values' => [],
+                                            'display' => '__NUM__',
+                                        ])
+                                    </template>
 
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                                         <p class="small text-muted mb-0">
-                                            Al enviar aceptas que tu observacion sera parte del expediente
-                                            publico del proceso.
+                                            Al enviar aceptas que tus observaciones seran parte del
+                                            expediente publico del proceso.
                                         </p>
                                         <x-primary-button class="btn-lg">
-                                            <i class="bi bi-send me-1"></i> Enviar observacion
+                                            <i class="bi bi-send me-1"></i> Enviar
                                         </x-primary-button>
                                     </div>
                                 </form>

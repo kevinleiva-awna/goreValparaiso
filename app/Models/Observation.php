@@ -24,7 +24,7 @@ class Observation extends Model
     {
         return LogOptions::defaults()
             ->logOnly([
-                'public_id', 'consultation_id',
+                'public_id', 'consultation_id', 'submission_group_id',
                 'subject', 'category', 'auth_method_used',
             ])
             ->dontSubmitEmptyLogs()
@@ -41,9 +41,25 @@ class Observation extends Model
     public const ID_TYPE_RUT = 'rut';
     public const ID_TYPE_PASSPORT = 'pasaporte';
 
+    /**
+     * Temas disponibles para clasificar una observacion. Fuente unica
+     * compartida por el formulario publico (select) y la validacion del
+     * StoreObservationRequest (Rule::in).
+     */
+    public const CATEGORIES = [
+        'Uso de suelo',
+        'Vialidad',
+        'Areas verdes',
+        'Patrimonio',
+        'Equipamiento',
+        'Riesgo natural',
+        'Otro',
+    ];
+
     protected $fillable = [
         'public_id',
         'consultation_id',
+        'submission_group_id',
         'user_id',
         'subject',
         'body',

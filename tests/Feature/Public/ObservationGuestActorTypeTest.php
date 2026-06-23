@@ -35,7 +35,9 @@ it('acepta observacion de Persona Natural guest con todos los campos', function 
         'guest_phone' => '+56 9 1234 5678',
         'guest_comuna' => 'Vina del Mar',
         'guest_age' => 35,
-        'body' => 'Mi observacion sobre el uso de suelo en la zona costera de Concon.',
+        'observations' => [
+            ['category' => 'Uso de suelo', 'body' => 'Mi observacion sobre el uso de suelo en la zona costera de Concon.'],
+        ],
     ]);
 
     $response->assertRedirect();
@@ -64,7 +66,9 @@ it('acepta observacion de Persona Juridica guest', function () {
         'guest_email' => 'contacto@acme.cl',
         'guest_phone' => '+56 2 2345 6789',
         'guest_address' => 'Av. Brasil 1234, Valparaiso',
-        'body' => 'Observamos un riesgo en la zona portuaria que afecta la operacion del puerto.',
+        'observations' => [
+            ['category' => 'Riesgo natural', 'body' => 'Observamos un riesgo en la zona portuaria que afecta la operacion del puerto.'],
+        ],
     ]);
 
     $response->assertRedirect();
@@ -85,7 +89,9 @@ it('acepta observacion de Organizacion sin PJ', function () {
         'guest_legal_name' => 'Junta de Vecinos Cerro Alegre',
         'guest_business_id' => '70123456-K',
         'guest_email' => 'jjvv.cerroalegre@gmail.com',
-        'body' => 'Como organizacion vecinal queremos manifestar nuestra preocupacion sobre el plan vial.',
+        'observations' => [
+            ['category' => 'Vialidad', 'body' => 'Como organizacion vecinal queremos manifestar nuestra preocupacion sobre el plan vial.'],
+        ],
     ]);
 
     $response->assertRedirect();
@@ -100,7 +106,7 @@ it('rechaza guest sin actor_type', function () {
     $response = $this->post(route('public.observations.store', $this->consultation), [
         'guest_name' => 'Sin tipo',
         'guest_email' => 'sin@tipo.cl',
-        'body' => 'Cuerpo de la observacion suficientemente largo.',
+        'observations' => [['body' => 'Cuerpo de la observacion suficientemente largo.']],
     ]);
     $response->assertSessionHasErrors('actor_type');
 });
@@ -111,7 +117,7 @@ it('rechaza Persona Natural guest sin nombre', function () {
         'guest_id_type' => 'rut',
         'guest_national_id' => '11111111-1',
         'guest_email' => 'sinnombre@example.cl',
-        'body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.',
+        'observations' => [['body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.']],
     ]);
     $response->assertSessionHasErrors('guest_name');
 });
@@ -121,7 +127,7 @@ it('rechaza PJ sin razon social', function () {
         'actor_type' => 'pj',
         'guest_business_id' => '76555555-5',
         'guest_email' => 'pj@example.cl',
-        'body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.',
+        'observations' => [['body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.']],
     ]);
     $response->assertSessionHasErrors('guest_legal_name');
 });
@@ -131,7 +137,7 @@ it('rechaza PJ sin RUT de la entidad', function () {
         'actor_type' => 'pj',
         'guest_legal_name' => 'Empresa sin RUT',
         'guest_email' => 'pj2@example.cl',
-        'body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.',
+        'observations' => [['body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.']],
     ]);
     $response->assertSessionHasErrors('guest_business_id');
 });
@@ -144,7 +150,7 @@ it('rechaza guest si la consulta NO admite guest mode', function () {
         'guest_id_type' => 'rut',
         'guest_national_id' => '12345678-9',
         'guest_email' => 'rechaza@example.cl',
-        'body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.',
+        'observations' => [['body' => 'Cuerpo suficiente para pasar la validacion de longitud minima.']],
     ]);
     // Authorize() falla -> 403
     $response->assertForbidden();
@@ -166,7 +172,7 @@ it('ClaveUnica autenticado siempre snapshot actor_type=natural', function () {
     // ignora la entrada para usuarios autenticados y fuerza 'natural'.
     $response = $this->post(route('public.observations.store', $this->consultation), [
         'actor_type' => 'pj',  // <- esto se ignora para auth user
-        'body' => 'Observacion enviada desde ClaveUnica con todos los campos validos requeridos.',
+        'observations' => [['body' => 'Observacion enviada desde ClaveUnica con todos los campos validos requeridos.']],
     ]);
 
     $response->assertRedirect();
@@ -176,6 +182,67 @@ it('ClaveUnica autenticado siempre snapshot actor_type=natural', function () {
         ->and($obs->snapshot_full_name)->toBe('Juan Perez')
         ->and($obs->user_id)->toBe($user->id)
         ->and($obs->auth_method_used)->toBe('claveunica');
+});
+
+it('acepta varias observaciones de distintas categorias en un mismo envio', function () {
+    $response = $this->post(route('public.observations.store', $this->consultation), [
+        'actor_type' => 'natural',
+        'guest_name' => 'Vecina Activa',
+        'guest_id_type' => 'rut',
+        'guest_national_id' => '16666666-6',
+        'guest_email' => 'vecina@example.cl',
+        'observations' => [
+            ['category' => 'Vialidad', 'body' => 'Observacion sobre el tramo vial que cruza el cerro.'],
+            ['category' => 'Patrimonio', 'subject' => 'Fachadas', 'body' => 'Las fachadas patrimoniales deben conservarse.'],
+            ['category' => 'Areas verdes', 'body' => 'Pedimos mas areas verdes en el sector alto.'],
+        ],
+    ]);
+
+    $response->assertRedirect();
+
+    $observations = Observation::query()->orderBy('id')->get();
+    expect($observations)->toHaveCount(3)
+        // Todas comparten un mismo submission_group_id (un solo envio)...
+        ->and($observations->pluck('submission_group_id')->unique())->toHaveCount(1)
+        ->and($observations->first()->submission_group_id)->not->toBeNull()
+        // ...y la misma identidad auto-declarada.
+        ->and($observations->pluck('snapshot_email')->unique()->all())->toBe(['vecina@example.cl'])
+        ->and($observations->pluck('snapshot_national_id')->unique()->all())->toBe(['16666666-6'])
+        // Cada una con su propio tema.
+        ->and($observations->pluck('category')->all())->toBe(['Vialidad', 'Patrimonio', 'Areas verdes']);
+
+    expect($observations->firstWhere('category', 'Patrimonio')->subject)->toBe('Fachadas');
+});
+
+it('rechaza el envio si una de las observaciones tiene cuerpo muy corto', function () {
+    $response = $this->post(route('public.observations.store', $this->consultation), [
+        'actor_type' => 'natural',
+        'guest_name' => 'Vecino Apurado',
+        'guest_id_type' => 'rut',
+        'guest_national_id' => '17888888-8',
+        'guest_email' => 'apurado@example.cl',
+        'observations' => [
+            ['category' => 'Vialidad', 'body' => 'Observacion valida y suficientemente larga para pasar.'],
+            ['category' => 'Otro', 'body' => 'corto'],
+        ],
+    ]);
+
+    // El item invalido aborta TODO el envio (nada se persiste).
+    $response->assertSessionHasErrors('observations.1.body');
+    expect(Observation::count())->toBe(0);
+});
+
+it('rechaza un envio sin ninguna observacion', function () {
+    $response = $this->post(route('public.observations.store', $this->consultation), [
+        'actor_type' => 'natural',
+        'guest_name' => 'Vecino Vacio',
+        'guest_id_type' => 'rut',
+        'guest_national_id' => '18999999-9',
+        'guest_email' => 'vacio@example.cl',
+    ]);
+
+    $response->assertSessionHasErrors('observations');
+    expect(Observation::count())->toBe(0);
 });
 
 it('el modelo lanza LogicException si se crea PJ con user_id', function () {
