@@ -24,7 +24,7 @@ class Observation extends Model
     {
         return LogOptions::defaults()
             ->logOnly([
-                'public_id', 'consultation_id', 'stage_id',
+                'public_id', 'consultation_id',
                 'subject', 'category', 'auth_method_used',
             ])
             ->dontSubmitEmptyLogs()
@@ -44,7 +44,6 @@ class Observation extends Model
     protected $fillable = [
         'public_id',
         'consultation_id',
-        'stage_id',
         'user_id',
         'subject',
         'body',
@@ -111,11 +110,6 @@ class Observation extends Model
     public function consultation(): BelongsTo
     {
         return $this->belongsTo(Consultation::class);
-    }
-
-    public function stage(): BelongsTo
-    {
-        return $this->belongsTo(ConsultationStage::class, 'stage_id');
     }
 
     public function user(): BelongsTo

@@ -59,7 +59,6 @@
                             <th>Titulo</th>
                             <th class="text-center">Tipo</th>
                             <th class="text-center">Estado</th>
-                            <th class="text-center">Etapas</th>
                             <th class="text-center">Observaciones</th>
                             <th>Periodo</th>
                             <th class="text-end">Acciones</th>
@@ -91,7 +90,6 @@
                                     @endphp
                                     <span class="badge {{ $statusClass }}">{{ $consultation->status }}</span>
                                 </td>
-                                <td class="text-center">{{ $consultation->stages_count }}</td>
                                 <td class="text-center">{{ $consultation->observations_count }}</td>
                                 <td class="small text-muted">
                                     @if ($consultation->starts_at)
@@ -120,7 +118,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
+                                <td colspan="6" class="text-center text-muted py-5">
                                     <i class="bi bi-inbox display-6 d-block mb-2"></i>
                                     No hay consultas que coincidan con los filtros.
                                 </td>

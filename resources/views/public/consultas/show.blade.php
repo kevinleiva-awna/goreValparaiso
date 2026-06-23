@@ -112,83 +112,6 @@
                         </div>
                     @endif
 
-                    {{-- Etapas --}}
-                    @if ($consultation->stages->isNotEmpty())
-                        <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-body p-4 p-md-5">
-                                <h2 class="h4 mb-4">Etapas del proceso</h2>
-                                <div class="d-flex flex-column gap-3">
-                                    @foreach ($consultation->stages as $stage)
-                                        @php
-                                            $stageStatus = $stage->effectiveStatus();
-                                            $stageColor = match($stageStatus) {
-                                                'active' => 'var(--gore-success)',
-                                                'closed' => 'var(--gore-ink-soft)',
-                                                default => 'var(--gore-border-strong)',
-                                            };
-                                            $stageIcon = match($stageStatus) {
-                                                'active' => 'bi-play-circle-fill',
-                                                'closed' => 'bi-check-lg',
-                                                default => null,
-                                            };
-                                            // Conector vertical entre etapas: si la etapa actual esta
-                                            // finalizada, el tramo hacia la siguiente queda lleno.
-                                            $connectorFill = $stageStatus === 'closed' ? 'var(--gore-success)' : 'var(--gore-border)';
-                                        @endphp
-                                        <div class="d-flex gap-3 gore-stage-row" @if($stageStatus === 'active') style="--ring-color: var(--gore-success);" @endif>
-                                            <div class="flex-shrink-0 d-flex flex-column align-items-center">
-                                                <div class="d-flex align-items-center justify-content-center fw-bold gore-stage-bullet"
-                                                     style="width: 36px; height: 36px; border-radius: 50%;
-                                                            background: {{ $stageColor }}; color: white;">
-                                                    @if ($stageIcon)
-                                                        <i class="bi {{ $stageIcon }}"></i>
-                                                    @else
-                                                        {{ $stage->position }}
-                                                    @endif
-                                                </div>
-                                                @if (! $loop->last)
-                                                    <div style="width: 2px; flex-grow: 1; background: {{ $connectorFill }}; margin-top: 4px;"></div>
-                                                @endif
-                                            </div>
-                                            <div class="flex-grow-1 pb-3">
-                                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                                    <div>
-                                                        <h3 class="h6 mb-1">{{ $stage->name }}</h3>
-                                                        <div class="small text-muted">
-                                                            @if ($stage->starts_at && $stage->ends_at)
-                                                                <i class="bi bi-calendar3 me-1"></i>
-                                                                {{ $stage->starts_at->format('d/m/Y') }} —
-                                                                {{ $stage->ends_at->format('d/m/Y') }}
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex flex-column align-items-end gap-1">
-                                                        @if ($stageStatus === 'active')
-                                                            <span class="gore-badge gore-badge-success">En curso</span>
-                                                        @elseif ($stageStatus === 'closed')
-                                                            <span class="gore-badge gore-badge-muted">Finalizada</span>
-                                                        @else
-                                                            <span class="gore-badge gore-badge-info">Pendiente</span>
-                                                        @endif
-                                                        @if (! $stage->accepts_observations)
-                                                            <span class="small text-muted">
-                                                                <i class="bi bi-info-circle me-1"></i>
-                                                                Solo informativa
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                @if ($stage->description)
-                                                    <p class="small text-muted mt-2 mb-0">{{ $stage->description }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
                     {{-- BLOQUE PARTICIPACION ========================================
                          Renderiza distinto segun el estado del gatekeeper:
                          - gate.can=true              -> form de envio de observacion
@@ -454,20 +377,6 @@
                                 border-color: var(--gore-primary) !important;
                                 background: rgba(21,28,104,0.05);
                                 box-shadow: 0 0 0 1px var(--gore-primary);
-                            }
-                            /* Pulse sutil en el bullet de la etapa activa para
-                               llamar la atencion sin ser ruidoso. */
-                            .gore-stage-row[style*="--ring-color"] .gore-stage-bullet {
-                                box-shadow: 0 0 0 4px rgba(16,185,129,0.18);
-                                animation: gore-pulse-ring 2.4s ease-out infinite;
-                            }
-                            @keyframes gore-pulse-ring {
-                                0%   { box-shadow: 0 0 0 0   rgba(16,185,129,0.45); }
-                                70%  { box-shadow: 0 0 0 10px rgba(16,185,129,0);   }
-                                100% { box-shadow: 0 0 0 0   rgba(16,185,129,0);   }
-                            }
-                            @media (prefers-reduced-motion: reduce) {
-                                .gore-stage-row .gore-stage-bullet { animation: none !important; }
                             }
                         </style>
                     @else

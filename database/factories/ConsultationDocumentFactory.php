@@ -24,7 +24,6 @@ class ConsultationDocumentFactory extends Factory
 
         return [
             'consultation_id' => Consultation::factory(),
-            'stage_id' => null,
             'title' => ucfirst(str_replace(['-', '.pdf'], [' ', ''], $filename)),
             'description' => fake()->sentence(),
             'original_filename' => $filename,

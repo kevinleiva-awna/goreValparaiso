@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 use App\Models\InstitutionalResponse;
 use App\Models\Observation;
 use App\Models\User;
@@ -34,17 +33,12 @@ it('muestra la ficha publica de una consulta por slug', function () {
 it('expone respuestas publicadas en la ficha publica sin filtrar RUT ni email', function () {
     $functionary = User::factory()->functionary()->create();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
     $citizen = User::factory()->citizen()->create([
         'national_id' => '15555555-K',
         'email' => 'privado@ejemplo.cl',
     ]);
     $obs = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser($citizen)
         ->create(['subject' => 'Asunto X']);
 
@@ -65,14 +59,9 @@ it('expone respuestas publicadas en la ficha publica sin filtrar RUT ni email', 
 it('NO expone respuestas en borrador en la ficha publica', function () {
     $functionary = User::factory()->functionary()->create();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
     $citizen = User::factory()->citizen()->create();
     $obs = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser($citizen)
         ->create();
 

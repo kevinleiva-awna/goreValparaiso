@@ -66,7 +66,6 @@ class ConsultationController extends Controller
             ])
             ->where('slug', $slug)
             ->with([
-                'stages',
                 'documents' => fn ($q) => $q->latest('version'),
             ])
             ->withCount('observations')
@@ -79,7 +78,6 @@ class ConsultationController extends Controller
             ->whereHas('response', fn ($q) => $q->where('status', 'published'))
             ->with([
                 'response' => fn ($q) => $q->with('responder:id,name,last_name'),
-                'stage:id,name',
             ])
             ->latest('submitted_at')
             ->paginate(10, ['*'], 'respuestas');
@@ -115,9 +113,9 @@ class ConsultationController extends Controller
      */
     private function resolveSubmissionGate(Consultation $consultation): array
     {
-        // El proceso debe estar abierto (estado + ventana de fecha + etapa
-        // activa). Tiene precedencia: si esta cerrado nadie participa, sin
-        // importar el login ni el metodo de identificacion.
+        // El proceso debe estar abierto (estado + ventana de fecha). Tiene
+        // precedencia: si esta cerrado nadie participa, sin importar el login
+        // ni el metodo de identificacion.
         if (! $consultation->isOpenForObservations()) {
             return ['can' => false, 'mode' => null, 'reason' => 'not_open'];
         }

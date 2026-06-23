@@ -24,7 +24,7 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
     {
         // Eager-load para evitar N+1 al iterar
         return $this->query
-            ->with(['consultation', 'stage'])
+            ->with(['consultation'])
             ->orderBy('id');
     }
 
@@ -37,7 +37,6 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
             'Proceso (consulta)',
             'Slug del proceso',
             'Tipo de instrumento',
-            'Etapa',
             'Asunto',
             'Categoria',
             'Cuerpo de la observacion',
@@ -59,7 +58,6 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
             $obs->consultation?->title,
             $obs->consultation?->slug,
             $obs->consultation?->instrument_type,
-            $obs->stage?->name,
             $obs->subject,
             $obs->category,
             $obs->body,

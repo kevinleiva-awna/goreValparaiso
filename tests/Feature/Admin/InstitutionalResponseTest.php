@@ -2,7 +2,6 @@
 
 use App\Mail\InstitutionalResponsePublished;
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 use App\Models\InstitutionalResponse;
 use App\Models\Observation;
 use App\Models\User;
@@ -21,15 +20,10 @@ function makeObservation(?Consultation $consultation = null): Observation
     $consultation ??= Consultation::factory()->create([
         'status' => Consultation::STATUS_ACTIVE,
     ]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
     $citizen = User::factory()->citizen()->create();
 
     return Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser($citizen)
         ->create();
 }
@@ -151,15 +145,10 @@ it('permite descartar un borrador pero no una respuesta publicada', function () 
 it('crea respuestas en lote compartiendo batch_id y notifica a cada ciudadano', function () {
     actingAsFunctionary();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
-    $observations = collect([1, 2, 3])->map(function () use ($consultation, $stage) {
+    $observations = collect([1, 2, 3])->map(function () use ($consultation) {
         $citizen = User::factory()->citizen()->create();
         return Observation::factory()
-            ->forConsultation($consultation, $stage)
+            ->forConsultation($consultation)
             ->byUser($citizen)
             ->create();
     });
@@ -185,18 +174,13 @@ it('crea respuestas en lote compartiendo batch_id y notifica a cada ciudadano', 
 it('rechaza el lote si alguna observacion ya tiene respuesta', function () {
     $functionary = actingAsFunctionary();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
 
     $obsLimpia = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser(User::factory()->citizen()->create())
         ->create();
     $obsConRespuesta = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser(User::factory()->citizen()->create())
         ->create();
     InstitutionalResponse::factory()->create([

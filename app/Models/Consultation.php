@@ -83,11 +83,6 @@ class Consultation extends Model
         });
     }
 
-    public function stages(): HasMany
-    {
-        return $this->hasMany(ConsultationStage::class)->orderBy('position');
-    }
-
     public function documents(): HasMany
     {
         return $this->hasMany(ConsultationDocument::class);
@@ -105,18 +100,11 @@ class Consultation extends Model
 
     public function isOpenForObservations(): bool
     {
-        if ($this->status !== self::STATUS_ACTIVE) {
-            return false;
-        }
-        // Guard de fecha: aunque un cierre manual quede pendiente, un proceso
-        // fuera de su ventana [starts_at, ends_at] no acepta observaciones.
-        // Cierra la brecha entre el status almacenado y la fecha real.
-        if (! $this->isWithinWindow()) {
-            return false;
-        }
-        return $this->stages()->where('accepts_observations', true)
-            ->where('status', ConsultationStage::STATUS_ACTIVE)
-            ->exists();
+        // Abierta = estado activo y "ahora" dentro de su ventana. El guard de
+        // fecha cierra la brecha entre el status almacenado y la fecha real:
+        // aunque un cierre manual quede pendiente, un proceso fuera de su
+        // ventana [starts_at, ends_at] no acepta observaciones.
+        return $this->status === self::STATUS_ACTIVE && $this->isWithinWindow();
     }
 
     /**

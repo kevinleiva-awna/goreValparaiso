@@ -19,7 +19,7 @@ class ConsultationDocument extends Model
     {
         return LogOptions::defaults()
             ->logOnly([
-                'consultation_id', 'stage_id', 'title',
+                'consultation_id', 'title',
                 'original_filename', 'version', 'file_group_id', 'sha256',
             ])
             ->logOnlyDirty()
@@ -29,7 +29,6 @@ class ConsultationDocument extends Model
 
     protected $fillable = [
         'consultation_id',
-        'stage_id',
         'title',
         'description',
         'original_filename',
@@ -63,11 +62,6 @@ class ConsultationDocument extends Model
     public function consultation(): BelongsTo
     {
         return $this->belongsTo(Consultation::class);
-    }
-
-    public function stage(): BelongsTo
-    {
-        return $this->belongsTo(ConsultationStage::class, 'stage_id');
     }
 
     public function uploader(): BelongsTo

@@ -27,13 +27,13 @@ class ObservationController extends Controller
         return view('admin.observations.index', [
             'observations' => $query->paginate(20)->withQueryString(),
             'consultations' => $consultations,
-            'filters' => $request->only(['consultation_id', 'stage_id', 'auth_method', 'from', 'to', 'q']),
+            'filters' => $request->only(['consultation_id', 'auth_method', 'from', 'to', 'q']),
         ]);
     }
 
     public function show(Observation $observation): View
     {
-        $observation->load(['consultation', 'stage', 'user', 'response.responder']);
+        $observation->load(['consultation', 'user', 'response.responder']);
 
         return view('admin.observations.show', [
             'observation' => $observation,
@@ -82,16 +82,12 @@ class ObservationController extends Controller
         $query = Observation::query()
             ->with([
                 'consultation:id,slug,title,instrument_type',
-                'stage:id,name',
                 'response:id,observation_id,status,published_at',
             ])
             ->latest('submitted_at');
 
         if ($request->filled('consultation_id')) {
             $query->where('consultation_id', $request->input('consultation_id'));
-        }
-        if ($request->filled('stage_id')) {
-            $query->where('stage_id', $request->input('stage_id'));
         }
         if ($request->filled('auth_method') && in_array($request->input('auth_method'), ['claveunica', 'guest'], true)) {
             $query->where('auth_method_used', $request->input('auth_method'));

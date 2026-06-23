@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 
 /**
  * Cobertura del estado "efectivo" de una consulta en la ficha publica.
@@ -23,24 +22,12 @@ it('muestra una consulta vencida como cerrada aunque el status siga active', fun
         'ends_at' => now()->subDays(11),
         'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_GUEST],
     ]);
-    ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'name' => 'Recepcion de observaciones',
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-        'starts_at' => now()->subDays(18),
-        'ends_at' => now()->subDays(11),
-    ]);
-
     $response = $this->get("/consultas/{$consultation->slug}");
 
     $response->assertOk();
     // Badge del proceso: cerrada, no activa.
     $response->assertSeeText('Consulta cerrada');
     $response->assertDontSeeText('Consulta activa');
-    // Badge de la etapa: finalizada, no "En curso".
-    $response->assertSeeText('Finalizada');
-    $response->assertDontSeeText('En curso');
     // Gate cerrado: NO se ofrece el formulario de participacion.
     $response->assertSeeText('Proceso cerrado');
     $response->assertDontSeeText('Tipo de participante');
@@ -97,13 +84,6 @@ it('mantiene abierta una consulta activa dentro de su ventana', function () {
         'ends_at' => now()->addDays(10),
         'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_GUEST],
     ]);
-    ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-        'starts_at' => now()->subDays(3),
-        'ends_at' => now()->addDays(10),
-    ]);
 
     $response = $this->get("/consultas/{$consultation->slug}");
 
@@ -120,13 +100,6 @@ it('no acepta el envio de observacion despues de la fecha de termino', function 
         'starts_at' => now()->subDays(20),
         'ends_at' => now()->subDays(5),
         'auth_methods' => [Consultation::AUTH_GUEST],
-    ]);
-    ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-        'starts_at' => now()->subDays(20),
-        'ends_at' => now()->subDays(5),
     ]);
 
     $response = $this->post(route('public.observations.store', $consultation), [
@@ -151,13 +124,6 @@ it('oculta y deshabilita los campos de Razon social / RUT entidad por defecto (P
         'starts_at' => now()->subDays(2),
         'ends_at' => now()->addDays(20),
         'auth_methods' => [Consultation::AUTH_GUEST],
-    ]);
-    ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-        'starts_at' => now()->subDays(2),
-        'ends_at' => now()->addDays(20),
     ]);
 
     $html = $this->get("/consultas/{$consultation->slug}")->assertOk()->getContent();

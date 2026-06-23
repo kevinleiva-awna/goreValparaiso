@@ -26,9 +26,6 @@
                                 <div class="small text-muted">
                                     <i class="bi bi-calendar3 me-1"></i>
                                     Envio observacion el {{ $obs->submitted_at->format('d/m/Y') }}
-                                    @if ($obs->stage?->name)
-                                        &middot; {{ $obs->stage->name }}
-                                    @endif
                                 </div>
                             </div>
                             <span class="gore-badge gore-badge-success" style="height: fit-content;">

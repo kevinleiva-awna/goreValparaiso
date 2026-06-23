@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreConsultationDocumentRequest extends FormRequest
@@ -25,20 +24,7 @@ class StoreConsultationDocumentRequest extends FormRequest
             ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'stage_id' => ['nullable', 'integer', 'exists:consultation_stages,id'],
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        // Si se entrega stage_id, debe pertenecer a la consulta del URL.
-        $validator->after(function ($validator) {
-            $stageId = $this->input('stage_id');
-            $consultation = $this->route('consultation');
-            if ($stageId && $consultation && ! $consultation->stages()->where('id', $stageId)->exists()) {
-                $validator->errors()->add('stage_id', 'La etapa seleccionada no pertenece a esta consulta.');
-            }
-        });
     }
 
     public function messages(): array

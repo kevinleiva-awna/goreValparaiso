@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 use App\Models\Observation;
 use Illuminate\Support\Facades\Mail;
 
@@ -17,17 +16,12 @@ use Illuminate\Support\Facades\Mail;
 beforeEach(function () {
     Mail::fake();
 
-    // Consulta activa con un stage activo que acepta observaciones y admite
-    // los dos metodos de auth: claveunica + guest.
+    // Consulta activa que acepta observaciones y admite los dos metodos de
+    // auth: claveunica + guest.
     $this->consultation = Consultation::factory()->create([
         'status' => Consultation::STATUS_ACTIVE,
         'slug' => 'prot-test-2026',
         'auth_methods' => [Consultation::AUTH_CLAVEUNICA, Consultation::AUTH_GUEST],
-    ]);
-    $this->stage = ConsultationStage::factory()->create([
-        'consultation_id' => $this->consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
     ]);
 });
 
@@ -187,7 +181,6 @@ it('ClaveUnica autenticado siempre snapshot actor_type=natural', function () {
 it('el modelo lanza LogicException si se crea PJ con user_id', function () {
     expect(fn () => Observation::create([
         'consultation_id' => $this->consultation->id,
-        'stage_id' => $this->stage->id,
         'user_id' => \App\Models\User::factory()->citizen()->create()->id,
         'body' => 'body suficiente para pasar validacion del modelo si la tuviera.',
         'auth_method_used' => 'claveunica',
@@ -201,7 +194,6 @@ it('el modelo lanza LogicException si se crea PJ con user_id', function () {
 it('el modelo lanza LogicException si se crea Org con user_id', function () {
     expect(fn () => Observation::create([
         'consultation_id' => $this->consultation->id,
-        'stage_id' => $this->stage->id,
         'user_id' => \App\Models\User::factory()->citizen()->create()->id,
         'body' => 'body suficiente.',
         'auth_method_used' => 'claveunica',

@@ -104,7 +104,7 @@
                                 </th>
                                 <th>Fecha</th>
                                 <th>Ciudadano</th>
-                                <th>Proceso / Etapa</th>
+                                <th>Proceso</th>
                                 <th>Asunto</th>
                                 <th class="text-center">Auth</th>
                                 <th class="text-center">Respuesta</th>
@@ -138,7 +138,6 @@
                                     </td>
                                     <td class="small">
                                         <div>{{ Str::limit($obs->consultation?->title, 40) }}</div>
-                                        <div class="text-muted">{{ $obs->stage?->name }}</div>
                                     </td>
                                     <td class="small">
                                         @if ($obs->subject)

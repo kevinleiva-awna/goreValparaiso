@@ -29,7 +29,6 @@ class ConsultationDocumentController extends Controller
 
                 return ConsultationDocument::create([
                     'consultation_id' => $consultation->id,
-                    'stage_id' => $data['stage_id'] ?? null,
                     'title' => $data['title'],
                     'description' => $data['description'] ?? null,
                     'original_filename' => $file->getClientOriginalName(),
@@ -111,7 +110,6 @@ class ConsultationDocumentController extends Controller
 
                 ConsultationDocument::create([
                     'consultation_id' => $document->consultation_id,
-                    'stage_id' => $document->stage_id,
                     'title' => $document->title,
                     'description' => $document->description,
                     'original_filename' => $file->getClientOriginalName(),

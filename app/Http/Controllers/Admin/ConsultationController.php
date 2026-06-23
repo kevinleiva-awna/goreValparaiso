@@ -15,7 +15,7 @@ class ConsultationController extends Controller
     public function index(Request $request): View
     {
         $query = Consultation::query()
-            ->withCount(['stages', 'observations'])
+            ->withCount('observations')
             ->latest();
 
         if ($request->filled('status')) {
@@ -65,7 +65,7 @@ class ConsultationController extends Controller
 
     public function show(Consultation $consultation): View
     {
-        $consultation->load(['stages', 'documents', 'creator']);
+        $consultation->load(['documents', 'creator']);
         $consultation->loadCount('observations');
 
         return view('admin.consultations.show', [

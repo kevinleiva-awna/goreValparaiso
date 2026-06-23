@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 use App\Models\InstitutionalResponse;
 use App\Models\Observation;
 use App\Models\User;
@@ -95,15 +94,10 @@ it('registra cambios de rol e is_active de User', function () {
 it('registra creacion de Observation con campos publicos solamente', function () {
     actingAsCitizen();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
     $citizen = User::factory()->citizen()->create();
 
     $obs = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser($citizen)
         ->create();
 
@@ -124,14 +118,9 @@ it('registra creacion de Observation con campos publicos solamente', function ()
 it('solo registra creacion de Observation y no updates posteriores', function () {
     actingAsCitizen();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
     $citizen = User::factory()->citizen()->create();
     $obs = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser($citizen)
         ->create();
 
@@ -160,14 +149,9 @@ it('expone /admin/activity-log solo a super-admin', function () {
 it('registra creacion y publicacion de InstitutionalResponse', function () {
     $functionary = actingAsFunctionary();
     $consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
-    $stage = ConsultationStage::factory()->create([
-        'consultation_id' => $consultation->id,
-        'status' => ConsultationStage::STATUS_ACTIVE,
-        'accepts_observations' => true,
-    ]);
     $citizen = User::factory()->citizen()->create();
     $obs = Observation::factory()
-        ->forConsultation($consultation, $stage)
+        ->forConsultation($consultation)
         ->byUser($citizen)
         ->create();
 

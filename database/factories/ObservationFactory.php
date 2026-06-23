@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 use App\Models\Observation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,7 +18,6 @@ class ObservationFactory extends Factory
         // Esto evita crear filas huérfanas cuando forConsultation()/byUser() las anulan.
         return [
             'consultation_id' => Consultation::factory(),
-            'stage_id' => ConsultationStage::factory(),
             'user_id' => User::factory()->citizen(),
 
             'subject' => fake()->sentence(6),
@@ -57,19 +55,11 @@ class ObservationFactory extends Factory
         ];
     }
 
-    public function forConsultation(Consultation $consultation, ?ConsultationStage $stage = null): static
+    public function forConsultation(Consultation $consultation): static
     {
-        return $this->state(function () use ($consultation, $stage) {
-            $stage = $stage ?? $consultation->stages()
-                ->where('accepts_observations', true)
-                ->where('status', ConsultationStage::STATUS_ACTIVE)
-                ->firstOrFail();
-
-            return [
-                'consultation_id' => $consultation->id,
-                'stage_id' => $stage->id,
-            ];
-        });
+        return $this->state(fn () => [
+            'consultation_id' => $consultation->id,
+        ]);
     }
 
     public function byUser(User $user): static

@@ -122,7 +122,7 @@ class InstitutionalResponseController extends Controller
 
         $observations = Observation::query()
             ->whereIn('id', $ids)
-            ->with(['consultation:id,title', 'stage:id,name'])
+            ->with(['consultation:id,title'])
             ->get();
 
         $alreadyResponded = $observations

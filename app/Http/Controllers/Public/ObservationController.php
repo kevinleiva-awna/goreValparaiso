@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\StoreObservationRequest;
 use App\Mail\ObservationSubmitted;
 use App\Models\Consultation;
-use App\Models\ConsultationStage;
 use App\Models\Observation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -21,13 +20,6 @@ class ObservationController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
-
-        // Etapa activa que admite observaciones en el momento del envio.
-        // El isOpenForObservations() del FormRequest ya valido que exista.
-        $stage = $consultation->stages()
-            ->where('accepts_observations', true)
-            ->where('status', ConsultationStage::STATUS_ACTIVE)
-            ->firstOrFail();
 
         $attachmentMeta = [];
         if ($request->hasFile('attachment')) {
@@ -111,7 +103,6 @@ class ObservationController extends Controller
 
         $observation = Observation::create([
             'consultation_id' => $consultation->id,
-            'stage_id' => $stage->id,
 
             'subject' => $data['subject'] ?? null,
             'body' => $data['body'],

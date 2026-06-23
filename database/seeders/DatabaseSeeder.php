@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Consultation;
 use App\Models\ConsultationDocument;
-use App\Models\ConsultationStage;
 use App\Models\InstitutionalResponse;
 use App\Models\Observation;
 use App\Models\User;
@@ -59,35 +58,19 @@ class DatabaseSeeder extends Seeder
             'created_by' => $claudio->id,
         ]);
 
-        $this->command->info('Seeding etapas de la consulta...');
-        $stageDifusion = ConsultationStage::factory()->closed()->informationOnly()->create([
-            'consultation_id' => $prot->id,
-            'name' => 'Difusion y publicacion',
-            'description' => 'Periodo informativo donde se publican antecedentes tecnicos. No se reciben observaciones aun.',
-            'position' => 1,
-        ]);
-
-        $stageObservaciones = ConsultationStage::factory()->active()->create([
-            'consultation_id' => $prot->id,
-            'name' => 'Recepcion de observaciones',
-            'description' => 'Ventana abierta para que la ciudadania presente observaciones formales al instrumento.',
-            'position' => 2,
-        ]);
-
         $this->command->info('Seeding antecedentes tecnicos...');
         ConsultationDocument::factory()->count(3)->create([
             'consultation_id' => $prot->id,
-            'stage_id' => $stageDifusion->id,
             'uploaded_by' => $claudio->id,
         ]);
 
         $this->command->info('Seeding observaciones ciudadanas...');
         // 3 ciudadanos con 1 observacion, 1 ciudadano con 2 (multiples permitidas)
-        Observation::factory()->forConsultation($prot, $stageObservaciones)->byUser($citizens[0])->create();
-        Observation::factory()->forConsultation($prot, $stageObservaciones)->byUser($citizens[1])->create();
-        Observation::factory()->forConsultation($prot, $stageObservaciones)->byUser($citizens[2])->create();
-        Observation::factory()->forConsultation($prot, $stageObservaciones)->byUser($citizens[3])->create();
-        Observation::factory()->forConsultation($prot, $stageObservaciones)->byUser($citizens[3])->create();
+        Observation::factory()->forConsultation($prot)->byUser($citizens[0])->create();
+        Observation::factory()->forConsultation($prot)->byUser($citizens[1])->create();
+        Observation::factory()->forConsultation($prot)->byUser($citizens[2])->create();
+        Observation::factory()->forConsultation($prot)->byUser($citizens[3])->create();
+        Observation::factory()->forConsultation($prot)->byUser($citizens[3])->create();
 
         $this->command->info('Seeding una respuesta institucional ejemplo...');
         $firstObs = Observation::query()->first();

@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\ConsultationDocumentController;
-use App\Http\Controllers\Admin\ConsultationStageController;
 use App\Http\Controllers\Admin\InstitutionalResponseController;
 use App\Http\Controllers\Admin\ObservationController as AdminObservationController;
 use App\Http\Controllers\Admin\UserController;
@@ -162,19 +161,6 @@ Route::prefix('admin')
 
         Route::resource('consultations', ConsultationController::class)
             ->names('admin.consultations');
-
-        // Etapas anidadas bajo cada consulta. scoped() valida que el stage_id
-        // pertenezca a la consultation_id de la URL.
-        Route::resource('consultations.stages', ConsultationStageController::class)
-            ->scoped()
-            ->except(['index', 'show'])
-            ->names('admin.consultations.stages');
-
-        Route::post('consultations/{consultation}/stages/{stage}/move/{direction}',
-            [ConsultationStageController::class, 'move'])
-            ->scopeBindings()
-            ->whereIn('direction', ['up', 'down'])
-            ->name('admin.consultations.stages.move');
 
         // Antecedentes tecnicos (documentos) anidados bajo cada consulta.
         Route::post('consultations/{consultation}/documents',

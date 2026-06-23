@@ -134,9 +134,6 @@
                                 </a>
                             </dd>
 
-                            <dt class="text-muted">Etapa</dt>
-                            <dd class="mb-2">{{ $observation->stage?->name }}</dd>
-
                             <dt class="text-muted">Fecha de envio</dt>
                             <dd class="mb-2">{{ $observation->submitted_at->format('d/m/Y H:i:s') }} CLT</dd>
 
