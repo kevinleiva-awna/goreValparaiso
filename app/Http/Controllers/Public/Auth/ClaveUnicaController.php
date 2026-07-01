@@ -33,6 +33,11 @@ class ClaveUnicaController extends Controller
      */
     public function redirect(): RedirectResponse
     {
+        // ClaveUnica deshabilitada mientras no exista la integracion oficial:
+        // la entrada se oculta en el front y aqui se corta por si alguien fuerza
+        // la URL. Reactivar con CLAVEUNICA_ENABLED=true.
+        abort_unless(config('claveunica.enabled'), 404);
+
         $state = Str::random(40);
         $codeVerifier = Str::random(64);
         $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
@@ -70,6 +75,8 @@ class ClaveUnicaController extends Controller
      */
     public function callback(Request $request): RedirectResponse
     {
+        abort_unless(config('claveunica.enabled'), 404);
+
         // Sin sesion previa de ClaveUnica -> redirige al listado publico de
         // consultas con un mensaje, en lugar de mandar al ex-citizen.login
         // (ruta eliminada en B.1).

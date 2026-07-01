@@ -271,7 +271,7 @@
                 @foreach ([
                     ['n' => '01', 'title' => 'Selecciona la consulta', 'text' => 'Revisa los procesos vigentes y elige el que te interesa.'],
                     ['n' => '02', 'title' => 'Revisa los antecedentes', 'text' => 'Descarga la documentaci&oacute;n t&eacute;cnica oficial.'],
-                    ['n' => '03', 'title' => 'Identif&iacute;cate', 'text' => 'Ingresa con ClaveUnica o como invitado/a (persona natural, jur&iacute;dica u organizaci&oacute;n).'],
+                    ['n' => '03', 'title' => 'Identif&iacute;cate', 'text' => config('claveunica.enabled') ? 'Ingresa con ClaveUnica o como invitado/a (persona natural, jur&iacute;dica u organizaci&oacute;n).' : 'Participa como invitado/a: persona natural, jur&iacute;dica u organizaci&oacute;n.'],
                     ['n' => '04', 'title' => 'Env&iacute;a tu observaci&oacute;n', 'text' => 'Redacta tu observaci&oacute;n. Recibir&aacute;s confirmaci&oacute;n por correo.'],
                 ] as $step)
                     <div class="col-md-6 col-lg-3">
@@ -311,7 +311,11 @@
                     </h2>
                     <p class="mb-0" style="color: rgba(255,255,255,0.8); max-width: 50ch;">
                         Revisa las consultas vigentes y env&iacute;a tu observaci&oacute;n en pocos minutos.
-                        Identif&iacute;cate con ClaveUnica o como invitado/a.
+                        @if (config('claveunica.enabled'))
+                            Identif&iacute;cate con ClaveUnica o como invitado/a.
+                        @else
+                            Participa como invitado/a, sin necesidad de crear una cuenta.
+                        @endif
                     </p>
                 </div>
                 <div class="col-lg-6 d-flex flex-wrap gap-2 justify-content-lg-end">
@@ -320,11 +324,13 @@
                         Ver consultas vigentes <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                     @guest
-                        <a href="{{ route('citizen.claveunica.redirect') }}"
-                           class="btn btn-outline-light"
-                           style="font-weight: 500; padding: 0.8125rem 1.5rem; border-radius: var(--bs-border-radius-sm);">
-                            <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                        </a>
+                        @if (config('claveunica.enabled'))
+                            <a href="{{ route('citizen.claveunica.redirect') }}"
+                               class="btn btn-outline-light"
+                               style="font-weight: 500; padding: 0.8125rem 1.5rem; border-radius: var(--bs-border-radius-sm);">
+                                <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
+                            </a>
+                        @endif
                     @endguest
                 </div>
             </div>

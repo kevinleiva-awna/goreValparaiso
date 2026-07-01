@@ -382,21 +382,30 @@
                             <div class="card-body p-4 p-md-5 text-center">
                                 @switch($gate['reason'])
                                     @case('guest')
-                                        {{-- Esta consulta NO admite participacion sin registro:
-                                             solo ClaveUnica es valida. Desde la eliminacion del
-                                             registro manual (junio 2026), no hay alternativa de
-                                             cuenta con email/password. --}}
-                                        <h2 class="h3 fw-bold mb-2">Participa en este proceso</h2>
-                                        <p class="mb-4" style="opacity: 0.85;">
-                                            Esta consulta requiere identificacion verificada via ClaveUnica.
-                                            Tu identidad queda asociada de forma inalterable a lo que envies.
-                                        </p>
-                                        <div class="d-flex justify-content-center">
-                                            <a href="{{ route('citizen.claveunica.redirect') }}"
-                                               class="btn btn-light btn-lg fw-semibold">
-                                                <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                                            </a>
-                                        </div>
+                                        {{-- Esta consulta solo admite ClaveUnica. Si la integracion
+                                             esta habilitada se invita a ingresar; si no, se informa que
+                                             la participacion no esta disponible por ahora (no hay
+                                             registro manual como alternativa). --}}
+                                        @if (config('claveunica.enabled'))
+                                            <h2 class="h3 fw-bold mb-2">Participa en este proceso</h2>
+                                            <p class="mb-4" style="opacity: 0.85;">
+                                                Esta consulta requiere identificacion verificada via ClaveUnica.
+                                                Tu identidad queda asociada de forma inalterable a lo que envies.
+                                            </p>
+                                            <div class="d-flex justify-content-center">
+                                                <a href="{{ route('citizen.claveunica.redirect') }}"
+                                                   class="btn btn-light btn-lg fw-semibold">
+                                                    <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
+                                                </a>
+                                            </div>
+                                        @else
+                                            <h2 class="h3 fw-bold mb-2">Participacion no disponible por ahora</h2>
+                                            <p class="mb-0" style="opacity: 0.85;">
+                                                Este proceso requiere identificacion verificada, que estara
+                                                habilitada proximamente. Por el momento no admite el envio de
+                                                observaciones.
+                                            </p>
+                                        @endif
                                         @break
 
                                     @case('not_open')
@@ -418,8 +427,12 @@
                                     @case('wrong_auth_method')
                                         <h2 class="h3 fw-bold mb-2">Metodo de identificacion no admitido</h2>
                                         <p class="mb-0" style="opacity: 0.85;">
-                                            Esta consulta requiere identificacion via ClaveUnica.
-                                            Por favor cierra sesion y vuelve a ingresar usando ClaveUnica.
+                                            @if (config('claveunica.enabled'))
+                                                Esta consulta requiere identificacion via ClaveUnica.
+                                                Por favor cierra sesion y vuelve a ingresar usando ClaveUnica.
+                                            @else
+                                                Tu metodo de identificacion no esta habilitado para esta consulta.
+                                            @endif
                                         </p>
                                         @break
 
@@ -525,7 +538,7 @@
                                 <dt class="text-muted small">Metodos de identificacion</dt>
                                 <dd class="mb-0">
                                     @foreach ((array) $consultation->auth_methods as $method)
-                                        @if ($method === 'claveunica')
+                                        @if ($method === 'claveunica' && config('claveunica.enabled'))
                                             <span class="gore-badge gore-badge-info">ClaveUnica</span>
                                         @elseif ($method === 'guest')
                                             <span class="gore-badge gore-badge-info">Sin registro</span>

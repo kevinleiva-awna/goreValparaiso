@@ -3,6 +3,19 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Habilitacion de ClaveUnica en el front del ciudadano
+    |--------------------------------------------------------------------------
+    |
+    | Interruptor global. Cuando es false se oculta toda la entrada a ClaveUnica
+    | de cara al ciudadano (boton de ingreso, CTA, rutas redirect/callback)
+    | mientras la integracion oficial no este disponible. El backoffice/admin no
+    | se ve afectado. Reactivar con CLAVEUNICA_ENABLED=true cuando el GORE tenga
+    | registrado el cliente OIDC.
+    */
+    'enabled' => env('CLAVEUNICA_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Modo de integracion con ClaveUnica
     |--------------------------------------------------------------------------
     |

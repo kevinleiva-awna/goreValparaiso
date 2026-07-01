@@ -151,13 +151,14 @@
                             </ul>
                         </div>
                     @else
-                        {{-- Sin login: solo ClaveUnica como entrada. El registro
-                             manual fue eliminado en junio 2026. La participacion
-                             "sin registro" se ofrece dentro del formulario de
-                             observacion de cada consulta, no como cuenta. --}}
-                        <a href="{{ route('citizen.claveunica.redirect') }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                        </a>
+                        {{-- Sin login: la entrada por ClaveUnica se muestra solo si la
+                             integracion esta habilitada. Mientras no lo este, el ciudadano
+                             participa como invitado dentro del formulario de observacion. --}}
+                        @if (config('claveunica.enabled'))
+                            <a href="{{ route('citizen.claveunica.redirect') }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
+                            </a>
+                        @endif
                     @endauth
                 </div>
             </div>
