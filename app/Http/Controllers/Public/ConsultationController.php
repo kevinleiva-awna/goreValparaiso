@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ConsultationController extends Controller
 {
-    private const DISK = 'local';
-
     /**
      * Listado publico de consultas. Solo expone procesos en estados
      * visibles para el ciudadano (los borradores quedan fuera).
@@ -167,9 +165,14 @@ class ConsultationController extends Controller
             ->latest('version')
             ->firstOrFail();
 
-        abort_unless(Storage::disk(self::DISK)->exists($document->storage_path), 404);
+        // Respeta el disco donde quedo guardado el documento (s3 en prod/staging,
+        // local en dev). Antes usaba un 'local' fijo, lo que rompia con 404 todas
+        // las descargas cuando el archivo estaba en S3.
+        $disk = $document->storage_disk ?: config('filesystems.default');
 
-        return Storage::disk(self::DISK)->download(
+        abort_unless(Storage::disk($disk)->exists($document->storage_path), 404);
+
+        return Storage::disk($disk)->download(
             $document->storage_path,
             $document->original_filename,
             ['Content-Type' => $document->mime_type]
