@@ -14,7 +14,10 @@ class ConsultationController extends Controller
 {
     public function index(Request $request): View
     {
+        $showArchived = $request->boolean('archived');
+
         $query = Consultation::query()
+            ->when($showArchived, fn ($q) => $q->onlyTrashed())
             ->withCount('observations')
             ->latest();
 
@@ -37,6 +40,7 @@ class ConsultationController extends Controller
         return view('admin.consultations.index', [
             'consultations' => $consultations,
             'filters' => $request->only(['status', 'type', 'q']),
+            'showArchived' => $showArchived,
         ]);
     }
 
@@ -99,5 +103,14 @@ class ConsultationController extends Controller
         return redirect()
             ->route('admin.consultations.index')
             ->with('status', 'Consulta archivada correctamente.');
+    }
+
+    public function restore(Consultation $consultation): RedirectResponse
+    {
+        $consultation->restore();
+
+        return redirect()
+            ->route('admin.consultations.index', ['archived' => 1])
+            ->with('status', 'Consulta restaurada correctamente.');
     }
 }

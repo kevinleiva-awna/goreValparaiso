@@ -162,6 +162,12 @@ Route::prefix('admin')
         Route::resource('consultations', ConsultationController::class)
             ->names('admin.consultations');
 
+        // Restaurar una consulta archivada (soft-deleted). withTrashed para que el
+        // route binding resuelva la consulta aunque tenga deleted_at.
+        Route::put('consultations/{consultation}/restore', [ConsultationController::class, 'restore'])
+            ->withTrashed()
+            ->name('admin.consultations.restore');
+
         // Antecedentes tecnicos (documentos) anidados bajo cada consulta.
         Route::post('consultations/{consultation}/documents',
             [ConsultationDocumentController::class, 'store'])

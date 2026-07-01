@@ -16,9 +16,21 @@
             </div>
         @endif
 
+        <div class="mb-3 d-flex gap-2">
+            <a href="{{ route('admin.consultations.index') }}"
+               class="btn btn-sm {{ $showArchived ? 'btn-outline-secondary' : 'btn-primary' }}">
+                Activas
+            </a>
+            <a href="{{ route('admin.consultations.index', ['archived' => 1]) }}"
+               class="btn btn-sm {{ $showArchived ? 'btn-primary' : 'btn-outline-secondary' }}">
+                <i class="bi bi-archive me-1"></i> Archivadas
+            </a>
+        </div>
+
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
                 <form method="GET" class="row g-2 align-items-end">
+                    @if ($showArchived)<input type="hidden" name="archived" value="1">@endif
                     <div class="col-md-4">
                         <label class="form-label small text-muted mb-1">Busqueda</label>
                         <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
@@ -68,10 +80,14 @@
                         @forelse ($consultations as $consultation)
                             <tr>
                                 <td>
-                                    <a href="{{ route('admin.consultations.show', $consultation) }}"
-                                       class="text-decoration-none fw-semibold">
-                                        {{ $consultation->title }}
-                                    </a>
+                                    @if ($showArchived)
+                                        <span class="fw-semibold">{{ $consultation->title }}</span>
+                                    @else
+                                        <a href="{{ route('admin.consultations.show', $consultation) }}"
+                                           class="text-decoration-none fw-semibold">
+                                            {{ $consultation->title }}
+                                        </a>
+                                    @endif
                                     <div class="text-muted small">{{ $consultation->slug }}</div>
                                 </td>
                                 <td class="text-center">
@@ -100,20 +116,33 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.consultations.edit', $consultation) }}"
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form method="POST"
-                                          action="{{ route('admin.consultations.destroy', $consultation) }}"
-                                          class="d-inline"
-                                          onsubmit="return confirm('Archivar esta consulta?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-archive"></i>
-                                        </button>
-                                    </form>
+                                    @if ($showArchived)
+                                        <form method="POST"
+                                              action="{{ route('admin.consultations.restore', $consultation) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Restaurar esta consulta?');">
+                                            @csrf
+                                            @method('PUT')
+                                            <button class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar
+                                            </button>
+                                        </form>
+                                    @else
+                                        <a href="{{ route('admin.consultations.edit', $consultation) }}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST"
+                                              action="{{ route('admin.consultations.destroy', $consultation) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Archivar esta consulta?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-archive"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
