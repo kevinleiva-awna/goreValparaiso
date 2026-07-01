@@ -20,19 +20,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('observations', function (Blueprint $table) {
-            // El indice compuesto referencia stage_id: hay que soltarlo antes
-            // de poder dropear la columna (MariaDB).
-            $table->dropIndex(['consultation_id', 'stage_id']);
-            // Suelta la FK y la columna en un paso.
-            $table->dropConstrainedForeignId('stage_id');
-            // Repone un indice util para los listados/filtros por proceso.
+            // La FK de consultation_id se apoya en el indice compuesto
+            // (consultation_id, stage_id). Hay que crear PRIMERO un indice
+            // sobre consultation_id solo, para que la FK siga respaldada; de lo
+            // contrario MariaDB rechaza el drop del compuesto (error 1553).
             $table->index('consultation_id');
+            $table->dropIndex(['consultation_id', 'stage_id']);
+            // Ahora si: suelta la FK y la columna stage_id en un paso.
+            $table->dropConstrainedForeignId('stage_id');
         });
 
         Schema::table('consultation_documents', function (Blueprint $table) {
+            $table->index('consultation_id');
             $table->dropIndex(['consultation_id', 'stage_id']);
             $table->dropConstrainedForeignId('stage_id');
-            $table->index('consultation_id');
         });
 
         Schema::dropIfExists('consultation_stages');
