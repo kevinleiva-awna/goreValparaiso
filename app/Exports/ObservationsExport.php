@@ -44,6 +44,8 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
             'RUT (snapshot)',
             'Nombre completo (snapshot)',
             'Correo (snapshot)',
+            'Archivo adjunto',
+            'Descarga del adjunto (backoffice)',
             'IP de origen',
             'Navegador (user-agent)',
         ];
@@ -73,6 +75,12 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
             $obs->snapshot_national_id,
             $obs->snapshot_full_name,
             $obs->snapshot_email,
+            // Adjunto: nombre original + URL de descarga del backoffice (requiere
+            // sesion de funcionario; el archivo NO es publico). Vacio si no hay.
+            $obs->attachment_original_name,
+            $obs->hasAttachment()
+                ? route('admin.observations.attachment.download', $obs)
+                : null,
             $obs->ip_address,
             $obs->user_agent,
         ];
