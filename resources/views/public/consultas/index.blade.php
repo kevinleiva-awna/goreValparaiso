@@ -128,11 +128,17 @@
                                      style="border-top: 1px solid var(--gore-border);">
                                     <span class="small d-flex align-items-center gap-2 flex-wrap"
                                           style="color: var(--gore-ink-soft);">
-                                        @if ($isOpen && $daysLeft !== null && $daysLeft > 0)
+                                        @if ($isOpen && $daysLeft !== null && floor($daysLeft) < 1)
                                             <span class="d-inline-flex align-items-center"
                                                   style="@if($urgencyColor) color: {{ $urgencyColor }}; font-weight: 600;@endif">
                                                 <i class="bi bi-clock me-1"></i>
-                                                {{ floor($daysLeft) }} {{ floor($daysLeft) === 1 ? 'dia' : 'dias' }} restantes
+                                                Finaliza hoy
+                                            </span>
+                                        @elseif ($isOpen && $daysLeft !== null)
+                                            <span class="d-inline-flex align-items-center"
+                                                  style="@if($urgencyColor) color: {{ $urgencyColor }}; font-weight: 600;@endif">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ floor($daysLeft) }} {{ floor($daysLeft) == 1 ? 'dia restante' : 'dias restantes' }}
                                             </span>
                                         @elseif ($isClosed)
                                             <span>

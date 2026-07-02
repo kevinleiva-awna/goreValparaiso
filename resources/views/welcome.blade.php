@@ -87,7 +87,11 @@
                             @if ($fpDaysLeft !== null && $fpTotalDays)
                                 <div class="mb-2 small">
                                     <span style="color: {{ $fpUrgency }}; font-weight: 600;">
-                                        {{ $fpDaysLeft }} días restantes
+                                        @if ($fpDaysLeft < 1)
+                                            Finaliza hoy
+                                        @else
+                                            {{ $fpDaysLeft }} {{ $fpDaysLeft == 1 ? 'día restante' : 'días restantes' }}
+                                        @endif
                                     </span>
                                 </div>
                                 <div class="gore-featured-progress" aria-hidden="true">
@@ -189,9 +193,13 @@
                                      style="border-top: 1px solid var(--gore-border);">
                                     <span class="small d-flex align-items-center gap-2 flex-wrap"
                                           style="color: var(--gore-ink-soft);">
-                                        @if ($isOpen && $daysLeft !== null && $daysLeft > 0)
+                                        @if ($isOpen && $daysLeft !== null && $daysLeft < 1)
+                                            <span style="@if($urgencyColor) color: {{ $urgencyColor }}; font-weight: 600;@endif">
+                                                Finaliza hoy
+                                            </span>
+                                        @elseif ($isOpen && $daysLeft !== null)
                                             <span style="@if($urgencyColor) color: {{ $urgencyColor }};@endif">
-                                                {{ $daysLeft }} {{ $daysLeft === 1.0 ? 'día' : 'días' }} restantes
+                                                {{ $daysLeft }} {{ $daysLeft == 1 ? 'día restante' : 'días restantes' }}
                                             </span>
                                         @elseif ($c->starts_at)
                                             <span>Inicia {{ $c->starts_at->format('d/m/Y') }}</span>

@@ -72,10 +72,14 @@
                 <div class="row text-white align-items-center g-3">
                     <div class="col-md-3 text-center">
                         <div class="display-4 fw-bold" style="letter-spacing: -0.03em;">
-                            {{ floor($daysLeft) }}
+                            {{ floor($daysLeft) >= 1 ? floor($daysLeft) : 'Hoy' }}
                         </div>
                         <div class="small text-uppercase" style="letter-spacing: 0.05em; opacity: 0.85;">
-                            {{ floor($daysLeft) === 1 ? 'dia restante' : 'dias restantes' }}
+                            @if (floor($daysLeft) >= 1)
+                                {{ floor($daysLeft) == 1 ? 'dia restante' : 'dias restantes' }}
+                            @else
+                                finaliza el proceso
+                            @endif
                         </div>
                     </div>
                     <div class="col-md-3 text-center">
@@ -527,12 +531,13 @@
 
                                 @if ($consultation->starts_at)
                                     <dt class="text-muted small">Inicio del proceso</dt>
-                                    <dd class="mb-3">{{ $consultation->starts_at->format('d \d\e F \d\e Y') }}</dd>
+                                    {{-- translatedFormat: meses en español (APP_LOCALE=es); format() los deja en inglés --}}
+                                    <dd class="mb-3">{{ $consultation->starts_at->translatedFormat('d \d\e F \d\e Y') }}</dd>
                                 @endif
 
                                 @if ($consultation->ends_at)
                                     <dt class="text-muted small">Termino del proceso</dt>
-                                    <dd class="mb-3">{{ $consultation->ends_at->format('d \d\e F \d\e Y') }}</dd>
+                                    <dd class="mb-3">{{ $consultation->ends_at->translatedFormat('d \d\e F \d\e Y') }}</dd>
                                 @endif
 
                                 <dt class="text-muted small">Metodos de identificacion</dt>
