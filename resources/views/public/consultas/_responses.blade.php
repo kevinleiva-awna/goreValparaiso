@@ -21,7 +21,7 @@
                         <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
                             <div>
                                 <div class="fw-semibold" style="color: var(--gore-ink);">
-                                    {{ $obs->snapshot_full_name }}
+                                    {{ $obs->display_name }}
                                 </div>
                                 <div class="small text-muted">
                                     <i class="bi bi-calendar3 me-1"></i>

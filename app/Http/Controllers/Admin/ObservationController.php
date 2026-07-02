@@ -105,6 +105,10 @@ class ObservationController extends Controller
                   ->orWhere('body', 'like', "%{$term}%")
                   ->orWhere('snapshot_national_id', 'like', "%{$term}%")
                   ->orWhere('snapshot_full_name', 'like', "%{$term}%")
+                  // PJ/Org: la identidad vive en legal/trade/business, no en full_name
+                  ->orWhere('snapshot_legal_name', 'like', "%{$term}%")
+                  ->orWhere('snapshot_trade_name', 'like', "%{$term}%")
+                  ->orWhere('snapshot_business_id', 'like', "%{$term}%")
                   ->orWhere('snapshot_email', 'like', "%{$term}%")
                   ->orWhere('public_id', $term);
             });

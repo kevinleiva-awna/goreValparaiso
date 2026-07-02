@@ -136,9 +136,14 @@
                                         <div class="text-muted">{{ $obs->submitted_at->format('H:i') }}</div>
                                     </td>
                                     <td>
-                                        <div class="fw-semibold">{{ $obs->snapshot_full_name }}</div>
+                                        <div class="fw-semibold">{{ $obs->display_name }}</div>
+                                        @if ($obs->snapshot_actor_type && $obs->snapshot_actor_type !== \App\Models\Observation::ACTOR_NATURAL)
+                                            <div class="text-muted" style="font-size: 0.7rem;">
+                                                {{ $obs->actor_type_label }}@if ($obs->snapshot_trade_name) &middot; {{ $obs->snapshot_trade_name }}@endif
+                                            </div>
+                                        @endif
                                         <div class="small text-muted">
-                                            {{ $obs->snapshot_national_id }} &middot; {{ $obs->snapshot_email }}
+                                            {{ $obs->display_rut }} &middot; {{ $obs->snapshot_email }}
                                         </div>
                                     </td>
                                     <td class="small">

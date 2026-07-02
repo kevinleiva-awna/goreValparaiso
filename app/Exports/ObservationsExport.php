@@ -41,8 +41,10 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
             'Categoria',
             'Cuerpo de la observacion',
             'Metodo de identificacion',
-            'RUT (snapshot)',
-            'Nombre completo (snapshot)',
+            'Tipo de participante',
+            'RUT (persona o entidad)',
+            'Nombre / Razon social',
+            'Nombre de fantasia',
             'Correo (snapshot)',
             'Archivo adjunto',
             'Descarga del adjunto (backoffice)',
@@ -72,8 +74,12 @@ class ObservationsExport implements FromQuery, WithHeadings, WithMapping, WithTi
                 // por defensa.
                 default => $obs->auth_method_used,
             },
-            $obs->snapshot_national_id,
-            $obs->snapshot_full_name,
+            $obs->actor_type_label,
+            // display_rut / display_name resuelven persona natural (full_name,
+            // national_id) o PJ/Org (legal_name, business_id) segun el actor.
+            $obs->display_rut,
+            $obs->display_name,
+            $obs->snapshot_trade_name,
             $obs->snapshot_email,
             // Adjunto: nombre original + URL de descarga del backoffice (requiere
             // sesion de funcionario; el archivo NO es publico). Vacio si no hay.

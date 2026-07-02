@@ -93,6 +93,33 @@ class Observation extends Model
         return ! empty($this->attachment_path);
     }
 
+    /**
+     * Nombre "a quien responder": el de la persona natural o, para PJ y
+     * Organizacion sin PJ, la razon social. Los snapshots de PJ/Org dejan
+     * snapshot_full_name vacio, asi que TODO lo que muestre identidad debe
+     * pasar por aqui y no leer snapshot_full_name directo (bug GORE 02-jul).
+     */
+    public function getDisplayNameAttribute(): ?string
+    {
+        return $this->snapshot_full_name ?: $this->snapshot_legal_name;
+    }
+
+    /** RUT de la persona natural o de la entidad segun el tipo de actor. */
+    public function getDisplayRutAttribute(): ?string
+    {
+        return $this->snapshot_national_id ?: $this->snapshot_business_id;
+    }
+
+    /** Etiqueta humana del tipo de participante (snapshot_actor_type). */
+    public function getActorTypeLabelAttribute(): string
+    {
+        return match ($this->snapshot_actor_type) {
+            self::ACTOR_PJ => 'Persona Juridica',
+            self::ACTOR_ORG => 'Organizacion sin PJ',
+            default => 'Persona Natural',
+        };
+    }
+
     protected function casts(): array
     {
         return [

@@ -57,13 +57,29 @@
                     </div>
                     <div class="card-body small">
                         <dl class="mb-0">
-                            <dt class="text-muted">Nombre completo</dt>
-                            <dd class="mb-2 fw-semibold">{{ $observation->snapshot_full_name }}</dd>
+                            <dt class="text-muted">Tipo de participante</dt>
+                            <dd class="mb-2">{{ $observation->actor_type_label }}</dd>
 
-                            <dt class="text-muted">RUT</dt>
-                            <dd class="mb-2">
-                                {{ $observation->snapshot_national_id ?? '— (no aplica)' }}
-                            </dd>
+                            @if (in_array($observation->snapshot_actor_type, [\App\Models\Observation::ACTOR_PJ, \App\Models\Observation::ACTOR_ORG], true))
+                                <dt class="text-muted">Razon social</dt>
+                                <dd class="mb-2 fw-semibold">{{ $observation->snapshot_legal_name }}</dd>
+
+                                @if ($observation->snapshot_trade_name)
+                                    <dt class="text-muted">Nombre de fantasia</dt>
+                                    <dd class="mb-2">{{ $observation->snapshot_trade_name }}</dd>
+                                @endif
+
+                                <dt class="text-muted">RUT entidad</dt>
+                                <dd class="mb-2">{{ $observation->snapshot_business_id ?? '— (no aplica)' }}</dd>
+                            @else
+                                <dt class="text-muted">Nombre completo</dt>
+                                <dd class="mb-2 fw-semibold">{{ $observation->snapshot_full_name }}</dd>
+
+                                <dt class="text-muted">RUT</dt>
+                                <dd class="mb-2">
+                                    {{ $observation->snapshot_national_id ?? '— (no aplica)' }}
+                                </dd>
+                            @endif
 
                             <dt class="text-muted">Correo electronico
                                 <i class="bi bi-info-circle ms-1" style="font-size: 0.75rem;"

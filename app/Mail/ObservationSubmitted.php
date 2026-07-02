@@ -41,7 +41,7 @@ class ObservationSubmitted extends Mailable implements ShouldQueue
                 'observations' => $this->observations,
                 'consultation' => $first->consultation,
                 // PJ/Org no tienen nombre de persona; usamos la razon social.
-                'author' => $first->snapshot_full_name ?: $first->snapshot_legal_name,
+                'author' => $first->display_name,
             ],
         );
     }

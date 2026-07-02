@@ -1,7 +1,7 @@
 <x-mail::message>
 # Tenemos una respuesta a tu observacion
 
-Hola {{ $observation->snapshot_full_name }},
+Hola {{ $observation->display_name }},
 
 El Gobierno Regional de Valparaiso publico una respuesta institucional
 a la observacion que enviaste al proceso **{{ $consultation->title }}**.

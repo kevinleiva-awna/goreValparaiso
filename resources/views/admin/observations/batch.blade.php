@@ -119,7 +119,7 @@
                                     <div class="d-flex justify-content-between align-items-start gap-2">
                                         <div class="flex-grow-1">
                                             <div class="small fw-semibold {{ $excluded ? 'text-muted text-decoration-line-through' : '' }}">
-                                                {{ $obs->snapshot_full_name }}
+                                                {{ $obs->display_name }}
                                             </div>
                                             <div class="small text-muted">
                                                 {{ Str::limit($obs->subject ?? $obs->body, 60) }}
