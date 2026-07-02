@@ -111,9 +111,13 @@ Route::prefix('consultas')->group(function () {
         ->middleware('throttle:5,1')
         ->name('public.observations.store');
 
+    // SIN middleware 'auth': los invitados (guest) también llegan aquí tras
+    // enviar. Con 'auth', al guest lo rebotaba al login del backoffice (unica
+    // ruta 'login') y ahi quedaba varado. La autorizacion la aplica el propio
+    // success(): observacion con user -> solo su autor (404 para el resto);
+    // observacion guest -> accesible por el UUID secreto del publicId.
     Route::get('/{slug}/observaciones/{publicId}/exito',
         [PublicObservationController::class, 'success'])
-        ->middleware('auth')
         ->name('public.observations.success');
 });
 

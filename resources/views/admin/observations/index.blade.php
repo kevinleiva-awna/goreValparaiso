@@ -11,14 +11,18 @@
                 <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
                     <i class="bi bi-download me-1"></i> Exportar
                 </button>
-                {{-- Los items NO usan href estatico: leen el estado actual del
-                     formulario de filtros via JS (data-export-format). De lo
-                     contrario, si el usuario cambia un filtro pero NO clickea
-                     "Filtrar", el href ya estaria precalculado con $filters
-                     vacios y exportaria todo (bug reportado por GORE). --}}
+                {{-- El JS (public/js/admin-observations.js) reescribe la URL al
+                     click leyendo el estado ACTUAL del form de filtros, para que
+                     un filtro cambiado sin "Filtrar" igual se respete. El href es
+                     el fallback server-side (filtros con los que se cargo la
+                     pagina) por si el JS no corre. --}}
+                @php
+                    $exportFilters = array_filter($filters ?? [], fn ($v) => $v !== null && $v !== '');
+                @endphp
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg">
                     <li>
-                        <a class="dropdown-item" href="#"
+                        <a class="dropdown-item"
+                           href="{{ route('admin.observations.export', array_merge(['format' => 'xlsx'], $exportFilters)) }}"
                            data-export-format="xlsx"
                            data-export-base="{{ route('admin.observations.export', ['format' => 'xlsx']) }}">
                             <i class="bi bi-file-earmark-excel me-2 text-success"></i>
@@ -26,7 +30,8 @@
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="#"
+                        <a class="dropdown-item"
+                           href="{{ route('admin.observations.export', array_merge(['format' => 'csv'], $exportFilters)) }}"
                            data-export-format="csv"
                            data-export-base="{{ route('admin.observations.export', ['format' => 'csv']) }}">
                             <i class="bi bi-filetype-csv me-2 text-info"></i>
@@ -214,63 +219,11 @@
             </div>
         </form>
 
-        <script>
-            (function () {
-                const selectAll = document.getElementById('select-all');
-                const rowChecks = Array.from(document.querySelectorAll('.row-check'));
-                const bar = document.getElementById('bulk-bar');
-                const countEl = document.getElementById('bulk-count');
-                const clearBtn = document.getElementById('bulk-clear');
-
-                function refresh() {
-                    const checked = rowChecks.filter(c => c.checked && !c.disabled);
-                    if (countEl) countEl.textContent = checked.length.toString();
-                    if (bar) bar.classList.toggle('d-none', checked.length === 0);
-                }
-
-                if (selectAll) {
-                    selectAll.addEventListener('change', () => {
-                        rowChecks.forEach(c => {
-                            if (! c.disabled) c.checked = selectAll.checked;
-                        });
-                        refresh();
-                    });
-                }
-
-                rowChecks.forEach(c => c.addEventListener('change', refresh));
-
-                if (clearBtn) {
-                    clearBtn.addEventListener('click', () => {
-                        rowChecks.forEach(c => c.checked = false);
-                        if (selectAll) selectAll.checked = false;
-                        refresh();
-                    });
-                }
-
-                refresh();
-            })();
-
-            // Construye la URL del export leyendo el estado ACTUAL del form
-            // de filtros (no $filters precalculado). Esto asegura que si el
-            // funcionario cambia un filtro y clickea "Exportar" sin haber
-            // hecho submit del form, el export respete su seleccion.
-            (function () {
-                const filterForm = document.getElementById('observations-filter-form');
-                document.querySelectorAll('[data-export-format]').forEach(link => {
-                    link.addEventListener('click', e => {
-                        e.preventDefault();
-                        const base = link.getAttribute('data-export-base');
-                        const formData = new FormData(filterForm);
-                        const params = new URLSearchParams();
-                        for (const [key, value] of formData.entries()) {
-                            if (value !== '' && value !== null) params.append(key, value);
-                        }
-                        const qs = params.toString();
-                        window.location.href = qs ? `${base}?${qs}` : base;
-                    });
-                });
-            })();
-        </script>
+        {{-- OJO: nada de <script> inline aqui — la CSP (script-src 'self') lo
+             bloquea en prod/staging y el JS muere en silencio (asi se rompio
+             el export y la seleccion masiva). Todo el JS de esta pagina vive
+             en public/js/admin-observations.js. --}}
+        <script src="{{ asset('js/admin-observations.js') }}" defer></script>
 
         <p class="text-center text-muted small mt-3 mb-0">
             Mostrando {{ $observations->firstItem() ?? 0 }} - {{ $observations->lastItem() ?? 0 }}
