@@ -50,7 +50,10 @@
 
                     if ($featuredProcess) {
                         $fpDaysLeft = $featuredProcess->ends_at
-                            ? max(0, floor(now()->diffInDays($featuredProcess->ends_at, false)))
+                            // Dias CALENDARIO (startOfDay en ambos extremos): con diff
+                            // crudo, las horas ya transcurridas del dia descuentan un
+                            // dia entero (mostraba 28 cuando correspondian 29).
+                            ? max(0, now()->startOfDay()->diffInDays($featuredProcess->ends_at->copy()->startOfDay(), false))
                             : null;
                         $fpTotalDays = $featuredProcess->starts_at && $featuredProcess->ends_at
                             ? max(1, $featuredProcess->starts_at->diffInDays($featuredProcess->ends_at))
@@ -159,7 +162,7 @@
                 <div class="row g-3 gore-reveal">
                     @foreach ($featured as $c)
                         @php
-                            $daysLeft = $c->ends_at ? max(0, floor(now()->diffInDays($c->ends_at, false))) : null;
+                            $daysLeft = $c->ends_at ? max(0, now()->startOfDay()->diffInDays($c->ends_at->copy()->startOfDay(), false)) : null;
                             $isOpen = $c->status === 'active';
                             $urgencyColor = match (true) {
                                 ! $isOpen || $daysLeft === null => null,

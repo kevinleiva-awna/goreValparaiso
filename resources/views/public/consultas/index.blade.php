@@ -82,7 +82,7 @@
                             // Estado efectivo: respeta ends_at aunque el status almacenado
                             // siga 'active' (cierre manual pendiente). Coherente con la ficha.
                             $effectiveStatus = $c->effectiveStatus();
-                            $daysLeft = $c->ends_at ? now()->diffInDays($c->ends_at, false) : null;
+                            $daysLeft = $c->ends_at ? now()->startOfDay()->diffInDays($c->ends_at->copy()->startOfDay(), false) : null;
                             $isOpen = $effectiveStatus === 'active';
                             $isClosed = $effectiveStatus === 'closed';
                             $statusClass = match($effectiveStatus) {

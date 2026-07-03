@@ -152,7 +152,11 @@ class Observation extends Model
 
     public function consultation(): BelongsTo
     {
-        return $this->belongsTo(Consultation::class);
+        // withTrashed: el expediente de una observacion debe seguir mostrando
+        // su consulta aunque esta se archive (soft delete). Sin esto, la
+        // relacion devuelve null para consultas archivadas y el backoffice
+        // revienta al armar links/titulos (500 reportado por GORE 03-jul).
+        return $this->belongsTo(Consultation::class)->withTrashed();
     }
 
     public function user(): BelongsTo

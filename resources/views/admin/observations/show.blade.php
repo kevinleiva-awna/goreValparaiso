@@ -144,10 +144,16 @@
                         <dl class="mb-0">
                             <dt class="text-muted">Proceso</dt>
                             <dd class="mb-2">
-                                <a href="{{ route('admin.consultations.show', $observation->consultation) }}"
-                                   class="text-decoration-none">
+                                @if ($observation->consultation && ! $observation->consultation->trashed())
+                                    <a href="{{ route('admin.consultations.show', $observation->consultation) }}"
+                                       class="text-decoration-none">
+                                        {{ $observation->consultation->title }}
+                                    </a>
+                                @else
+                                    {{-- Consulta archivada: sin link (el show no resuelve trashed) --}}
                                     {{ $observation->consultation?->title }}
-                                </a>
+                                    <span class="gore-badge gore-badge-muted ms-1">Archivada</span>
+                                @endif
                             </dd>
 
                             <dt class="text-muted">Fecha de envio</dt>

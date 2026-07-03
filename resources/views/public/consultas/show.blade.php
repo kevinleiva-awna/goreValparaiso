@@ -7,7 +7,7 @@
         // almacenado siga 'active' por un cierre manual pendiente
         // (ver Consultation::effectiveStatus). Mantiene badge y form coherentes.
         $effectiveStatus = $consultation->effectiveStatus();
-        $daysLeft = $consultation->ends_at ? now()->diffInDays($consultation->ends_at, false) : null;
+        $daysLeft = $consultation->ends_at ? now()->startOfDay()->diffInDays($consultation->ends_at->copy()->startOfDay(), false) : null;
         $isOpen = $effectiveStatus === 'active';
         $isClosed = $effectiveStatus === 'closed';
         $statusClass = match($effectiveStatus) {
