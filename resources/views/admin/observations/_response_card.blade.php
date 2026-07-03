@@ -75,7 +75,7 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <form method="POST"
                       action="{{ route('admin.observations.response.destroy', $observation) }}"
-                      onsubmit="return confirm('Descartar este borrador? Esta accion es irreversible pero NO publica nada.');">
+                      data-confirm="Descartar este borrador? Esta accion es irreversible pero NO publica nada.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -85,7 +85,7 @@
 
                 <form method="POST"
                       action="{{ route('admin.observations.response.publish', $observation) }}"
-                      onsubmit="return confirm('Publicar la respuesta? Se notificara al ciudadano por correo y NO podras editarla mas.');">
+                      data-confirm="Publicar la respuesta? Se notificara al ciudadano por correo y NO podras editarla mas.">
                     @csrf
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-send-check me-1"></i> Publicar y notificar al ciudadano

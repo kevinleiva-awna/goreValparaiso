@@ -37,5 +37,8 @@
             </div>
         </footer>
     </div>
+
+    {{-- Confirmaciones data-confirm (externo: la CSP bloquea onsubmit inline) --}}
+    <script src="{{ asset('js/confirm.js') }}" defer></script>
 </body>
 </html>

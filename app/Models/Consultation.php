@@ -39,12 +39,29 @@ class Consultation extends Model
     public const TYPE_ZUBC = 'ZUBC';
     public const TYPE_OTHER = 'OTRO';
 
+    /**
+     * Nombre completo de cada tipo de instrumento, para el front ciudadano
+     * (la sigla sola no le dice nada a quien no es del rubro — pedido GORE
+     * 02-jul). Las tarjetas/badges compactos pueden seguir usando la sigla.
+     */
+    public const TYPE_LABELS = [
+        self::TYPE_IPT => 'Instrumento de Planificación Territorial',
+        self::TYPE_PROT => 'Plan Regional de Ordenamiento Territorial',
+        self::TYPE_ZUBC => 'Zonificación de Uso del Borde Costero',
+        self::TYPE_OTHER => 'Otro instrumento',
+    ];
+
     public const AUTH_CLAVEUNICA = 'claveunica';
     public const AUTH_GUEST = 'guest';
 
     public function allowsGuest(): bool
     {
         return in_array(self::AUTH_GUEST, (array) ($this->auth_methods ?? []), true);
+    }
+
+    public function getInstrumentTypeLabelAttribute(): string
+    {
+        return self::TYPE_LABELS[$this->instrument_type] ?? $this->instrument_type;
     }
 
     protected $fillable = [

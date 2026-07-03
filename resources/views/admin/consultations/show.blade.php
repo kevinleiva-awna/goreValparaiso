@@ -140,7 +140,7 @@
                                                     <form method="POST"
                                                           action="{{ route('admin.consultations.documents.destroy', [$consultation, $doc]) }}"
 
-                                                          onsubmit="return confirm('Archivar el documento &quot;{{ $doc->title }}&quot;? El archivo se conserva pero deja de listarse.');">
+                                                          data-confirm="Archivar el documento &quot;{{ $doc->title }}&quot;? El archivo se conserva pero deja de listarse.">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button class="btn btn-outline-danger" title="Archivar">

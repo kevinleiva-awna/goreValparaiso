@@ -130,7 +130,7 @@
                                         @if ($user->id !== auth()->id())
                                             <form method="POST"
                                                   action="{{ route('admin.users.toggle-active', $user) }}"
-                                                  onsubmit="return confirm('{{ $user->is_active ? 'Desactivar' : 'Reactivar' }} la cuenta de {{ $user->name }}?');">
+                                                  data-confirm="{{ $user->is_active ? 'Desactivar' : 'Reactivar' }} la cuenta de {{ $user->name }}?">
                                                 @csrf
                                                 @if ($user->is_active)
                                                     <button class="btn btn-outline-warning" title="Desactivar">

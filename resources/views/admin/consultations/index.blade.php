@@ -120,7 +120,7 @@
                                         <form method="POST"
                                               action="{{ route('admin.consultations.restore', $consultation) }}"
                                               class="d-inline"
-                                              onsubmit="return confirm('Restaurar esta consulta?');">
+                                              data-confirm="Restaurar esta consulta?">
                                             @csrf
                                             @method('PUT')
                                             <button class="btn btn-sm btn-outline-success">
@@ -135,7 +135,7 @@
                                         <form method="POST"
                                               action="{{ route('admin.consultations.destroy', $consultation) }}"
                                               class="d-inline"
-                                              onsubmit="return confirm('Archivar esta consulta?');">
+                                              data-confirm="Archivar esta consulta?">
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger">

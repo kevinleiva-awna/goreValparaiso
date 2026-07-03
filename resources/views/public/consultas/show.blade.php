@@ -527,7 +527,7 @@
                         <div class="card-body small">
                             <dl class="mb-0">
                                 <dt class="text-muted small">Tipo de instrumento</dt>
-                                <dd class="mb-3">{{ $consultation->instrument_type }}</dd>
+                                <dd class="mb-3">{{ $consultation->instrument_type_label }}</dd>
 
                                 @if ($consultation->starts_at)
                                     <dt class="text-muted small">Inicio del proceso</dt>

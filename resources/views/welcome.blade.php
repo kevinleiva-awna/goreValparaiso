@@ -17,8 +17,8 @@
                     </div>
 
                     <h1 class="gore-hero-title">
-                        Participa en las decisiones
-                        territoriales de Valpara&iacute;so.
+                        Participa de las decisiones territoriales
+                        de la Regi&oacute;n de Valpara&iacute;so.
                     </h1>
 
                     <p class="gore-hero-lead">
@@ -248,13 +248,10 @@
                 @endif
             </div>
 
-            <p class="mx-auto" style="max-width: 56ch; color: var(--gore-ink-soft); line-height: 1.6;">
-                Plataforma del <strong style="color: var(--gore-ink);">Gobierno Regional de Valpara&iacute;so</strong>
-                desarrollada en el marco del programa <em>Regi&oacute;n de Derechos</em>, con la
-                colaboraci&oacute;n del <strong style="color: var(--gore-ink);">Consejo Regional (CORE Valpara&iacute;so)</strong>
-                para fortalecer la participaci&oacute;n ciudadana en los instrumentos de
-                planificaci&oacute;n territorial de la regi&oacute;n.
-            </p>
+            {{-- Sin texto descriptivo del programa: el parrafo que referenciaba
+                 "programa Region de Derechos" y la "colaboracion del CORE" se
+                 elimino a pedido del GORE (02-jul) por inducir a error sobre
+                 programas/coordinaciones inexistentes. Solo logos. --}}
         </div>
     </section>
 

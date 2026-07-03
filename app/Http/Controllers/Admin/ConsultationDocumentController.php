@@ -56,7 +56,9 @@ class ConsultationDocumentController extends Controller
                 ->withInput();
         }
 
-        return back()->with('status', "Documento &quot;{$document->title}&quot; subido correctamente.");
+        // Comillas literales: el blade ({{ }}) ya escapa al renderizar. Poner
+        // &quot; aqui produce el doble-escape visible "&quot;" en pantalla.
+        return back()->with('status', "Documento \"{$document->title}\" subido correctamente.");
     }
 
     public function destroy(Consultation $consultation, ConsultationDocument $document): RedirectResponse

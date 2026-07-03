@@ -214,7 +214,7 @@
                         </li>
                         <li>
                             <i class="bi bi-envelope me-2"></i>
-                            <a href="mailto:contacto@gorevalparaiso.cl">contacto@gorevalparaiso.cl</a>
+                            <a href="mailto:uot.diplad@gobiernovalparaiso.cl">uot.diplad@gobiernovalparaiso.cl</a>
                         </li>
                     </ul>
                 </div>
