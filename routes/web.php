@@ -213,6 +213,18 @@ Route::prefix('admin')
             [AdminObservationController::class, 'downloadAttachment'])
             ->name('admin.observations.attachment.download');
 
+        // Archivar / restaurar observaciones (papelera): SOLO super-admin. Las
+        // observaciones son inalterables en contenido; archivar es reversible.
+        Route::middleware('role:super-admin')->group(function () {
+            Route::delete('observations/{observation}/archive',
+                [AdminObservationController::class, 'archive'])
+                ->name('admin.observations.archive');
+            Route::put('observations/{observation}/restore',
+                [AdminObservationController::class, 'restore'])
+                ->withTrashed()
+                ->name('admin.observations.restore');
+        });
+
         // Respuesta institucional por observacion individual.
         Route::post('observations/{observation}/response',
             [InstitutionalResponseController::class, 'store'])

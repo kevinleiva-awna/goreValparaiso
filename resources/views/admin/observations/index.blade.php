@@ -51,9 +51,21 @@
             </div>
         @endif
 
+        <div class="mb-3 d-flex gap-2">
+            <a href="{{ route('admin.observations.index') }}"
+               class="btn btn-sm {{ $showArchived ? 'btn-outline-secondary' : 'btn-primary' }}">
+                Recibidas
+            </a>
+            <a href="{{ route('admin.observations.index', ['archived' => 1]) }}"
+               class="btn btn-sm {{ $showArchived ? 'btn-primary' : 'btn-outline-secondary' }}">
+                <i class="bi bi-archive me-1"></i> Archivadas
+            </a>
+        </div>
+
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
                 <form method="GET" class="row g-2 align-items-end" id="observations-filter-form">
+                    @if ($showArchived)<input type="hidden" name="archived" value="1">@endif
                     <div class="col-md-4">
                         <label class="form-label small text-muted mb-1">Busqueda</label>
                         <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
@@ -178,11 +190,28 @@
                                             <span class="gore-badge gore-badge-muted">Sin respuesta</span>
                                         @endif
                                     </td>
-                                    <td class="text-end">
-                                        <a href="{{ route('admin.observations.show', $obs) }}"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-eye me-1"></i> Ver
-                                        </a>
+                                    <td class="text-end text-nowrap">
+                                        @if ($showArchived)
+                                            @if (auth()->user()->isSuperAdmin())
+                                                <button type="submit" form="restore-{{ $obs->id }}"
+                                                        class="btn btn-sm btn-outline-success">
+                                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar
+                                                </button>
+                                            @else
+                                                <span class="gore-badge gore-badge-muted">Archivada</span>
+                                            @endif
+                                        @else
+                                            <a href="{{ route('admin.observations.show', $obs) }}"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-eye me-1"></i> Ver
+                                            </a>
+                                            @if (auth()->user()->isSuperAdmin())
+                                                <button type="submit" form="archive-{{ $obs->id }}"
+                                                        class="btn btn-sm btn-outline-danger" title="Archivar">
+                                                    <i class="bi bi-archive"></i>
+                                                </button>
+                                            @endif
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -223,6 +252,29 @@
                 </div>
             </div>
         </form>
+
+        {{-- Forms de archivar/restaurar FUERA del batch-form (no se pueden
+             anidar): los botones de cada fila los disparan via el atributo
+             HTML5 form="...". Solo super-admin. --}}
+        @if (auth()->user()->isSuperAdmin())
+            @foreach ($observations as $obs)
+                @if ($showArchived)
+                    <form id="restore-{{ $obs->id }}" method="POST"
+                          action="{{ route('admin.observations.restore', $obs) }}"
+                          data-confirm="Restaurar esta observacion? Volvera al listado.">
+                        @csrf
+                        @method('PUT')
+                    </form>
+                @else
+                    <form id="archive-{{ $obs->id }}" method="POST"
+                          action="{{ route('admin.observations.archive', $obs) }}"
+                          data-confirm="Archivar esta observacion? Sale del listado y del export, pero podras restaurarla.">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                @endif
+            @endforeach
+        @endif
 
         {{-- OJO: nada de <script> inline aqui — la CSP (script-src 'self') lo
              bloquea en prod/staging y el JS muere en silencio (asi se rompio

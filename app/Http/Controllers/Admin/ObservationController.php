@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Consultation;
 use App\Models\Observation;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -18,17 +19,47 @@ class ObservationController extends Controller
 {
     public function index(Request $request): View
     {
+        $showArchived = $request->boolean('archived');
+
         $consultations = Consultation::query()
             ->orderBy('title')
             ->get(['id', 'slug', 'title']);
 
         $query = $this->buildFilteredQuery($request);
+        // onlyTrashed SOLO en el listado; el export (que reusa buildFilteredQuery)
+        // sigue excluyendo archivadas por el SoftDeletes por defecto.
+        if ($showArchived) {
+            $query->onlyTrashed();
+        }
 
         return view('admin.observations.index', [
             'observations' => $query->paginate(20)->withQueryString(),
             'consultations' => $consultations,
             'filters' => $request->only(['consultation_id', 'auth_method', 'from', 'to', 'q']),
+            'showArchived' => $showArchived,
         ]);
+    }
+
+    /**
+     * Archivar (soft-delete) una observacion. Reversible, restringido a
+     * super-admin: saca del listado/export sin destruir el expediente.
+     */
+    public function archive(Request $request, Observation $observation): RedirectResponse
+    {
+        abort_unless($request->user()->isSuperAdmin(), 403);
+
+        $observation->delete();
+
+        return back()->with('status', 'Observacion archivada. Puedes restaurarla desde el filtro "Archivadas".');
+    }
+
+    public function restore(Request $request, Observation $observation): RedirectResponse
+    {
+        abort_unless($request->user()->isSuperAdmin(), 403);
+
+        $observation->restore();
+
+        return back()->with('status', 'Observacion restaurada.');
     }
 
     public function show(Observation $observation): View

@@ -6,17 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Observation extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     /**
-     * Las observaciones son inalterables: solo se audita su CREACION,
-     * nunca updates ni deletes (que ademas no deberian ocurrir).
+     * El CONTENIDO de la observacion es inalterable: solo se audita su
+     * creacion, nunca updates. El soft-delete ("archivar") es la unica
+     * excepcion — reversible y restringido a super-admin — para sacar del
+     * listado spam/duplicados/pruebas sin destruir el expediente.
      */
     protected static $recordEvents = ['created'];
 
