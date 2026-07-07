@@ -105,7 +105,14 @@
     <section class="py-5">
         <div class="container">
             <div class="row g-4">
-                <div class="col-lg-8">
+                {{-- En movil las columnas se apilan en orden de DOM: sin ayuda,
+                     el sidebar (antecedentes/archivos) cae al final, DESPUES del
+                     formulario de observacion. Con order-* forzamos el sidebar
+                     ARRIBA en <lg para que las descargas queden al inicio, antes
+                     del cuadro de observacion (pedido GORE, audiencia jul-2026).
+                     En lg+ se restablece el layout original: contenido izquierda,
+                     sidebar derecha. --}}
+                <div class="col-lg-8 order-2 order-lg-1">
                     {{-- Descripcion --}}
                     @if ($consultation->description)
                         <div class="card border-0 shadow-sm mb-4">
@@ -463,10 +470,13 @@
                     ])
                 </div>
 
-                {{-- Sidebar --}}
-                <div class="col-lg-4">
-                    {{-- Antecedentes tecnicos --}}
-                    <div class="card border-0 shadow-sm mb-3 sticky-top" style="top: 1rem; z-index: 10;">
+                {{-- Sidebar (order-1 en movil = va ARRIBA del contenido) --}}
+                <div class="col-lg-4 order-1 order-lg-2">
+                    {{-- Antecedentes tecnicos.
+                         sticky-lg-top (no sticky-top): el "pegado" solo aplica en
+                         escritorio, donde acompana al formulario largo. En movil el
+                         card queda arriba y scrollea normal, sin tapar el contenido. --}}
+                    <div class="card border-0 shadow-sm mb-3 sticky-lg-top" style="top: 1rem; z-index: 10;">
                         <div class="card-header bg-white border-bottom py-3">
                             <h2 class="h6 mb-0 d-flex align-items-center">
                                 <i class="bi bi-file-earmark-text me-2" style="color: var(--gore-primary);"></i>
