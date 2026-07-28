@@ -22,9 +22,8 @@
                     </h1>
 
                     <p class="gore-hero-lead">
-                        Env&iacute;a observaciones formales a los planes regulatorios y de
-                        ordenamiento que se debaten hoy en la regi&oacute;n. Tu observaci&oacute;n
-                        queda en el expediente oficial del proceso.
+                        Env&iacute;a observaciones formales a los instrumentos de ordenamiento
+                        territorial que se debaten hoy en la regi&oacute;n.
                     </p>
 
                     <div class="d-flex flex-wrap gap-2 mt-4">
