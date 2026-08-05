@@ -1,0 +1,12 @@
+{
+  "name": "gore-docs-tecnica-build",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generador de los .docx de la documentacion tecnica a partir de los .md",
+  "scripts": {
+    "build": "node md-to-docx.js"
+  },
+  "dependencies": {
+    "docx": "^9.6.1"
+  }
+}
