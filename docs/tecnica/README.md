@@ -18,7 +18,9 @@ generado a partir del mismo Markdown).
 | Ruta | Contenido |
 |---|---|
 | `README.md` (raíz) | Visión general del producto, stack, instalación local y estructura del proyecto |
-| `docs/etapa-1/` | Entregables formales de la Etapa 1: plan de trabajo, arquitectura AWS y carta Gantt |
+| `docs/etapa-1/` | Entregables formales de la Etapa 1: plan de trabajo detallado y carta Gantt definitiva |
+| `docs/etapa-2/` | Entregables formales de la Etapa 2: documento de requerimientos, documento de arquitectura AWS y documento de diseño UX/UI con las maquetas |
+| `docs/claveunica/` | Datos técnicos para la solicitud de credenciales de integración con ClaveÚnica |
 | `docs/etapa-5/qa-report.md` | Informe de aseguramiento de calidad |
 | `docs/staging/gore-prod-nginx.conf` | Configuración de nginx de producción (fuente de verdad, con TLS) |
 | `docs/staging/iam-provisioning-request.md` | Solicitud de acceso para aprovisionar el ambiente de staging |

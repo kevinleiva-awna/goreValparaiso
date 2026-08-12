@@ -12,10 +12,11 @@ const path = require('path');
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   HeadingLevel, AlignmentType, BorderStyle, WidthType, ShadingType,
-  PageNumber, Header, Footer, TabStopType,
+  PageNumber, Header, Footer, TabStopType, ImageRun,
 } = require('docx');
 
 const DOCS_DIR = path.resolve(__dirname, '..');
+const RAIZ_DOCS = path.resolve(__dirname, '..', '..');
 const AZUL = '1F3864';
 const AZUL_CLARO = 'DCE6F1';
 const GRIS = '767171';
@@ -37,7 +38,69 @@ const ARCHIVOS = [
     docx: '03-diccionario-datos-y-rutas.docx',
     titulo: 'Diccionario de Datos y Mapa de Rutas',
   },
+  // Entregables de la Etapa 2. Viven en otra carpeta y llevan su propia
+  // bajada y fecha de portada.
+  {
+    dir: path.join(RAIZ_DOCS, 'etapa-2'),
+    md: '01-documento-requerimientos.md',
+    docx: '01-documento-requerimientos.docx',
+    titulo: 'Documento de Requerimientos',
+    subtitulo: 'Entregable Etapa 2 — Diseño UX/UI',
+    fecha: '12 de agosto de 2026',
+  },
+  {
+    dir: path.join(RAIZ_DOCS, 'etapa-2'),
+    md: '03-documento-diseno-ux-ui.md',
+    docx: '03-documento-diseno-ux-ui.docx',
+    titulo: 'Documento de Diseño UX/UI y Maquetas',
+    subtitulo: 'Entregable Etapa 2 — Diseño UX/UI',
+    fecha: '12 de agosto de 2026',
+  },
 ];
+
+// --- Imagenes ---------------------------------------------------------------
+
+/**
+ * Ancho y alto de un PNG leyendo la cabecera IHDR (bytes 16..23).
+ * Evita sumar una dependencia de procesamiento de imagenes al build.
+ */
+function dimensionesPng(buffer) {
+  return { ancho: buffer.readUInt32BE(16), alto: buffer.readUInt32BE(20) };
+}
+
+// Caja util de la pagina, en pixeles a 96 ppp: 9638 twips de ancho y ~10500 de
+// alto util. Las capturas de pagina completa son muy altas, asi que la
+// restriccion que manda casi siempre es la vertical.
+const IMG_MAX_ANCHO = 856;
+const IMG_MAX_ALTO = 920;
+
+function imagen(rutaAbsoluta, alt) {
+  const datos = fs.readFileSync(rutaAbsoluta);
+  const { ancho, alto } = dimensionesPng(datos);
+  const escala = Math.min(IMG_MAX_ANCHO / ancho, IMG_MAX_ALTO / alto, 1);
+
+  const parrafos = [new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 160, after: alt ? 60 : 200 },
+    children: [new ImageRun({
+      data: datos,
+      transformation: {
+        width: Math.round(ancho * escala),
+        height: Math.round(alto * escala),
+      },
+    })],
+  })];
+
+  if (alt) {
+    parrafos.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 240 },
+      children: [new TextRun({ text: alt, size: 17, italics: true, color: GRIS })],
+    }));
+  }
+
+  return parrafos;
+}
 
 // --- Enfasis en linea -------------------------------------------------------
 
@@ -75,7 +138,11 @@ function runs(texto, base = {}) {
 
 // --- Portada ----------------------------------------------------------------
 
-function portada(titulo) {
+function portada(
+  titulo,
+  subtitulo = 'Documentación Técnica de Entrega',
+  fecha = '5 de agosto de 2026',
+) {
   const linea = (texto, opts = {}) => new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { after: opts.after ?? 120 },
@@ -98,9 +165,9 @@ function portada(titulo) {
       border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: AZUL, space: 8 } },
       children: [new TextRun({ text: titulo, bold: true, size: 44, color: AZUL, font: 'Calibri' })],
     }),
-    linea('Documentación Técnica de Entrega', { size: 24, color: GRIS, after: 1600 }),
+    linea(subtitulo, { size: 24, color: GRIS, after: 1600 }),
     linea('Versión 1.0', { bold: true, size: 24, after: 100 }),
-    linea('5 de agosto de 2026', { size: 22, color: GRIS, after: 100 }),
+    linea(fecha, { size: 22, color: GRIS, after: 100 }),
     linea('Elaborado por AWNA', { size: 22, color: GRIS, after: 0 }),
     new Paragraph({ text: '', pageBreakBefore: false }),
   ];
@@ -148,7 +215,7 @@ function tabla(lineas) {
 
 // --- Conversion del cuerpo --------------------------------------------------
 
-function convertir(md) {
+function convertir(md, baseDir = DOCS_DIR) {
   const lineas = md.split(/\r?\n/);
   const hijos = [];
   let i = 0;
@@ -186,6 +253,15 @@ function convertir(md) {
       }
       hijos.push(tabla(buffer));
       hijos.push(new Paragraph({ text: '', spacing: { after: 160 } }));
+      continue;
+    }
+
+    // Imagenes en linea propia. Va antes que el parrafo porque runs() trata
+    // [texto](destino) como enlace y dejaria un "!alt" suelto.
+    const img = linea.match(/^!\[([^\]]*)\]\(([^)]+)\)\s*$/);
+    if (img) {
+      hijos.push(...imagen(path.resolve(baseDir, img[2]), img[1]));
+      i += 1;
       continue;
     }
 
@@ -307,7 +383,7 @@ function convertir(md) {
 
 // --- Documento --------------------------------------------------------------
 
-function construir(titulo, cuerpo) {
+function construir(titulo, cuerpo, subtitulo, fecha) {
   const pie = new Footer({
     children: [new Paragraph({
       tabStops: [{ type: TabStopType.RIGHT, position: 9020 }],
@@ -339,7 +415,7 @@ function construir(titulo, cuerpo) {
     sections: [
       {
         properties: { page: { margin: { top: 1440, bottom: 1440, left: 1134, right: 1134 } } },
-        children: portada(titulo),
+        children: portada(titulo, subtitulo, fecha),
       },
       {
         properties: { page: { margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } },
@@ -355,10 +431,16 @@ function construir(titulo, cuerpo) {
 
 (async () => {
   for (const archivo of ARCHIVOS) {
-    const origen = path.join(DOCS_DIR, archivo.md);
-    const destino = path.join(DOCS_DIR, archivo.docx);
+    const dir = archivo.dir ?? DOCS_DIR;
+    const origen = path.join(dir, archivo.md);
+    const destino = path.join(dir, archivo.docx);
     const md = fs.readFileSync(origen, 'utf8');
-    const doc = construir(archivo.titulo, convertir(md));
+    const doc = construir(
+      archivo.titulo,
+      convertir(md, dir),
+      archivo.subtitulo,
+      archivo.fecha,
+    );
     fs.writeFileSync(destino, await Packer.toBuffer(doc));
     const kb = (fs.statSync(destino).size / 1024).toFixed(1);
     console.log(`OK  ${archivo.docx}  (${kb} KB)`);
