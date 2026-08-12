@@ -4,7 +4,7 @@
 **Mandante:** Gobierno Regional de Valparaíso — Unidad de Ordenamiento Territorial
 **Proveedor:** AWNA
 **Entregable:** Etapa 2 — Diseño UX/UI
-**Versión:** 1.0 · 12 de agosto de 2026
+**Versión:** 1.1 · 12 de agosto de 2026
 
 ---
 
@@ -298,10 +298,33 @@ confunda ambos entornos.
 ![Panel de inicio del backoffice](img/06-backoffice-panel.png)
 
 El panel confirma la sesión iniciada y el rol vigente —visible como etiqueta
-junto al título— y presenta los accesos a los módulos de gestión. La etiqueta de
-rol es relevante en operación: las capacidades disponibles difieren entre
-funcionario y super-administrador, y el funcionario debe saber con qué perfil
-está actuando.
+junto al título— y responde la pregunta con que el funcionario abre la
+plataforma cada mañana: qué pasó desde ayer y qué requiere su atención.
+
+Cuatro indicadores encabezan la vista: observaciones recibidas, pendientes de
+respuesta institucional, procesos que hoy admiten participación y observaciones
+del último mes. El de pendientes es el único con tratamiento cromático propio,
+porque es el que se traduce en trabajo por hacer.
+
+Bajo los indicadores, dos desgloses. El de **observaciones por día** cubre los
+últimos treinta días con los días sin actividad representados en cero, para que
+un período inactivo se lea como tal y no quede comprimido fuera del gráfico. El
+de **observaciones por proceso** ordena de mayor a menor e incluye los procesos
+archivados que recibieron participación, de modo que la suma del desglose siempre
+cuadre con el total. Cada fila abre el listado de observaciones ya filtrado por
+ese proceso, que es el paso siguiente natural.
+
+Los gráficos están construidos en HTML y CSS, sin JavaScript ni librerías
+externas. Es una decisión deliberada: la política de seguridad de contenido de la
+plataforma prohíbe la ejecución de scripts en línea y la carga de recursos desde
+terceros, de modo que una librería de gráficos habría exigido relajar el
+endurecimiento de seguridad a cambio de nada que el usuario perciba. Los mismos
+datos del gráfico diario se publican además en una tabla accesible a lectores de
+pantalla.
+
+La etiqueta de rol es relevante en operación: las capacidades disponibles
+difieren entre funcionario y super-administrador, y el funcionario debe saber con
+qué perfil está actuando.
 
 ### 6.3 Gestión de procesos
 

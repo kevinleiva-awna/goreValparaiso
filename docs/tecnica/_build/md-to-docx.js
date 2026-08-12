@@ -47,6 +47,7 @@ const ARCHIVOS = [
     titulo: 'Documento de Requerimientos',
     subtitulo: 'Entregable Etapa 2 — Diseño UX/UI',
     fecha: '12 de agosto de 2026',
+    version: 'Versión 1.1',
   },
   {
     dir: path.join(RAIZ_DOCS, 'etapa-2'),
@@ -55,6 +56,7 @@ const ARCHIVOS = [
     titulo: 'Documento de Diseño UX/UI y Maquetas',
     subtitulo: 'Entregable Etapa 2 — Diseño UX/UI',
     fecha: '12 de agosto de 2026',
+    version: 'Versión 1.1',
   },
 ];
 
@@ -142,6 +144,7 @@ function portada(
   titulo,
   subtitulo = 'Documentación Técnica de Entrega',
   fecha = '5 de agosto de 2026',
+  version = 'Versión 1.0',
 ) {
   const linea = (texto, opts = {}) => new Paragraph({
     alignment: AlignmentType.CENTER,
@@ -166,7 +169,7 @@ function portada(
       children: [new TextRun({ text: titulo, bold: true, size: 44, color: AZUL, font: 'Calibri' })],
     }),
     linea(subtitulo, { size: 24, color: GRIS, after: 1600 }),
-    linea('Versión 1.0', { bold: true, size: 24, after: 100 }),
+    linea(version, { bold: true, size: 24, after: 100 }),
     linea(fecha, { size: 22, color: GRIS, after: 100 }),
     linea('Elaborado por AWNA', { size: 22, color: GRIS, after: 0 }),
     new Paragraph({ text: '', pageBreakBefore: false }),
@@ -383,7 +386,7 @@ function convertir(md, baseDir = DOCS_DIR) {
 
 // --- Documento --------------------------------------------------------------
 
-function construir(titulo, cuerpo, subtitulo, fecha) {
+function construir(titulo, cuerpo, subtitulo, fecha, version) {
   const pie = new Footer({
     children: [new Paragraph({
       tabStops: [{ type: TabStopType.RIGHT, position: 9020 }],
@@ -415,7 +418,7 @@ function construir(titulo, cuerpo, subtitulo, fecha) {
     sections: [
       {
         properties: { page: { margin: { top: 1440, bottom: 1440, left: 1134, right: 1134 } } },
-        children: portada(titulo, subtitulo, fecha),
+        children: portada(titulo, subtitulo, fecha, version),
       },
       {
         properties: { page: { margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } },
@@ -440,6 +443,7 @@ function construir(titulo, cuerpo, subtitulo, fecha) {
       convertir(md, dir),
       archivo.subtitulo,
       archivo.fecha,
+      archivo.version,
     );
     fs.writeFileSync(destino, await Packer.toBuffer(doc));
     const kb = (fs.statSync(destino).size / 1024).toFixed(1);

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\ConsultationDocumentController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InstitutionalResponseController;
 use App\Http\Controllers\Admin\ObservationController as AdminObservationController;
 use App\Http\Controllers\Admin\UserController;
@@ -167,9 +168,7 @@ Route::get('/auth/claveunica/logout', [ClaveUnicaController::class, 'logoutLandi
 Route::prefix('admin')
     ->middleware(['auth', 'role:funcionario,super-admin'])
     ->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

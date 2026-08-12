@@ -4,7 +4,7 @@
 **Mandante:** Gobierno Regional de Valparaíso — Unidad de Ordenamiento Territorial
 **Proveedor:** AWNA
 **Entregable:** Etapa 2 — Diseño UX/UI
-**Versión:** 1.0 · 12 de agosto de 2026
+**Versión:** 1.1 · 12 de agosto de 2026
 
 ---
 
@@ -182,7 +182,7 @@ backoffice.
 | RF-56 | La bitácora excluye de su registro los campos sensibles: contraseñas, RUT, correo y dirección IP | Implementado |
 | RF-57 | La bitácora de auditoría es accesible únicamente para el super-administrador | Implementado |
 | RF-58 | El sistema genera respaldos automáticos de las observaciones cada 48 horas durante los procesos activos | Implementado |
-| RF-59 | El backoffice presenta un panel con métricas de observaciones: total, observaciones por proceso y observaciones por día | No implementado |
+| RF-59 | El backoffice presenta un panel con métricas de observaciones: total, observaciones por proceso y observaciones por día | Implementado |
 
 ---
 
@@ -356,7 +356,6 @@ de un proceso de consulta pública completo.
 | RF-44 | Bloqueo de objetos en el almacenamiento | El almacenamiento es privado y cifrado, y la inalterabilidad del expediente se garantiza a nivel de aplicación: el contenido de una observación no es modificable y la eliminación es lógica, nunca física. No se habilitó el bloqueo de objetos a nivel de infraestructura |
 | RNF-04 | Réplica de base de datos en zona de disponibilidad alternativa | Requiere habilitar alta disponibilidad en el motor de base de datos administrado. Es una decisión de costo del mandante, no una restricción técnica |
 | RNF-05 | Balanceador de carga y escalado horizontal | La arquitectura desplegada usa una instancia única dimensionada para la carga proyectada. El diseño de la aplicación no impide incorporar el balanceador cuando el volumen lo justifique |
-| RF-59 | Panel de métricas en el backoffice | El panel de inicio del backoffice presenta accesos a los tres módulos de gestión, sin indicadores agregados. Las cifras por proceso están disponibles en el listado de observaciones, que admite filtro por proceso y muestra el total de resultados, y la base completa es exportable para análisis. No se construyó la vista de métricas consolidadas con series por día |
 | — | Interfaz de programación REST interna de interoperabilidad | El portal público consume los datos directamente desde la capa de aplicación. No se expuso una interfaz de programación separada |
 | — | Sala de espera para picos de concurrencia | Mecanismo previsto como reutilización de un desarrollo previo. La carga proyectada no lo hizo necesario |
 
