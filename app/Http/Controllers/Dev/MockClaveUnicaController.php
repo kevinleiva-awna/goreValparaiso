@@ -13,8 +13,12 @@ use Illuminate\View\View;
  * Simulador de ClaveUnica para dev y QA. Pretende ser el portal oficial
  * (accounts.claveunica.gob.cl) pero corre localmente.
  *
- * Las rutas /dev/claveunica/* solo se registran cuando config('claveunica.mode')
- * es 'mock'. En produccion no existen.
+ * Las rutas /dev/claveunica/* se registran solo fuera de produccion y con
+ * config('claveunica.mode') = 'mock'. El abort_if de cada accion es la segunda
+ * linea de defensa: si alguien vuelve a registrar las rutas en produccion por
+ * error de configuracion, el controlador igual no responde. Este simulador
+ * acepta cualquier RUT y abre sesion con esa identidad — publicado en
+ * produccion seria un bypass de autenticacion.
  */
 class MockClaveUnicaController extends Controller
 {
@@ -24,6 +28,8 @@ class MockClaveUnicaController extends Controller
      */
     public function simulate(Request $request): View
     {
+        abort_if(app()->isProduction(), 404);
+
         return view('dev.claveunica.simulate', [
             'state' => $request->input('state'),
             'redirectUri' => $request->input('redirect_uri'),
@@ -37,13 +43,19 @@ class MockClaveUnicaController extends Controller
      */
     public function complete(Request $request): RedirectResponse
     {
+        abort_if(app()->isProduction(), 404);
+
+        // redirect_uri llega desde el form por fidelidad con el flujo OIDC, pero
+        // NO se usa como destino: redirigir a una URL entregada por el cliente
+        // convierte esta ruta en un open redirect. El destino real se resuelve
+        // desde el route name.
         $validated = $request->validate([
             'run' => ['required', 'string', new Rut()],
             'name' => ['required', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'state' => ['required', 'string'],
-            'redirect_uri' => ['required', 'string'],
+            'redirect_uri' => ['nullable', 'string'],
         ]);
 
         $rut = Rut::normalize($validated['run']);
@@ -63,9 +75,9 @@ class MockClaveUnicaController extends Controller
 
         // Redirigimos al callback con un fake code (que el callback ignora
         // en mock mode — usa la sesion directamente)
-        return redirect($validated['redirect_uri'] . '?' . http_build_query([
+        return redirect()->route('citizen.claveunica.callback', [
             'code' => 'mock-' . Str::random(16),
             'state' => $validated['state'],
-        ]));
+        ]);
     }
 }

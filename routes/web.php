@@ -133,9 +133,13 @@ Route::middleware('guest')->group(function () {
         ->name('citizen.claveunica.callback');
 });
 
-// Simulador local de ClaveUnica. Solo se registra cuando config('claveunica.mode')
-// es 'mock'. En produccion estas rutas NO existen — el provider real las reemplaza.
-if (config('claveunica.mode') === 'mock') {
+// Simulador local de ClaveUnica. Se exige ademas que el ambiente NO sea
+// produccion: una variable de configuracion no puede ser lo unico que separe a
+// produccion de un login falsificable. El 12-ago-2026 se detecto que el .env de
+// produccion no traia CLAVEUNICA_MODE, caia al default 'mock' del config y
+// estas rutas quedaron publicadas en el dominio institucional. Staging
+// (APP_ENV=staging) conserva el simulador para QA.
+if (! app()->isProduction() && config('claveunica.mode') === 'mock') {
     Route::prefix('dev/claveunica')->group(function () {
         Route::get('/simulate', [MockClaveUnicaController::class, 'simulate'])
             ->name('mock.claveunica.simulate');

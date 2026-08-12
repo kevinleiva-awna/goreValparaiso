@@ -338,6 +338,7 @@ CLAVEUNICA_CLIENT_SECRET=
 | `SESSION_LIFETIME` | Bajo, produce 419 *Page Expired* al enviar observaciones con adjunto. |
 | `FILESYSTEM_DISK` | Si vuelve a `local`, los archivos nuevos quedan en el disco de la EC2 y se pierden si la instancia se reconstruye. |
 | `CLAVEUNICA_ENABLED` | En `true` sin credenciales, el ciudadano ve un botón de ingreso que falla. |
+| `CLAVEUNICA_MODE` | **Debe estar presente y en `live` en producción.** Si falta, cae al default del `config`, que es `mock`. Con `mock`, la aplicación espera el simulador de identidad en lugar del proveedor real: si además se activa `CLAVEUNICA_ENABLED`, el ingreso ciudadano falla. Las rutas del simulador ya no se registran fuera de local y staging, pero la variable debe declararse igual. |
 
 > **Gotcha al editar el `.env` por consola:** agregar una línea con
 > `echo >> .env` la pega a la última línea existente (el archivo no termina en
