@@ -107,12 +107,44 @@ class ClaveUnicaController extends Controller
     /**
      * Cierra la sesion del ciudadano. Reemplaza al ex-AuthenticatedCitizen
      * SessionController::destroy eliminado en B.1.
+     *
+     * En modo live el logout es federado: primero se destruye la sesion local
+     * y despues se manda al ciudadano al endpoint de logout de ClaveUnica, que
+     * cierra la sesion del IdP y lo devuelve a logoutLanding(). Sin ese segundo
+     * salto la sesion en accounts.claveunica.gob.cl sigue viva y el proximo
+     * "Ingresar" no vuelve a pedir credenciales.
      */
     public function logout(Request $request): RedirectResponse
     {
+        $wasClaveUnica = session('auth_method') === 'claveunica';
+
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($wasClaveUnica && config('claveunica.enabled') && config('claveunica.mode') === 'live') {
+            return redirect()->away(
+                config('claveunica.logout_url') . '?' . http_build_query([
+                    'redirect' => route('citizen.claveunica.logout'),
+                ])
+            );
+        }
+
+        return redirect()->route('home');
+    }
+
+    /**
+     * Aterrizaje del logout federado: es la URL que ClaveUnica invoca (GET) al
+     * terminar de cerrar la sesion del IdP, y la que se declara como "Logout
+     * URI" en la solicitud de credenciales.
+     *
+     * A proposito NO destruye la sesion local — eso ya ocurrio en logout()
+     * antes del salto. Un GET que cierra sesion es accionable desde cualquier
+     * sitio de terceros (un <img src> basta), asi que esta ruta se queda en un
+     * redirect inocuo y el cierre real vive en el POST con CSRF.
+     */
+    public function logoutLanding(): RedirectResponse
+    {
         return redirect()->route('home');
     }
 

@@ -388,7 +388,8 @@ Todo lo del funcionario más:
 | GET/POST | `/registrarme` | Registro manual |
 | GET | `/auth/claveunica/redirect` | Inicia flujo OIDC con ClaveÚnica |
 | GET | `/auth/claveunica/callback` | Callback OIDC |
-| POST | `/cerrar-sesion` | Logout |
+| POST | `/cerrar-sesion` | Logout (en modo `live` continúa al logout de ClaveÚnica) |
+| GET | `/auth/claveunica/logout` | Logout URI declarada ante ClaveÚnica; aterrizaje del logout federado |
 | GET | `/email/verificar` | Pantalla "revisa tu correo" |
 | GET | `/email/verificar/{id}/{hash}` | Link de verificación firmado |
 | POST | `/email/reenviar-verificacion` | Reenviar mail (throttle 6/min) |

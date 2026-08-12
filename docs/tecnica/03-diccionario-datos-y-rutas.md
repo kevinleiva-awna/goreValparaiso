@@ -474,10 +474,18 @@ participación sin registro, el acceso lo da el UUID secreto de la URL.
 |---|---|---|---|
 | GET | `/auth/claveunica/redirect` | `citizen.claveunica.redirect` | Solo invitados. 10 peticiones/min |
 | GET | `/auth/claveunica/callback` | `citizen.claveunica.callback` | Solo invitados |
-| POST | `/cerrar-sesion` | `citizen.logout` | Requiere sesión |
+| POST | `/cerrar-sesion` | `citizen.logout` | Requiere sesión. Cierra la sesión local y, en modo `live`, salta al logout del IdP |
+| GET | `/auth/claveunica/logout` | `citizen.claveunica.logout` | "Logout URI" declarada ante ClaveÚnica. Aterrizaje tras cerrar la sesión del IdP; solo redirige al home |
 
-Con `CLAVEUNICA_ENABLED=false` estas rutas responden 404 y la entrada por
-ClaveÚnica se oculta del portal.
+Con `CLAVEUNICA_ENABLED=false` las rutas de `redirect`/`callback` responden 404
+y la entrada por ClaveÚnica se oculta del portal. La *logout URI* es la
+excepción: al ser una URL estática registrada ante un tercero, responde siempre
+con una redirección al home en lugar de un 404.
+
+**Por qué el aterrizaje del logout es una ruta aparte.** ClaveÚnica devuelve al
+ciudadano por `GET` tras cerrar su sesión, y un `GET` que destruye la sesión
+sería accionable desde cualquier sitio de terceros. Por eso el cierre real vive
+en el `POST` protegido por CSRF y esta ruta no muta nada.
 
 **Rutas de simulación** (`/dev/claveunica/simulate` y `/complete`) se
 registran **únicamente** cuando `CLAVEUNICA_MODE=mock`. En producción no

@@ -49,6 +49,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Logout federado
+    |--------------------------------------------------------------------------
+    |
+    | Cerrar la sesion local no cierra la sesion en ClaveUnica: el ciudadano
+    | seguiria autenticado en accounts.claveunica.gob.cl y el siguiente
+    | "Ingresar" entraria sin pedir credenciales. Por eso, tras destruir la
+    | sesion local, se redirige a este endpoint con ?redirect=<logout_uri>,
+    | donde <logout_uri> es la ruta citizen.claveunica.logout de esta app
+    | (la misma que se declara en el formulario de solicitud de credenciales,
+    | ver docs/claveunica/solicitud-credenciales.md).
+    */
+    'logout_url' => env('CLAVEUNICA_LOGOUT_URL', 'https://accounts.claveunica.gob.cl/api/v1/accounts/app/logout/'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Scopes solicitados a ClaveUnica
     |--------------------------------------------------------------------------
     | El brief especifica scopes minimos: openid, run, nombre.

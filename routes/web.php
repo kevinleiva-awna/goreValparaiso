@@ -151,6 +151,14 @@ Route::middleware('auth')->group(function () {
         ->name('citizen.logout');
 });
 
+// "Logout URI" declarada ante ClaveUnica: el IdP devuelve aqui por GET despues
+// de cerrar su propia sesion. Fuera de los grupos 'auth'/'guest' a proposito —
+// llega sin sesion (ya se destruyo en citizen.logout) y debe responder igual si
+// alguien la visita directo. Sin abort_unless(enabled): es una URL estatica
+// registrada ante un tercero, mejor un redirect al home que un 404.
+Route::get('/auth/claveunica/logout', [ClaveUnicaController::class, 'logoutLanding'])
+    ->name('citizen.claveunica.logout');
+
 // Backoffice (funcionarios y super-admin)
 Route::prefix('admin')
     ->middleware(['auth', 'role:funcionario,super-admin'])
