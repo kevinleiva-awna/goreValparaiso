@@ -35,19 +35,11 @@ Route::get('/', function () {
         ->limit(3)
         ->get();
 
-    // Stats agregados para el hero (acta junio 2026, punto 1: mas llamativo).
-    $stats = [
-        'active_processes' => Consultation::query()
-            ->where('status', Consultation::STATUS_ACTIVE)
-            ->where(fn ($w) => $w->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
-            ->count(),
-        'total_observations' => \App\Models\Observation::query()->count(),
-        'closed_processes' => Consultation::query()
-            ->where('status', Consultation::STATUS_CLOSED)
-            ->count(),
-    ];
-
-    return view('welcome', ['featured' => $featured, 'stats' => $stats]);
+    // Las cifras agregadas del hero (acta junio 2026, punto 1) se retiraron del
+    // diseno al sacar los stats del hero. Se eliminan las consultas que las
+    // calculaban: eran 3 count() por visita a la portada que ninguna vista leia.
+    // El desglose agregado vive ahora en el panel del backoffice.
+    return view('welcome', ['featured' => $featured]);
 })->name('home');
 
 // Health-check enriquecido: verifica conectividad a BD y al disk de storage
