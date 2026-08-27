@@ -322,7 +322,9 @@ MAIL_MAILER=log                    # cambiar a ses cuando el dominio esté verif
 MAIL_FROM_ADDRESS=no-reply@participa.gobiernovalparaiso.cl
 MAIL_FROM_NAME="Participa GORE Valparaíso"
 
-# ClaveÚnica: apagada mientras el GORE no tenga registrado el cliente OIDC.
+# ClaveÚnica: apagada hasta que la certificación habilite el par de producción.
+# Las credenciales llegaron en agosto de 2026, pero las de producción vienen
+# desactivadas de origen. Ver docs/claveunica/puesta-en-marcha.md.
 CLAVEUNICA_ENABLED=false
 CLAVEUNICA_MODE=live
 CLAVEUNICA_CLIENT_ID=

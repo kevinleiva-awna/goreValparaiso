@@ -94,6 +94,10 @@ el formulario — después implica ticket.
 
 ## 4. Pendientes del lado de AWNA
 
+> **Las credenciales llegaron en agosto de 2026.** Lo que sigue en esta tabla quedó
+> obsoleto; el estado vigente, el procedimiento de activación por ambiente y la
+> checklist de certificación están en [puesta-en-marcha.md](puesta-en-marcha.md).
+
 | # | Ítem | Estado |
 |---|---|---|
 | 1 | Flujo OIDC real (`authorize` → `token` → `userinfo`) con PKCE | Implementado, sin probar contra el IdP real |
