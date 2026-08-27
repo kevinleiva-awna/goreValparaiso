@@ -1276,3 +1276,112 @@ h3,
 .form-select:focus-visible {
     outline: none;
 }
+// 5. BOTON OFICIAL DE CLAVEUNICA =========================================
+//
+// Copia literal del CSS publicado en el "Manual de uso boton ClaveUnica"
+// (wikiguias.digital.gob.cl/Manuales/BotonCU). Es marca registrada del Estado
+// y su uso correcto es requisito de la certificacion que habilita las
+// credenciales de produccion: NO adaptar colores, tipografia ni espaciados a
+// la paleta del GORE. La unica desviacion permitida es la URL del isotipo,
+// que el propio manual indica reemplazar segun donde quede el archivo.
+//
+// Deliberadamente fuera del sistema de tokens del sitio ($gore-*): este boton
+// no debe seguir el rediseno, debe seguir a ClaveUnica.
+
+// Boton estilo de base
+.btn-cu {
+    display: flex;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    user-select: none;
+    border-radius: 0;
+    border: 0;
+
+    &:hover {
+        text-decoration: none;
+    }
+
+    // Isotipo ClaveUnica
+    .cl-claveunica {
+        text-indent: -9999px;
+        background: url('/img/claveunica-isotipo-blanco.svg');
+    }
+
+    // Texto del boton
+    .texto {
+        padding-left: 4px;
+        text-decoration: none;
+        font-size: 1rem;
+        text-rendering: geometricPrecision;
+    }
+}
+
+// Color estandar
+.btn-cu.btn-color-estandar {
+    background-color: #0f69c4;
+    color: #fff;
+
+    &:hover {
+        background-color: #0b4e91;
+        color: #fff;
+    }
+
+    &:active {
+        background-color: #07305a;
+        color: #fff;
+    }
+
+    // El :focus-visible global del sitio (seccion 4) pinta un outline azul de
+    // 2px que taparia el amarillo de 4px que exige el manual. Se repite la
+    // regla en ambas pseudoclases para ganarle por especificidad e igualdad
+    // de origen, sin recurrir a !important.
+    &:focus,
+    &:focus-visible {
+        background-color: #0b4e91;
+        color: #fff;
+        outline: 4px solid #ffbe5c;
+        outline-offset: 0;
+    }
+}
+
+// Tamano M (el unico que usa el portal)
+.btn-cu.btn-m {
+    width: fit-content;
+    min-height: 48px;
+    padding: 8px 14px 8px 14px;
+    font-size: 16px;
+    line-height: 2rem;
+
+    .cl-claveunica {
+        width: 24px;
+        height: 24px;
+        background-size: 24px 24px;
+        margin: auto 4px auto 0;
+    }
+}
+
+// Ancho flexible, para el CTA de la ficha de consulta
+.btn-cu.btn-fw {
+    max-width: 550px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+// Bordes redondeados: se usa rounded-middle (4px) para acercarlo al resto de
+// los controles del sitio sin salirse de las variantes que el manual autoriza.
+.btn-cu.rounded-none {
+    border-radius: 0;
+}
+
+.btn-cu.rounded-middle {
+    border-radius: 4px;
+}
+
+.btn-cu.rounded-full {
+    border-radius: 99px;
+}

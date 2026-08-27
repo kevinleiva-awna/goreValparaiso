@@ -332,11 +332,10 @@
                     </a>
                     @guest
                         @if (config('claveunica.enabled'))
-                            <a href="{{ route('citizen.claveunica.redirect') }}"
-                               class="btn btn-outline-light"
-                               style="font-weight: 500; padding: 0.8125rem 1.5rem; border-radius: var(--bs-border-radius-sm);">
-                                <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                            </a>
+                            {{-- El parrafo del CTA ya dice "Identificate con ClaveUnica":
+                                 el manual de marca pide no repetir la marca en el boton
+                                 cuando el texto que lo acompana ya la nombra. --}}
+                            <x-claveunica-button texto="sesion" />
                         @endif
                     @endguest
                 </div>

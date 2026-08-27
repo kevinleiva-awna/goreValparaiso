@@ -404,10 +404,10 @@
                                                 Tu identidad queda asociada de forma inalterable a lo que envies.
                                             </p>
                                             <div class="d-flex justify-content-center">
-                                                <a href="{{ route('citizen.claveunica.redirect') }}"
-                                                   class="btn btn-light btn-lg fw-semibold">
-                                                    <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                                                </a>
+                                                {{-- El parrafo de arriba ya nombra a ClaveUnica: el manual
+                                                     de marca pide que en ese caso el boton diga "Iniciar
+                                                     sesion" y no repita la marca. --}}
+                                                <x-claveunica-button texto="sesion" />
                                             </div>
                                         @else
                                             <h2 class="h3 fw-bold mb-2">Participacion no disponible por ahora</h2>

@@ -9,7 +9,10 @@
     <title>@yield('title', 'Participacion Ciudadana') &middot; {{ config('app.name') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+    {{-- Inter es la tipografia del sitio. Roboto 700 entra solo por el boton
+         oficial de ClaveUnica, cuyo manual de marca la exige; va en la misma
+         peticion a Bunny para no sumar un origen nuevo a la CSP. --}}
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800|roboto:700&display=swap" rel="stylesheet" />
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
@@ -155,9 +158,10 @@
                              integracion esta habilitada. Mientras no lo este, el ciudadano
                              participa como invitado dentro del formulario de observacion. --}}
                         @if (config('claveunica.enabled'))
-                            <a href="{{ route('citizen.claveunica.redirect') }}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-shield-check me-1"></i> Ingresar con ClaveUnica
-                            </a>
+                            {{-- Acceso principal del sitio. El manual de marca recomienda
+                                 un solo boton de ClaveUnica en los accesos principales;
+                                 este es ese boton. --}}
+                            <x-claveunica-button />
                         @endif
                     @endauth
                 </div>

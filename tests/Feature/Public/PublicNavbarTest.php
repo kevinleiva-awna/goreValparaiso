@@ -33,10 +33,15 @@ it('navbar: ciudadano ve cerrar sesion pero no el panel', function () {
     $response->assertDontSee('Ir al panel');
 });
 
-it('navbar: sin login se ofrece ClaveUnica', function () {
+it('navbar: sin login se ofrece ClaveUnica con el boton oficial', function () {
     $response = $this->get('/');
 
     $response->assertOk();
-    $response->assertSee('Ingresar con ClaveUnica');
+    // El marcado del manual de marca: clases oficiales, isotipo y aria-label.
+    // Si alguien "arregla" el boton para que calce con la paleta del sitio,
+    // esta prueba cae: cambiarlo invalida la certificacion.
+    $response->assertSee('btn-cu btn-m btn-color-estandar', escape: false);
+    $response->assertSee('class="cl-claveunica"', escape: false);
+    $response->assertSee('aria-label="Continuar con ClaveÚnica"', escape: false);
     $response->assertDontSee('Ir al backoffice');
 });
