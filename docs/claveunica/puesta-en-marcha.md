@@ -62,6 +62,27 @@ Poner `CLAVEUNICA_MODE=live` en staging tiene un efecto lateral deseado: las rut
 `/dev/claveunica/*` del simulador dejan de registrarse (ver `routes/web.php`), así
 que no conviven un login real y uno falsificable en el mismo host.
 
+> **Gotcha del caché de rutas:** ese registro condicional depende de
+> `config('claveunica.mode')`, y `route:cache` **congela la decisión al momento de
+> cachear**. Si se cambia `CLAVEUNICA_MODE` hay que correr `route:clear && route:cache`;
+> no basta con `config:cache`. Por eso los servidores se dejaron con
+> `CLAVEUNICA_MODE=live` y su caché de rutas ya reconstruida: cargar después el
+> `client_id` y el `client_secret` solo requiere `config:cache`.
+
+### Cargar las credenciales en un servidor
+
+Las claves ya están declaradas y vacías en el `.env`, así que se rellenan en su sitio
+(y no se duplican, que es lo que pasaría al hacer `>>` con una clave ya presente:
+*dotenv* se queda con la primera aparición y la segunda se ignora en silencio).
+
+```bash
+cd /var/www/gore
+sudo -u www-data sed -i 's|^CLAVEUNICA_CLIENT_ID=.*|CLAVEUNICA_CLIENT_ID=EL_ID|' .env
+sudo -u www-data sed -i 's|^CLAVEUNICA_CLIENT_SECRET=.*|CLAVEUNICA_CLIENT_SECRET=EL_SECRET|' .env
+sudo -u www-data sed -i 's|^CLAVEUNICA_ENABLED=.*|CLAVEUNICA_ENABLED=true|' .env
+sudo -u www-data php artisan config:cache
+```
+
 ---
 
 ## 3. Lo que hace la aplicación (para la evidencia de certificación)
@@ -168,7 +189,29 @@ que es exactamente la URI declarada en la solicitud de credenciales.
 
 ---
 
-## 6. Orden sugerido
+## 8. Estado de cada ambiente (27-ago-2026)
+
+| | Staging | Producción |
+|---|---|---|
+| Host | `https://pruebas.participa.gobiernovalparaiso.cl` | `https://www.participa.gobiernovalparaiso.cl` |
+| Instancia | `i-044e3f43201359d9a` (rama `dev`) | `i-099343b5b7dffc94f` (rama `prod`) |
+| Código desplegado | `a7cb5e0` ✅ | pendiente de desplegar `a7cb5e0` |
+| Assets (`npm run build`) | ✅ reconstruidos | pendiente |
+| `CLAVEUNICA_MODE` | `live` ✅ | `live` (ya estaba) |
+| Simulador `/dev/claveunica/*` | fuera (404) ✅ | nunca estuvo (`APP_ENV=production`) |
+| `client_id` / `client_secret` | **vacíos — los carga el GORE/AWNA** | **vacíos — cargar el par de producción** |
+| `CLAVEUNICA_ENABLED` | `false` — activar al cargar sandbox | `false` — activar solo tras certificar |
+
+El despliegue de producción sigue el patrón documentado en
+`docs/tecnica/01-manual-despliegue-operacion.md`: `git fetch` + avance a `origin/prod`,
+`npm ci && npm run build` (obligatorio: cambió el SCSS), y luego
+`config:cache`, `route:cache`, `view:cache` y `systemctl restart gore-queue`.
+Recordar que el `.env` de producción también vive en
+`s3://gore-prod-uploads-184758133903/deploy/.env`.
+
+---
+
+## 9. Orden sugerido
 
 1. Cargar el par **sandbox** en el `.env` de staging con `CLAVEUNICA_MODE=live`.
 2. Probar el ciclo completo con los 4 RUN de prueba: ingreso → observación → cierre
