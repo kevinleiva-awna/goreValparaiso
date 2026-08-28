@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 /**
  * Maneja el flujo OIDC Authorization Code con ClaveUnica.
@@ -115,10 +116,23 @@ class ClaveUnicaController extends Controller
      * SessionController::destroy eliminado en B.1.
      *
      * En modo live el logout es federado: primero se destruye la sesion local
-     * y despues se manda al ciudadano al endpoint de logout de ClaveUnica, que
-     * cierra la sesion del IdP y lo devuelve a logoutLanding(). Sin ese segundo
-     * salto la sesion en accounts.claveunica.gob.cl sigue viva y el proximo
-     * "Ingresar" no vuelve a pedir credenciales.
+     * y despues hay que cerrar tambien la del IdP. Sin ese segundo paso la
+     * sesion en accounts.claveunica.gob.cl sigue viva y el proximo "Ingresar"
+     * no vuelve a pedir credenciales.
+     *
+     * Ese segundo paso NO puede ser un redirect del servidor. El endpoint de
+     * logout de ClaveUnica responde 204 No Content, sin cabecera Location:
+     * ante una navegacion de primer nivel el navegador se queda donde estaba y
+     * al ciudadano no le pasa nada visible. Si vuelve a apretar "Cerrar
+     * sesion", el POST llega con el token CSRF de la sesion ya destruida y
+     * termina en una pagina 419 — que fue exactamente lo que se observo en
+     * staging el 28-ago-2026.
+     *
+     * Por eso se entrega una pagina intermedia que aplica el "Metodo 2" de la
+     * guia tecnica: navegar al endpoint (la peticion viaja con las cookies del
+     * IdP y cierra su sesion) y, pasado un momento, volver al home por cuenta
+     * propia. El 204 juega a favor: como el navegador no se mueve, el
+     * temporizador de la propia pagina sigue vivo para rescatarlo.
      */
     public function logout(Request $request): RedirectResponse
     {
@@ -129,14 +143,31 @@ class ClaveUnicaController extends Controller
         $request->session()->regenerateToken();
 
         if ($wasClaveUnica && config('claveunica.enabled') && config('claveunica.mode') === 'live') {
-            return redirect()->away(
-                config('claveunica.logout_url') . '?' . http_build_query([
-                    'redirect' => route('citizen.claveunica.logout'),
-                ])
-            );
+            return redirect()->route('citizen.claveunica.signing-out');
         }
 
         return redirect()->route('home');
+    }
+
+    /**
+     * Pagina intermedia del cierre de sesion federado. Llega sin sesion: la
+     * local ya se destruyo en logout(), y lo unico pendiente es cerrar la del
+     * IdP. Todo el trabajo lo hace public/js/claveunica-logout.js, porque la
+     * CSP del portal no admite scripts inline.
+     *
+     * Se sigue mandando el parametro `redirect`: si ClaveUnica llega a
+     * devolver al ciudadano por su cuenta, aterriza en logoutLanding() y el
+     * temporizador nunca alcanza a correr. La pagina funciona igual en los dos
+     * escenarios.
+     */
+    public function signingOut(): View
+    {
+        return view('public.auth.claveunica-cerrando-sesion', [
+            'logoutUrl' => config('claveunica.logout_url') . '?' . http_build_query([
+                'redirect' => route('citizen.claveunica.logout'),
+            ]),
+            'returnUrl' => route('home'),
+        ]);
     }
 
     /**

@@ -12,7 +12,11 @@ use App\Models\User;
  * ClaveUnica — ver docs/claveunica/solicitud-credenciales.md.
  */
 
-it('logout en modo live rebota al endpoint de logout de ClaveUnica', function () {
+it('logout en modo live pasa por la pantalla de transito, no por un redirect al IdP', function () {
+    // El endpoint de logout de ClaveUnica responde 204 No Content: un
+    // redirect del servidor hacia alli deja al navegador quieto y al
+    // ciudadano sin feedback, y su segundo intento termina en un 419 porque
+    // la sesion ya se destruyo. Observado en staging el 28-ago-2026.
     config()->set('claveunica.enabled', true);
     config()->set('claveunica.mode', 'live');
 
@@ -21,10 +25,33 @@ it('logout en modo live rebota al endpoint de logout de ClaveUnica', function ()
 
     $response = $this->post(route('citizen.logout'));
 
-    $response->assertRedirect(
-        config('claveunica.logout_url') . '?redirect=' . urlencode(route('citizen.claveunica.logout'))
-    );
+    $response->assertRedirect(route('citizen.claveunica.signing-out'));
     $this->assertGuest();
+});
+
+it('la pantalla de transito entrega el endpoint del IdP y el destino de vuelta', function () {
+    config()->set('claveunica.enabled', true);
+    config()->set('claveunica.mode', 'live');
+
+    $response = $this->get(route('citizen.claveunica.signing-out'));
+
+    $response->assertOk();
+
+    // El JS externo lee ambos valores de estos atributos. Inline no es opcion:
+    // la CSP del portal es script-src 'self'.
+    $response->assertSee('id="claveunica-logout"', escape: false);
+    $response->assertSee(
+        'data-endpoint="' . e(config('claveunica.logout_url') . '?redirect=' . urlencode(route('citizen.claveunica.logout'))) . '"',
+        escape: false
+    );
+    $response->assertSee('data-return="' . e(route('home')) . '"', escape: false);
+    $response->assertSee('js/claveunica-logout.js', escape: false);
+});
+
+it('la pantalla de transito no requiere sesion', function () {
+    // Se llega justo despues de destruir la sesion local; si exigiera sesion,
+    // el cierre terminaria en un 403 en vez de cerrar la del IdP.
+    $this->get(route('citizen.claveunica.signing-out'))->assertOk();
 });
 
 it('logout en modo mock se queda en la app', function () {

@@ -156,6 +156,13 @@ Route::middleware('auth')->group(function () {
 Route::get('/auth/claveunica/logout', [ClaveUnicaController::class, 'logoutLanding'])
     ->name('citizen.claveunica.logout');
 
+// Pantalla de transito del cierre de sesion federado. Fuera de 'auth' porque
+// se llega justo despues de destruir la sesion local, y fuera de 'guest'
+// porque un funcionario con sesion de backoffice abierta tambien debe poder
+// verla si cerro una sesion ciudadana en el mismo navegador.
+Route::get('/auth/claveunica/cerrando-sesion', [ClaveUnicaController::class, 'signingOut'])
+    ->name('citizen.claveunica.signing-out');
+
 // Backoffice (funcionarios y super-admin)
 Route::prefix('admin')
     ->middleware(['auth', 'role:funcionario,super-admin'])
