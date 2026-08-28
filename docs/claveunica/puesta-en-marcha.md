@@ -156,16 +156,19 @@ Se pide por ticket en la Mesa de Servicios. Requisitos y estado:
 
 | # | Requisito | Estado |
 |---|---|---|
-| 1 | **Botón oficial de ClaveÚnica** según lineamientos de marca | ❌ **Pendiente** — hoy hay un `btn-primary` de Bootstrap con ícono `bi-shield-check` en `layouts/public.blade.php`, `welcome.blade.php` y `public/consultas/show.blade.php` |
+| 1 | **Botón oficial de ClaveÚnica** según lineamientos de marca | ✅ `<x-claveunica-button>` — marcado y CSS oficiales, verificado en staging el 28-ago-2026 |
 | 2 | **HTTPS** en el ambiente de producción | ✅ Let's Encrypt sobre `www.participa.gobiernovalparaiso.cl` |
 | 3 | **Llamada a pantalla completa**, sin iframe ni popup, barra de direcciones visible | ✅ Es un `<a href>` de navegación normal |
 | 4 | **State dinámico** por sesión | ✅ `Str::random(40)` en cada `redirect()` |
 | 5 | **Secuencia OIDC completa** y todos los endpoints bajo `accounts.claveunica.gob.cl` | ✅ Ver tabla del punto 3 |
 | 6 | **token/ y userinfo/ llamados desde el backend** — se pide captura del bloque de código | ✅ `fetchUserInfoLive()`, ambos por POST con la URL literal |
 | 7 | **`client_id` y `client_secret` fuera del código fuente** — se pide evidencia visual | ✅ `config/claveunica.php` los lee de variables de entorno |
-| 8 | **Cierre de sesión** con link o botón visible, y llamada al endpoint de logout | ✅ `citizen.logout` (POST con CSRF) → logout federado |
+| 8 | **Cierre de sesión** con link o botón visible, y llamada al endpoint de logout | ✅ `citizen.logout` (POST con CSRF) → pantalla de tránsito → endpoint del IdP. **Probado extremo a extremo en staging el 28-ago-2026: al reingresar, ClaveÚnica vuelve a pedir credenciales**, que es la comprobación que hace el certificador |
 
-El único bloqueante de código es el **#1**.
+Los ocho requisitos están cumplidos y verificados contra el IdP real en staging.
+Lo que queda para pedir la certificación no es código, sino la evidencia que
+solicita la Mesa de Servicios (capturas de `fetchUserInfoLive()` y de
+`config/claveunica.php`) y el punto del dominio `.gob.cl`.
 
 ---
 
@@ -173,7 +176,7 @@ El único bloqueante de código es el **#1**.
 
 | # | Ítem | Responsable |
 |---|---|---|
-| 1 | Confirmar **qué se registró como Logout URI**. El formulario pide solo la *autoridad* (el host), pero en la solicitud se declararon rutas completas. Si quedó registrado algo que no calza, el `redirect` posterior al logout simplemente no ocurre. | AWNA (verificar) / Mesa de Servicios |
+| 1 | ~~Confirmar qué se registró como Logout URI~~ **✅ RESUELTO 28-ago-2026**: el cierre federado se probó y funciona. La implementación no depende de que ClaveÚnica honre el parámetro `redirect` — la pantalla de tránsito vuelve al home por su cuenta — así que la duda sobre el formato registrado deja de ser bloqueante | — |
 | 2 | ~~DNS + TLS de staging~~ **✅ HECHO 27-ago-2026** (ver punto 7) | — |
 | 3 | Dominio de producción: `participa.gobiernovalparaiso.cl` no es `.gob.cl`. La certificación evalúa este punto (Norma Técnica MINSEGPRES, cap. II art. 13) | GORE |
 | 4 | ~~Botón oficial~~ **✅ HECHO 27-ago-2026** — `<x-claveunica-button>` | — |
