@@ -97,7 +97,21 @@ Todo el flujo vive en `app/Http/Controllers/Public/Auth/ClaveUnicaController.php
 | 4. Code → access token | `POST https://accounts.claveunica.gob.cl/openid/token/`, `x-www-form-urlencoded`, desde el backend |
 | 5. Autenticar usuario | Se lee `access_token` de la respuesta |
 | 6. Datos del ciudadano | `POST https://accounts.claveunica.gob.cl/openid/userinfo/` con `Authorization: Bearer` |
-| 7. Cierre de sesión | `logout()` destruye la sesión local y rebota a `/api/v1/accounts/app/logout/?redirect=…` |
+| 7. Cierre de sesión | `logout()` destruye la sesión local y entrega la pantalla de tránsito, que llama al endpoint del IdP y devuelve al home (ver abajo) |
+
+> **El endpoint de logout responde `204 No Content`**, sin cabecera `Location` —
+> con y sin el parámetro `redirect`. Un `redirect()->away()` del servidor hacia
+> allí hace que el navegador emita la petición y **se quede donde estaba**: al
+> ciudadano no le pasa nada visible, vuelve a apretar "Cerrar sesión", y ese
+> segundo POST llega con el token CSRF de la sesión ya destruida → **419 PAGE
+> EXPIRED**. Ocurrió en staging el 28-ago-2026.
+>
+> Por eso se aplica el **Método 2** de la guía: `signingOut()` entrega una
+> pantalla de tránsito y `public/js/claveunica-logout.js` navega al endpoint (la
+> petición lleva las cookies del IdP y cierra su sesión) y, pasado 1,5 s, vuelve
+> al home. El 204 juega a favor: como el navegador no se mueve, el temporizador
+> sigue vivo. La guía **prohíbe** llamar al endpoint desde un popup o un iframe
+> — provoca un error de CORS y la sesión de ClaveÚnica queda abierta.
 
 Las pruebas que fijan este contrato están en
 `tests/Feature/Public/ClaveUnicaLiveFlowTest.php` y
