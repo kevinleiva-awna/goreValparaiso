@@ -97,6 +97,28 @@ class Observation extends Model
     }
 
     /**
+     * Nombre con el que se descarga el adjunto: el ID del expediente
+     * (public_id) + la extension original. El nombre que subio el ciudadano
+     * se conserva en attachment_original_name y viaja en el compendio y en
+     * el indice del ZIP; el archivo en si sale nombrado por expediente para
+     * que GORE pueda cruzarlo con su fila (pedido del cliente, sept-2026).
+     */
+    public function getAttachmentDownloadNameAttribute(): ?string
+    {
+        if (! $this->hasAttachment()) {
+            return null;
+        }
+
+        // La extension viene del nombre original; si el ciudadano subio un
+        // archivo sin extension, cae al path guardado (store() la preserva).
+        $ext = pathinfo((string) $this->attachment_original_name, PATHINFO_EXTENSION)
+            ?: pathinfo((string) $this->attachment_path, PATHINFO_EXTENSION);
+        $ext = preg_replace('/[^a-zA-Z0-9]/', '', (string) $ext);
+
+        return $ext !== '' ? "{$this->public_id}.".strtolower($ext) : (string) $this->public_id;
+    }
+
+    /**
      * Nombre "a quien responder": el de la persona natural o, para PJ y
      * Organizacion sin PJ, la razon social. Los snapshots de PJ/Org dejan
      * snapshot_full_name vacio, asi que TODO lo que muestre identidad debe

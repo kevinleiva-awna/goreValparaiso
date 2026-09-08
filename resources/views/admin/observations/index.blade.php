@@ -38,6 +38,19 @@
                             CSV (.csv)
                         </a>
                     </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        {{-- Adjuntos en ZIP: mismos filtros que el compendio.
+                             Cada archivo sale nombrado con el ID del expediente
+                             y el ZIP trae indice.csv + el compendio adentro. --}}
+                        <a class="dropdown-item"
+                           href="{{ route('admin.observations.attachments.zip', $exportFilters) }}"
+                           data-export-format="zip"
+                           data-export-base="{{ route('admin.observations.attachments.zip') }}">
+                            <i class="bi bi-file-earmark-zip me-2 text-warning"></i>
+                            Adjuntos en ZIP
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -47,6 +60,14 @@
         @if (session('status'))
             <div class="alert alert-success alert-dismissible fade show">
                 {{ session('status') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        {{-- Avisos que no son exito: ZIP sin adjuntos, filtro demasiado grande. --}}
+        @if (session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show">
+                {{ session('warning') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif

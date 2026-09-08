@@ -9,6 +9,7 @@ use App\Models\Observation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
@@ -80,9 +81,11 @@ class ObservationController extends Controller
         // todavia no fue poblada para filas anteriores a la migration.
         $disk = $observation->attachment_disk ?: config('filesystems.default');
 
+        // Nombrado por ID de expediente (no por el nombre que puso el
+        // ciudadano) para que el archivo cruce con su fila del compendio.
         return Storage::disk($disk)->download(
             $observation->attachment_path,
-            $observation->attachment_original_name ?? 'archivo-adjunto'
+            $observation->attachment_download_name
         );
     }
 
@@ -101,6 +104,159 @@ class ObservationController extends Controller
         $writerType = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
 
         return Excel::download(new ObservationsExport($query), $filename, $writerType);
+    }
+
+    /**
+     * Topes del ZIP de adjuntos. Existen para no colgar el request bajando de
+     * S3 ni pasarse del max_execution_time de php-fpm; con el volumen real de
+     * una consulta (decenas de adjuntos) no se tocan nunca.
+     */
+    private const ZIP_MAX_FILES = 300;
+    private const ZIP_MAX_BYTES = 300 * 1024 * 1024;
+
+    /**
+     * Descarga masiva de adjuntos en ZIP, cada archivo nombrado por el ID del
+     * expediente. Reusa buildFilteredQuery, o sea respeta EXACTAMENTE los
+     * mismos filtros que el compendio: lo que se baja en xlsx y lo que se baja
+     * en zip son siempre el mismo universo. Pedido de GORE (03-sep-2026).
+     */
+    public function exportAttachments(Request $request): BinaryFileResponse|RedirectResponse
+    {
+        $observations = $this->buildFilteredQuery($request)
+            ->whereNotNull('attachment_path')
+            ->get();
+
+        if ($observations->isEmpty()) {
+            return back()->with('warning', 'Ninguna observacion del filtro actual tiene archivos adjuntos.');
+        }
+
+        if ($observations->count() > self::ZIP_MAX_FILES) {
+            return back()->with('warning', sprintf(
+                'El filtro actual tiene %d adjuntos y el maximo por ZIP es %d. Acota por proceso o por rango de fechas.',
+                $observations->count(),
+                self::ZIP_MAX_FILES,
+            ));
+        }
+
+        $totalBytes = (int) $observations->sum('attachment_size_bytes');
+        if ($totalBytes > self::ZIP_MAX_BYTES) {
+            return back()->with('warning', sprintf(
+                'Los adjuntos del filtro actual pesan %s y el maximo por ZIP es %s. Acota por proceso o por rango de fechas.',
+                $this->humanBytes($totalBytes),
+                $this->humanBytes(self::ZIP_MAX_BYTES),
+            ));
+        }
+
+        $zipPath = tempnam(sys_get_temp_dir(), 'gore-adjuntos-');
+        $zip = new \ZipArchive();
+        abort_unless($zip->open($zipPath, \ZipArchive::OVERWRITE) === true, 500, 'No se pudo generar el ZIP.');
+
+        // ZipArchive recien lee el contenido al hacer close(), asi que las
+        // copias temporales tienen que seguir vivas hasta despues de cerrar.
+        // Se copia a disco (en vez de addFromString) para no cargar todos los
+        // adjuntos en memoria a la vez.
+        $temps = [];
+        $index = [];
+
+        foreach ($observations as $obs) {
+            $disk = $obs->attachment_disk ?: config('filesystems.default');
+
+            try {
+                $stream = Storage::disk($disk)->readStream($obs->attachment_path);
+            } catch (\Throwable $e) {
+                $stream = null;
+            }
+
+            // Un adjunto huerfano (borrado del bucket, path de otro disk) no
+            // puede tumbar la descarga completa: se salta y queda en el log.
+            if (! $stream) {
+                Log::warning('ZIP de adjuntos: no se pudo leer el archivo', [
+                    'observation_id' => $obs->id,
+                    'public_id' => $obs->public_id,
+                    'disk' => $disk,
+                    'path' => $obs->attachment_path,
+                ]);
+
+                continue;
+            }
+
+            $copy = tempnam(sys_get_temp_dir(), 'gore-att-');
+            $out = fopen($copy, 'wb');
+            stream_copy_to_stream($stream, $out);
+            fclose($out);
+            fclose($stream);
+            $temps[] = $copy;
+
+            $zip->addFile($copy, 'adjuntos/'.$obs->attachment_download_name);
+            $index[] = [
+                $obs->attachment_download_name,
+                $obs->public_id,
+                $obs->submitted_at?->format('d/m/Y H:i'),
+                $obs->consultation?->title,
+                $obs->display_name,
+                $obs->attachment_original_name,
+            ];
+        }
+
+        if ($index === []) {
+            $zip->close();
+            @unlink($zipPath);
+
+            return back()->with('warning', 'No se pudo recuperar ninguno de los adjuntos del filtro actual. Revisa el log de la aplicacion.');
+        }
+
+        // El ZIP se basta solo: los archivos, el indice que amarra cada uno a
+        // su expediente y el mismo compendio del menu Exportar.
+        $zip->addFromString('indice.csv', $this->attachmentsIndexCsv($index));
+        $zip->addFromString(
+            'compendio-observaciones.xlsx',
+            Excel::raw(new ObservationsExport($this->buildFilteredQuery($request)), \Maatwebsite\Excel\Excel::XLSX),
+        );
+        $zip->close();
+
+        foreach ($temps as $copy) {
+            @unlink($copy);
+        }
+
+        return response()
+            ->download(
+                $zipPath,
+                sprintf('observaciones-adjuntos-%s.zip', now()->format('Y-m-d_His')),
+                ['Content-Type' => 'application/zip'],
+            )
+            ->deleteFileAfterSend();
+    }
+
+    /**
+     * Indice del ZIP: la tabla que amarra cada archivo con su expediente.
+     * Lleva BOM para que Excel en Windows abra bien los nombres con tilde.
+     */
+    private function attachmentsIndexCsv(array $rows): string
+    {
+        $handle = fopen('php://temp', 'r+');
+
+        fputcsv($handle, [
+            'Archivo en el ZIP',
+            'ID del expediente',
+            'Fecha de envio',
+            'Proceso (consulta)',
+            'Participante',
+            'Nombre original del archivo',
+        ]);
+        foreach ($rows as $row) {
+            fputcsv($handle, $row);
+        }
+
+        rewind($handle);
+        $csv = (string) stream_get_contents($handle);
+        fclose($handle);
+
+        return "\xEF\xBB\xBF".$csv;
+    }
+
+    private function humanBytes(int $bytes): string
+    {
+        return round($bytes / 1024 / 1024).' MB';
     }
 
     /**

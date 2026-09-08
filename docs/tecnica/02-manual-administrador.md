@@ -86,6 +86,7 @@ ciudadano y nunca entra a `/admin`.
 | Subir, reemplazar y archivar antecedentes | ✔ | ✔ |
 | Ver observaciones y sus adjuntos | ✔ | ✔ |
 | Exportar observaciones (XLSX / CSV) | ✔ | ✔ |
+| Descargar los adjuntos en ZIP | ✔ | ✔ |
 | Redactar, publicar y responder en lote | ✔ | ✔ |
 | **Archivar y restaurar observaciones** | ✖ | ✔ |
 | **Crear y editar funcionarios** | ✖ | ✔ |
@@ -310,9 +311,14 @@ exactamente los filtros aplicados en pantalla**.
 El ciudadano puede adjuntar un archivo por observación, de hasta **10 MB**, en
 formatos PDF, JPG, PNG, WEBP, DOC, DOCX, XLS, XLSX, ODT, ODS o TXT.
 
-Desde la ficha de la observación se descarga con su nombre original. Igual que
-los antecedentes, no es un archivo público: la descarga exige sesión de
-funcionario.
+Desde la ficha de la observación se descarga **nombrado con el código público
+del expediente** (por ejemplo `9f1c2a44-....pdf`), de modo que cada archivo
+pueda cruzarse con su fila del compendio exportado. El nombre que le puso el
+ciudadano se conserva en la ficha, en el compendio (columna «Archivo adjunto»)
+y en el índice del ZIP. Igual que los antecedentes, no es un archivo público:
+la descarga exige sesión de funcionario.
+
+Para bajarlos todos de una vez, ver **[8. Exportación de datos](#8-exportación-de-datos)**.
 
 ### 6.7 Archivar observaciones (solo super-admin)
 
@@ -405,9 +411,31 @@ Columnas del archivo:
 La exportación procesa los registros por bloques, de modo que funciona sin
 problemas con volúmenes altos.
 
-> El archivo contiene datos personales de los participantes. Tratarlo conforme
-> a la normativa de protección de datos: no publicarlo íntegro ni distribuirlo
-> por canales no institucionales.
+### Descarga masiva de adjuntos (ZIP)
+
+En el mismo menú **Observaciones → Exportar** está la opción **Adjuntos en
+ZIP**, que baja de una sola vez todos los archivos adjuntos de las
+observaciones filtradas. El archivo se llama
+`observaciones-adjuntos-<fecha>_<hora>.zip` y contiene:
+
+| Dentro del ZIP | Qué es |
+|---|---|
+| `adjuntos/` | Un archivo por observación, nombrado con el **código público del expediente** (`<uuid>.<extensión>`) |
+| `indice.csv` | Tabla que amarra cada archivo con su expediente: nombre en el ZIP, código público, fecha de envío, proceso, participante y nombre original del archivo |
+| `compendio-observaciones.xlsx` | El mismo compendio de la sección anterior, con los mismos filtros |
+
+El ZIP **usa exactamente los mismos filtros que el compendio**: lo que se baja
+en XLSX y lo que se baja en ZIP son siempre el mismo conjunto de
+observaciones. Las observaciones sin adjunto aparecen en el compendio, pero no
+aportan archivos.
+
+Para no dejar la descarga colgada, cada ZIP admite hasta **300 archivos** o
+**300 MB**. Si el filtro activo supera ese límite, la plataforma lo avisa en
+pantalla y basta con acotar por proceso o por rango de fechas.
+
+> Tanto el compendio como el ZIP contienen datos personales de los
+> participantes. Tratarlos conforme a la normativa de protección de datos: no
+> publicarlos íntegros ni distribuirlos por canales no institucionales.
 
 ---
 

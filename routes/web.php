@@ -206,6 +206,11 @@ Route::prefix('admin')
         // para funcionario y super-admin.
         Route::get('observations', [AdminObservationController::class, 'index'])
             ->name('admin.observations.index');
+        // ZIP de adjuntos: se define ANTES de `export/{format}` para que
+        // 'adjuntos' no compita con el parametro de formato.
+        Route::get('observations/export/adjuntos',
+            [AdminObservationController::class, 'exportAttachments'])
+            ->name('admin.observations.attachments.zip');
         Route::get('observations/export/{format}', [AdminObservationController::class, 'export'])
             ->whereIn('format', ['xlsx', 'csv'])
             ->name('admin.observations.export');

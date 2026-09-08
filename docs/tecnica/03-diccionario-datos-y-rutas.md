@@ -526,6 +526,7 @@ Prefijo `/admin`, provistas por Laravel Breeze.
 | DELETE | `/admin/consultations/{consultation}/documents/{document}` | `admin.consultations.documents.destroy` |
 | GET | `/admin/observations` | `admin.observations.index` |
 | GET | `/admin/observations/export/{format}` | `admin.observations.export` (`xlsx` \| `csv`) |
+| GET | `/admin/observations/export/adjuntos` | `admin.observations.attachments.zip` |
 | GET | `/admin/observations/batch` | `admin.observations.batch.create` |
 | POST | `/admin/observations/batch` | `admin.observations.batch.store` |
 | GET | `/admin/observations/{observation}` | `admin.observations.show` |
