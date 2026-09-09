@@ -120,7 +120,17 @@ class ObservationController extends Controller
     {
         // El limite que manda es nginx (fastcgi_read_timeout 180s); esto solo
         // evita que php-fpm corte antes con su max_execution_time de 120s.
+        // Medido en produccion el 09-sep-2026: 307 adjuntos / 327 MB tardaron
+        // 41 s, o sea sobra tiempo.
         @set_time_limit(300);
+
+        // Esa misma medicion dio un pico de 113,5 MB contra el memory_limit de
+        // 128 MB de php-fpm: pasa hoy y revienta con un 500 apenas el proceso
+        // crezca. Lo que ocupa la memoria no son los adjuntos (van por disco
+        // con addFile) sino el compendio que se arma en RAM para meterlo en el
+        // ZIP, que crece con TODAS las observaciones, no solo con las que
+        // tienen archivo. Se sube solo para este endpoint.
+        @ini_set('memory_limit', '512M');
 
         $maxFiles = (int) config('exports.zip_max_files');
         $maxBytes = (int) config('exports.zip_max_mb') * 1024 * 1024;
