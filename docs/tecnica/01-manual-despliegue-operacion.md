@@ -341,6 +341,7 @@ CLAVEUNICA_CLIENT_SECRET=
 | `FILESYSTEM_DISK` | Si vuelve a `local`, los archivos nuevos quedan en el disco de la EC2 y se pierden si la instancia se reconstruye. |
 | `CLAVEUNICA_ENABLED` | En `true` sin credenciales, el ciudadano ve un botón de ingreso que falla. |
 | `CLAVEUNICA_MODE` | **Debe estar presente y en `live` en producción.** Si falta, cae al default del `config`, que es `mock`. Con `mock`, la aplicación espera el simulador de identidad en lugar del proveedor real: si además se activa `CLAVEUNICA_ENABLED`, el ingreso ciudadano falla. Las rutas del simulador ya no se registran fuera de local y staging, pero la variable debe declararse igual. |
+| `GORE_ZIP_MAX_FILES` / `GORE_ZIP_MAX_MB` | Topes de la descarga masiva de adjuntos en ZIP (default 500 / 500 MB). El ZIP se arma dentro del request, así que el techo real lo pone `fastcgi_read_timeout` de nginx (180s). Si el proceso crece y el ZIP empieza a cortarse, **bajarlos**; si el aviso "el máximo por ZIP es N" aparece con volúmenes que el servidor sí aguanta, subirlos. Cambiarlos exige `php artisan config:cache`, no un despliegue. |
 
 > **Gotcha al editar el `.env` por consola:** agregar una línea con
 > `echo >> .env` la pega a la última línea existente (el archivo no termina en

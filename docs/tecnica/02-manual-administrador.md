@@ -429,9 +429,13 @@ en XLSX y lo que se baja en ZIP son siempre el mismo conjunto de
 observaciones. Las observaciones sin adjunto aparecen en el compendio, pero no
 aportan archivos.
 
-Para no dejar la descarga colgada, cada ZIP admite hasta **300 archivos** o
-**300 MB**. Si el filtro activo supera ese límite, la plataforma lo avisa en
-pantalla y basta con acotar por proceso o por rango de fechas.
+Para no dejar la descarga colgada, cada ZIP admite hasta **500 archivos** o
+**500 MB**. Si el filtro activo supera ese límite, la plataforma lo avisa en
+pantalla y basta con acotar por rango de fechas y bajarlo en dos tandas.
+
+> El límite es configurable por ambiente (`GORE_ZIP_MAX_FILES` y
+> `GORE_ZIP_MAX_MB` en el `.env` del servidor); no requiere desplegar código,
+> solo `php artisan config:cache`. Ver el Manual de Despliegue y Operación.
 
 > Tanto el compendio como el ZIP contienen datos personales de los
 > participantes. Tratarlos conforme a la normativa de protección de datos: no

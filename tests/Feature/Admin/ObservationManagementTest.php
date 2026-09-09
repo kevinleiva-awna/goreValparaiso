@@ -221,3 +221,40 @@ it('salta el adjunto huerfano en vez de tumbar el ZIP completo', function () {
 it('exige sesion de funcionario para bajar el ZIP de adjuntos', function () {
     $this->get(route('admin.observations.attachments.zip'))->assertRedirect(route('login'));
 });
+
+/*
+ * Los topes salen de config/exports.php (y del .env) justamente porque la
+ * primera calibracion se quedo corta: el proceso real tenia 307 adjuntos
+ * contra un tope de 300, y GORE no podia bajar nada.
+ */
+
+it('corta por el tope de archivos y lo toma de la configuracion', function () {
+    Storage::fake('local');
+    actingAsFunctionary();
+    config(['exports.zip_max_files' => 1]);
+    observacionConAdjunto($this->consultation);
+    observacionConAdjunto($this->consultation);
+
+    $this->get(route('admin.observations.attachments.zip'))
+        ->assertRedirect()
+        ->assertSessionHas('warning', fn ($mensaje) => str_contains($mensaje, '2 adjuntos')
+            && str_contains($mensaje, 'maximo por ZIP es 1'));
+});
+
+it('corta por el tope de peso y lo toma de la configuracion', function () {
+    Storage::fake('local');
+    actingAsFunctionary();
+    config(['exports.zip_max_mb' => 0]);
+    observacionConAdjunto($this->consultation);
+
+    $this->get(route('admin.observations.attachments.zip'))
+        ->assertRedirect()
+        ->assertSessionHas('warning', fn ($mensaje) => str_contains($mensaje, 'pesan'));
+});
+
+it('con el tope por defecto el volumen real de GORE entra', function () {
+    // 307 adjuntos y 327 MB en septiembre de 2026: el default tiene que
+    // cubrirlo, si no el cliente vuelve a quedar sin poder descargar.
+    expect(config('exports.zip_max_files'))->toBeGreaterThanOrEqual(400)
+        ->and(config('exports.zip_max_mb'))->toBeGreaterThanOrEqual(400);
+});

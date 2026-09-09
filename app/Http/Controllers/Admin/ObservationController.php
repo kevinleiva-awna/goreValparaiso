@@ -107,21 +107,24 @@ class ObservationController extends Controller
     }
 
     /**
-     * Topes del ZIP de adjuntos. Existen para no colgar el request bajando de
-     * S3 ni pasarse del max_execution_time de php-fpm; con el volumen real de
-     * una consulta (decenas de adjuntos) no se tocan nunca.
-     */
-    private const ZIP_MAX_FILES = 300;
-    private const ZIP_MAX_BYTES = 300 * 1024 * 1024;
-
-    /**
      * Descarga masiva de adjuntos en ZIP, cada archivo nombrado por el ID del
      * expediente. Reusa buildFilteredQuery, o sea respeta EXACTAMENTE los
      * mismos filtros que el compendio: lo que se baja en xlsx y lo que se baja
      * en zip son siempre el mismo universo. Pedido de GORE (03-sep-2026).
+     *
+     * Los topes viven en config/exports.php y salen del .env: en septiembre de
+     * 2026 el proceso real tenia 307 adjuntos y 327 MB, o sea mas de lo que
+     * suponia la primera calibracion, y conviene poder moverlos sin desplegar.
      */
     public function exportAttachments(Request $request): BinaryFileResponse|RedirectResponse
     {
+        // El limite que manda es nginx (fastcgi_read_timeout 180s); esto solo
+        // evita que php-fpm corte antes con su max_execution_time de 120s.
+        @set_time_limit(300);
+
+        $maxFiles = (int) config('exports.zip_max_files');
+        $maxBytes = (int) config('exports.zip_max_mb') * 1024 * 1024;
+
         $observations = $this->buildFilteredQuery($request)
             ->whereNotNull('attachment_path')
             ->get();
@@ -130,20 +133,20 @@ class ObservationController extends Controller
             return back()->with('warning', 'Ninguna observacion del filtro actual tiene archivos adjuntos.');
         }
 
-        if ($observations->count() > self::ZIP_MAX_FILES) {
+        if ($observations->count() > $maxFiles) {
             return back()->with('warning', sprintf(
-                'El filtro actual tiene %d adjuntos y el maximo por ZIP es %d. Acota por proceso o por rango de fechas.',
+                'El filtro actual tiene %d adjuntos y el maximo por ZIP es %d. Acota por rango de fechas y bajalos en dos tandas.',
                 $observations->count(),
-                self::ZIP_MAX_FILES,
+                $maxFiles,
             ));
         }
 
         $totalBytes = (int) $observations->sum('attachment_size_bytes');
-        if ($totalBytes > self::ZIP_MAX_BYTES) {
+        if ($totalBytes > $maxBytes) {
             return back()->with('warning', sprintf(
-                'Los adjuntos del filtro actual pesan %s y el maximo por ZIP es %s. Acota por proceso o por rango de fechas.',
+                'Los adjuntos del filtro actual pesan %s y el maximo por ZIP es %s. Acota por rango de fechas y bajalos en dos tandas.',
                 $this->humanBytes($totalBytes),
-                $this->humanBytes(self::ZIP_MAX_BYTES),
+                $this->humanBytes($maxBytes),
             ));
         }
 
@@ -187,7 +190,17 @@ class ObservationController extends Controller
             fclose($stream);
             $temps[] = $copy;
 
-            $zip->addFile($copy, 'adjuntos/'.$obs->attachment_download_name);
+            $entry = 'adjuntos/'.$obs->attachment_download_name;
+            $zip->addFile($copy, $entry);
+
+            // PDF, imagenes y ofimatica ya vienen comprimidos: pasarles deflate
+            // quema CPU sin bajar el peso, y con cientos de MB eso es lo que
+            // decide si el request termina antes del timeout de nginx.
+            $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+            if (in_array($ext, (array) config('exports.zip_store_extensions'), true)) {
+                $zip->setCompressionName($entry, \ZipArchive::CM_STORE);
+            }
+
             $index[] = [
                 $obs->attachment_download_name,
                 $obs->public_id,
