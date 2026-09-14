@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\ObservationController;
 use App\Models\Consultation;
 use App\Models\Observation;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Cookie;
 
 beforeEach(function () {
     $this->consultation = Consultation::factory()->create(['status' => Consultation::STATUS_ACTIVE]);
@@ -108,7 +111,7 @@ it('rechaza formato de export invalido', function () {
 /** Crea una observacion con un adjunto real en el disk fake. */
 function observacionConAdjunto(Consultation $consultation, string $originalName = 'mi documento.pdf'): Observation
 {
-    $path = 'observations/'.$consultation->id.'/'.\Illuminate\Support\Str::random(20).'.pdf';
+    $path = 'observations/'.$consultation->id.'/'.Str::random(20).'.pdf';
     Storage::disk('local')->put($path, 'contenido-de-prueba');
 
     return Observation::factory()
@@ -258,3 +261,90 @@ it('con el tope por defecto el volumen real de GORE entra', function () {
     expect(config('exports.zip_max_files'))->toBeGreaterThanOrEqual(400)
         ->and(config('exports.zip_max_mb'))->toBeGreaterThanOrEqual(400);
 });
+
+/*
+ * Spinner del boton Exportar. El navegador no avisa nada cuando una navegacion
+ * termina en descarga, asi que el JS espera esta cookie para apagarlo. Si el
+ * controlador deja de mandarla, el funcionario vuelve a ver un boton muerto
+ * durante el minuto que tarda el ZIP -que es el reporte original de GORE-.
+ */
+
+/**
+ * Busca la cookie de confirmacion entre las de la respuesta. Se compara con
+ * getName() y no con firstWhere('name', ...): las Cookie de Symfony tienen la
+ * propiedad privada, asi que firstWhere devuelve null SIEMPRE y un test que
+ * espera null pasaria sin probar nada.
+ */
+function cookieDeDescarga($response): ?Cookie
+{
+    return collect($response->headers->getCookies())->first(
+        fn ($cookie) => $cookie->getName() === ObservationController::DOWNLOAD_COOKIE
+    );
+}
+
+it('confirma la descarga del ZIP con la cookie que apaga el spinner', function () {
+    Storage::fake('local');
+    actingAsFunctionary();
+    observacionConAdjunto($this->consultation);
+
+    $this->get(route('admin.observations.attachments.zip', ['dl_token' => 'abc123']))
+        ->assertOk()
+        ->assertPlainCookie(ObservationController::DOWNLOAD_COOKIE, 'abc123');
+});
+
+it('confirma tambien el compendio en xlsx y csv', function (string $formato) {
+    actingAsFunctionary();
+    Observation::factory()
+        ->forConsultation($this->consultation)
+        ->byUser(User::factory()->citizen()->create())
+        ->create();
+
+    $this->get(route('admin.observations.export', ['format' => $formato, 'dl_token' => 'xyz789']))
+        ->assertOk()
+        ->assertPlainCookie(ObservationController::DOWNLOAD_COOKIE, 'xyz789');
+})->with(['xlsx', 'csv']);
+
+it('la cookie va sin encriptar o el JS no puede compararla con su token', function () {
+    actingAsFunctionary();
+    Observation::factory()
+        ->forConsultation($this->consultation)
+        ->byUser(User::factory()->citizen()->create())
+        ->create();
+
+    $response = $this->get(route('admin.observations.export', ['format' => 'csv', 'dl_token' => 'enclaro']));
+    $cookie = cookieDeDescarga($response);
+
+    expect($cookie)->not->toBeNull()
+        ->and($cookie->getValue())->toBe('enclaro')
+        // httpOnly la haria invisible para document.cookie.
+        ->and($cookie->isHttpOnly())->toBeFalse();
+});
+
+it('no manda cookie si el export no vino del boton', function () {
+    actingAsFunctionary();
+    Observation::factory()
+        ->forConsultation($this->consultation)
+        ->byUser(User::factory()->citizen()->create())
+        ->create();
+
+    $response = $this->get(route('admin.observations.export', ['format' => 'csv']));
+
+    expect(cookieDeDescarga($response))->toBeNull();
+});
+
+it('no refleja en la cookie un token que no sea alfanumerico', function (string $basura) {
+    actingAsFunctionary();
+    Observation::factory()
+        ->forConsultation($this->consultation)
+        ->byUser(User::factory()->citizen()->create())
+        ->create();
+
+    $response = $this->get(route('admin.observations.export', ['format' => 'csv', 'dl_token' => $basura]));
+
+    expect(cookieDeDescarga($response))->toBeNull();
+})->with([
+    '',
+    'con espacio',
+    'punto.y.coma;',
+    'demasiado-largo-para-un-token-de-descarga-de-verdad',
+]);

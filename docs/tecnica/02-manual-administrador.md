@@ -433,6 +433,15 @@ Para no dejar la descarga colgada, cada ZIP admite hasta **500 archivos** o
 **500 MB**. Si el filtro activo supera ese límite, la plataforma lo avisa en
 pantalla y basta con acotar por rango de fechas y bajarlo en dos tandas.
 
+**El ZIP no se descarga al instante.** El archivo se arma en el servidor —se
+baja cada adjunto y se empaqueta— y con el volumen actual eso toma cerca de un
+minuto. Mientras tanto el botón muestra *Preparando…* con un indicador de
+progreso y queda deshabilitado, y arriba del listado aparece un aviso azul. La
+descarga recién comienza cuando ese aviso desaparece; ahí toma el control el
+navegador y aparece su propia barra de progreso. **No hay que volver a hacer
+clic ni recargar la página** mientras el aviso esté visible: un segundo clic no
+acelera nada y obliga al servidor a rehacer el trabajo desde cero.
+
 > El límite es configurable por ambiente (`GORE_ZIP_MAX_FILES` y
 > `GORE_ZIP_MAX_MB` en el `.env` del servidor); no requiere desplegar código,
 > solo `php artisan config:cache`. Ver el Manual de Despliegue y Operación.

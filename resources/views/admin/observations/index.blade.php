@@ -8,8 +8,16 @@
                 </p>
             </div>
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-download me-1"></i> Exportar
+                {{-- El spinner lo enciende el JS al hacer clic en cualquiera
+                     de los formatos y lo apaga cuando el servidor confirma que
+                     la descarga salio. Sin JS el boton se ve y se comporta
+                     igual que siempre. --}}
+                <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                        id="export-button">
+                    <span class="spinner-border spinner-border-sm me-1 d-none"
+                          id="export-spinner" aria-hidden="true"></span>
+                    <i class="bi bi-download me-1" id="export-icon"></i>
+                    <span id="export-label">Exportar</span>
                 </button>
                 {{-- El JS (public/js/admin-observations.js) reescribe la URL al
                      click leyendo el estado ACTUAL del form de filtros, para que
@@ -57,6 +65,38 @@
     </x-slot>
 
     <div class="container py-4">
+        {{-- Descarga en curso. El ZIP de adjuntos se arma dentro del request
+             -se baja cada archivo desde S3 y se empaqueta- y con el volumen
+             real son cerca de 60 segundos en los que el navegador no muestra
+             absolutamente nada. GORE reporto justamente eso: "le doy clic y no
+             descarga ningun archivo". Lo enciende y apaga
+             public/js/admin-observations.js. --}}
+        {{-- El `d-flex` va en un wrapper interno y no junto al `d-none`: en
+             Bootstrap 5 las utilidades de display se generan con `none`
+             primero, asi que `.d-flex` le gana a `.d-none` y el aviso quedaria
+             siempre visible. --}}
+        <div class="alert alert-info d-none" id="export-progress"
+             role="status" aria-live="polite">
+            <div class="d-flex align-items-center gap-3">
+                <div class="spinner-border spinner-border-sm flex-shrink-0" aria-hidden="true"></div>
+                <div>
+                    <strong>Preparando la descarga...</strong>
+                    <div class="small" id="export-progress-detail"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Solo si el servidor nunca confirmo. Cubre el caso feo: el request
+             se paso del fastcgi_read_timeout de nginx y no va a llegar nada.
+             Sin `alert-dismissible`: el dismiss de Bootstrap saca el nodo del
+             DOM y el aviso tiene que poder volver a aparecer en el intento
+             siguiente. Lo esconde el JS. --}}
+        <div class="alert alert-warning d-none" id="export-failure" role="alert">
+            La descarga esta tardando mas de lo normal y puede que no llegue.
+            Vuelve a intentarlo; si se repite, acota el filtro por rango de
+            fechas y bajalo en dos tandas.
+        </div>
+
         @if (session('status'))
             <div class="alert alert-success alert-dismissible fade show">
                 {{ session('status') }}

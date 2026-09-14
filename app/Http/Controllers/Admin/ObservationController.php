@@ -103,7 +103,51 @@ class ObservationController extends Controller
 
         $writerType = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
 
-        return Excel::download(new ObservationsExport($query), $filename, $writerType);
+        return $this->tagDownload(
+            Excel::download(new ObservationsExport($query), $filename, $writerType),
+            $request,
+        );
+    }
+
+    /**
+     * Nombre de la cookie con la que el servidor le avisa al navegador que la
+     * descarga ya salio. Va sin encriptar a proposito (ver bootstrap/app.php):
+     * la lee el JS del listado, y lo unico que lleva es un token aleatorio que
+     * genero ese mismo navegador.
+     */
+    public const DOWNLOAD_COOKIE = 'gore_export_ready';
+
+    /**
+     * Un export es una navegacion normal, no un fetch: cuando la respuesta es
+     * un archivo el navegador no dispara ningun evento y la pagina se queda
+     * exactamente igual. Con el ZIP de adjuntos eso son cerca de 60 segundos
+     * de boton aparentemente muerto, tiempo de sobra para que el funcionario
+     * vuelva a hacer clic o de la descarga por fallida -que es literalmente lo
+     * que reporto GORE el 09-sep-2026-.
+     *
+     * Esta cookie es la unica senal que el navegador deja cuando una descarga
+     * empieza: viaja en las cabeceras, o sea llega apenas el archivo esta
+     * armado y antes de transferir los 330 MB. El JS la espera para apagar el
+     * spinner. Si la respuesta termina siendo un aviso en vez de un archivo,
+     * el redirect recarga la pagina y el spinner se va con ella, asi que ahi
+     * no hace falta.
+     */
+    private function tagDownload(BinaryFileResponse $response, Request $request): BinaryFileResponse
+    {
+        $token = (string) $request->query('dl_token', '');
+
+        // El token no autentica nada -solo empareja la respuesta con el clic
+        // que la pidio-, pero igual se acota: lo que entra por la query no se
+        // refleja en una cabecera sin revisarlo.
+        if (preg_match('/^[A-Za-z0-9]{1,32}$/', $token) !== 1) {
+            return $response;
+        }
+
+        $response->headers->setCookie(
+            cookie(self::DOWNLOAD_COOKIE, $token, 1, '/', null, $request->isSecure(), false)
+        );
+
+        return $response;
     }
 
     /**
@@ -241,13 +285,16 @@ class ObservationController extends Controller
             @unlink($copy);
         }
 
-        return response()
-            ->download(
-                $zipPath,
-                sprintf('observaciones-adjuntos-%s.zip', now()->format('Y-m-d_His')),
-                ['Content-Type' => 'application/zip'],
-            )
-            ->deleteFileAfterSend();
+        return $this->tagDownload(
+            response()
+                ->download(
+                    $zipPath,
+                    sprintf('observaciones-adjuntos-%s.zip', now()->format('Y-m-d_His')),
+                    ['Content-Type' => 'application/zip'],
+                )
+                ->deleteFileAfterSend(),
+            $request,
+        );
     }
 
     /**

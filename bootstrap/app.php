@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ObservationController as AdminObservationController;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -23,6 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // Laravel detras de proxy generaria URLs http en vez de https y
         // veria la IP del proxy en lugar de la IP real del cliente.
         $middleware->trustProxies(at: '*');
+
+        // El JS del listado de observaciones lee esta cookie para saber que la
+        // descarga ya salio del servidor y apagar el spinner del boton
+        // Exportar. Encriptada no le sirve: veria un blob que no puede
+        // comparar con el token que mando. No lleva nada sensible, es un
+        // identificador aleatorio que genero el propio navegador.
+        $middleware->encryptCookies(except: [
+            AdminObservationController::DOWNLOAD_COOKIE,
+        ]);
 
         // Cabeceras de seguridad + CSP estricta aplicadas a todas las rutas web (D21).
         $middleware->web(append: [
