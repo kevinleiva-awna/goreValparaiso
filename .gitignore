@@ -23,3 +23,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Material de la certificacion ClaveUnica: el JSON lleva el client_secret de
+# produccion y las capturas lo muestran en pantalla. Se generan en el equipo,
+# se suben al formulario de Gobierno Digital y no entran al repositorio.
+/docs/claveunica/evidencia/credenciales.local.json
+/docs/claveunica/evidencia/*.png
+/docs/claveunica/evidencia/*.html

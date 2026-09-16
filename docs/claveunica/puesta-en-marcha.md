@@ -170,6 +170,14 @@ Lo que queda para pedir la certificación no es código, sino la evidencia que
 solicita la Mesa de Servicios (capturas de `fetchUserInfoLive()` y de
 `config/claveunica.php`) y el punto del dominio `.gob.cl`.
 
+> **Observación del 15-sep-2026 sobre el requisito 7.** La primera entrega ilustró
+> ese punto con `.env.example`, donde las claves están declaradas vacías. Gobierno
+> Digital la rechazó: la página 30 del manual pide el archivo de entorno del
+> ambiente de **producción** con los valores cargados, y además los **métodos**
+> donde esas variables se consumen. La evidencia se rehízo con el `.env` real del
+> servidor de producción, `redirect()` y `fetchUserInfoLive()` — ver
+> [`evidencia/README.md`](evidencia/README.md).
+
 ---
 
 ## 5. Pendientes fuera del código
@@ -206,18 +214,22 @@ que es exactamente la URI declarada en la solicitud de credenciales.
 
 ---
 
-## 8. Estado de cada ambiente (27-ago-2026)
+## 8. Estado de cada ambiente (27-ago-2026; producción reverificada el 16-sep-2026)
 
 | | Staging | Producción |
 |---|---|---|
 | Host | `https://pruebas.participa.gobiernovalparaiso.cl` | `https://www.participa.gobiernovalparaiso.cl` |
 | Instancia | `i-044e3f43201359d9a` (rama `dev`) | `i-099343b5b7dffc94f` (rama `prod`) |
-| Código desplegado | `a7cb5e0` ✅ | pendiente de desplegar `a7cb5e0` |
+| Código desplegado | `a7cb5e0` ✅ | `875da99` ✅ (16-sep-2026) |
 | Assets (`npm run build`) | ✅ reconstruidos | pendiente |
-| `CLAVEUNICA_MODE` | `live` ✅ | `live` (ya estaba) |
+| `CLAVEUNICA_MODE` | `live` ✅ | `live` ✅ |
 | Simulador `/dev/claveunica/*` | fuera (404) ✅ | nunca estuvo (`APP_ENV=production`) |
-| `client_id` / `client_secret` | **vacíos — los carga el GORE/AWNA** | **vacíos — cargar el par de producción** |
-| `CLAVEUNICA_ENABLED` | `false` — activar al cargar sandbox | `false` — activar solo tras certificar |
+| `client_id` / `client_secret` | **vacíos — los carga el GORE/AWNA** | **par de producción cargado** ✅ |
+| `CLAVEUNICA_ENABLED` | `false` — activar al cargar sandbox | `true` ✅ |
+
+Lo de producción se comprobó el 16-sep-2026 leyendo el `.env` del servidor por SSM
+(`grep -E '^APP_ENV|^APP_URL|^CLAVEUNICA' /var/www/gore/.env`), al preparar la
+evidencia que rehacía la observación de Gobierno Digital.
 
 El despliegue de producción sigue el patrón documentado en
 `docs/tecnica/01-manual-despliegue-operacion.md`: `git fetch` + avance a `origin/prod`,
