@@ -58,6 +58,25 @@ const ARCHIVOS = [
     fecha: '12 de agosto de 2026',
     version: 'Versión 1.1',
   },
+  // Entrega final (Etapa 5).
+  {
+    dir: path.join(RAIZ_DOCS, 'manual-usuario'),
+    md: 'manual-de-usuario.md',
+    docx: 'manual-de-usuario.docx',
+    titulo: 'Manual de Usuario',
+    subtitulo: 'Entregable Etapa 5 — Puesta en Producción y Transferencia',
+    fecha: '29 de septiembre de 2026',
+    version: 'Versión 1.0',
+  },
+  {
+    dir: path.join(RAIZ_DOCS, 'entrega-final'),
+    md: 'acta-de-entrega.md',
+    docx: 'acta-de-entrega.docx',
+    titulo: 'Acta de Entrega',
+    subtitulo: 'Etapas 3, 4 y 5 — Recepción para pago',
+    fecha: '29 de septiembre de 2026',
+    version: 'Versión 1.0',
+  },
 ];
 
 // --- Imagenes ---------------------------------------------------------------
@@ -85,6 +104,9 @@ function imagen(rutaAbsoluta, alt) {
     alignment: AlignmentType.CENTER,
     spacing: { before: 160, after: alt ? 60 : 200 },
     children: [new ImageRun({
+      // docx v9 exige el tipo: sin el, la imagen queda registrada sin
+      // extension y Word declara el archivo corrupto.
+      type: 'png',
       data: datos,
       transformation: {
         width: Math.round(ancho * escala),
