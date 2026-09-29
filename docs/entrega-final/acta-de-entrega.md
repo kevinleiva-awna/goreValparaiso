@@ -81,7 +81,7 @@ Ninguno de estos puntos impide el funcionamiento actual de la plataforma.
 
 | # | Punto | Qué falta | Depende de |
 |---|---|---|---|
-| 1 | Envío de correos (Amazon SES) | Publicar en el DNS del dominio los 3 registros DKIM ya informados. Con eso AWNA activa el envío. Mientras tanto, las respuestas se publican en el portal y la notificación queda registrada en el servidor | Informática GORE (DNS) |
+| 1 | Envío de correos (Amazon SES) | Dos pasos: (a) publicar en el DNS del dominio los 3 registros DKIM que AWNA entregará actualizados, y (b) que Amazon apruebe el envío de correos de la cuenta, solicitud que AWNA está gestionando. Con ambos, AWNA activa el envío. Mientras tanto, las respuestas institucionales se publican en el portal y la notificación queda registrada en el servidor | Informática GORE (DNS) y AWNA (solicitud a Amazon) |
 | 2 | ClaveÚnica en producción | La integración está activada en producción con las credenciales de producción. Queda confirmar con la Secretaría de Gobierno Digital que la certificación de la institución está aprobada, porque de ella depende que el ingreso de ciudadanos reales funcione | GORE / Gobierno Digital |
 | 3 | Capacitación | Acordar fecha y participantes | GORE y AWNA |
 | 4 | Mejoras de infraestructura opcionales | Base de datos en alta disponibilidad (Multi-AZ), alarmas de monitoreo y firewall de aplicación. Están descritas en el Manual de Despliegue | Decisión del GORE |
