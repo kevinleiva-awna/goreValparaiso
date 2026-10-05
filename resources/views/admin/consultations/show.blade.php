@@ -123,12 +123,14 @@
                                                 <div class="small">{{ $doc->created_at->format('d/m/Y') }}</div>
                                             </td>
                                             <td class="text-end">
-                                                <div class="btn-group btn-group-sm" role="group">
+                                                {{-- d-inline-flex y no btn-group: el boton del form no es hijo
+                                                     directo del grupo y quedaba de otro tamano. --}}
+                                                <div class="d-inline-flex gap-1">
                                                     <a href="{{ route('admin.consultations.documents.download', [$consultation, $doc]) }}"
-                                                       class="btn btn-outline-secondary" title="Descargar">
+                                                       class="btn btn-sm btn-outline-secondary" title="Descargar">
                                                         <i class="bi bi-download"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-outline-secondary"
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary"
                                                             title="Reemplazar (nueva version)"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#replaceDocumentModal"
@@ -143,7 +145,7 @@
                                                           data-confirm="Archivar el documento &quot;{{ $doc->title }}&quot;? El archivo se conserva pero deja de listarse.">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button class="btn btn-outline-danger" title="Archivar">
+                                                        <button class="btn btn-sm btn-outline-danger" title="Archivar">
                                                             <i class="bi bi-archive"></i>
                                                         </button>
                                                     </form>

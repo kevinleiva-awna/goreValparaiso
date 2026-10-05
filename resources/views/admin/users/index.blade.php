@@ -122,9 +122,11 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <div class="btn-group btn-group-sm" role="group">
+                                    {{-- d-inline-flex y no btn-group: el boton del form no es hijo
+                                         directo del grupo y quedaba de otro tamano. --}}
+                                    <div class="d-inline-flex gap-1">
                                         <a href="{{ route('admin.users.edit', $user) }}"
-                                           class="btn btn-outline-secondary" title="Editar">
+                                           class="btn btn-sm btn-outline-secondary" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         @if ($user->id !== auth()->id())
@@ -133,11 +135,11 @@
                                                   data-confirm="{{ $user->is_active ? 'Desactivar' : 'Reactivar' }} la cuenta de {{ $user->name }}?">
                                                 @csrf
                                                 @if ($user->is_active)
-                                                    <button class="btn btn-outline-warning" title="Desactivar">
+                                                    <button class="btn btn-sm btn-outline-warning" title="Desactivar">
                                                         <i class="bi bi-pause-fill"></i>
                                                     </button>
                                                 @else
-                                                    <button class="btn btn-outline-success" title="Reactivar">
+                                                    <button class="btn btn-sm btn-outline-success" title="Reactivar">
                                                         <i class="bi bi-play-fill"></i>
                                                     </button>
                                                 @endif
