@@ -9,6 +9,17 @@ use App\Models\User;
  * mas usuario inactivo.
  */
 
+it('registra fecha e IP del ultimo acceso al ingresar al backoffice', function () {
+    $user = User::factory()->functionary()->create(['last_login_at' => null]);
+
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $user->refresh();
+    expect($user->last_login_at)->not->toBeNull()
+        ->and($user->last_login_ip)->toBe('127.0.0.1');
+});
+
 it('rechaza acceso de guest al backoffice', function () {
     $this->get(route('admin.consultations.index'))
         ->assertRedirect(route('login'));

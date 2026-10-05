@@ -28,6 +28,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Alimenta la columna "Ultimo acceso" del listado de funcionarios; sin
+        // esto mostraba "Nunca" para todos. ClaveUnicaController hace lo mismo
+        // con los ciudadanos. La bitacora no lo registra (User no audita estos campos).
+        $request->user()->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
+        ]);
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
