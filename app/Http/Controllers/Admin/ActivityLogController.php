@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\InstitutionalResponse;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Spatie\Activitylog\Models\Activity;
@@ -18,7 +20,10 @@ class ActivityLogController extends Controller
     public function index(Request $request): View
     {
         $query = Activity::query()
-            ->with(['causer', 'subject'])
+            ->with(['causer', 'subject' => function (MorphTo $morphTo) {
+                // La respuesta se identifica por el codigo de su observacion.
+                $morphTo->morphWith([InstitutionalResponse::class => ['observation']]);
+            }])
             ->latest('id');
 
         if ($request->filled('log_name')) {

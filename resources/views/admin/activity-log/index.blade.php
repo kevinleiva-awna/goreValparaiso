@@ -18,7 +18,7 @@
                             <option value="">Todos</option>
                             @foreach ($logNames as $name)
                                 <option value="{{ $name }}" @selected(($filters['log_name'] ?? '') === $name)>
-                                    {{ $name }}
+                                    {{ \App\Support\ActivityLogPresenter::label($name) }}
                                 </option>
                             @endforeach
                         </select>
@@ -66,6 +66,7 @@
                             @php
                                 $attrs = $log->properties->get('attributes', []);
                                 $old = $log->properties->get('old', []);
+                                $resource = \App\Support\ActivityLogPresenter::describe($log);
                             @endphp
                             <tr>
                                 <td class="small text-nowrap">
@@ -81,8 +82,23 @@
                                     @endif
                                 </td>
                                 <td class="small">
-                                    <div class="fw-semibold">{{ $log->log_name ?? '-' }}</div>
-                                    <div class="text-muted">ID #{{ $log->subject_id }}</div>
+                                    <div class="fw-semibold">{{ \App\Support\ActivityLogPresenter::label($log->log_name) }}</div>
+                                    <div class="text-muted text-break">
+                                        @if ($resource['prefix'])
+                                            {{ $resource['prefix'] }}
+                                        @endif
+                                        @if ($resource['url'])
+                                            <a href="{{ $resource['url'] }}" class="link-secondary">
+                                        @endif
+                                        @if ($resource['code'])
+                                            <code class="small">{{ $resource['text'] }}</code>
+                                        @else
+                                            {{ Str::limit($resource['text'], 70) }}
+                                        @endif
+                                        @if ($resource['url'])
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
                                     @if ($log->event === 'created')
