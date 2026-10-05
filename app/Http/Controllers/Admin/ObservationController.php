@@ -356,8 +356,13 @@ class ObservationController extends Controller
             $query->where('submitted_at', '<=', $request->date('to')->endOfDay());
         }
         if ($request->filled('q')) {
-            $term = $request->input('q');
-            $query->where(function ($q) use ($term) {
+            $term = trim((string) $request->input('q'));
+            // El codigo del expediente se busca por prefijo: basta con los 8
+            // caracteres que muestra el listado. Solo si el termino tiene forma
+            // de codigo, para que un RUT o una palabra corta no traigan
+            // expedientes que empiezan igual por azar.
+            $looksLikeCode = (bool) preg_match('/^[0-9a-f]{8}[0-9a-f-]{0,28}$/i', $term);
+            $query->where(function ($q) use ($term, $looksLikeCode) {
                 $q->where('subject', 'like', "%{$term}%")
                   ->orWhere('body', 'like', "%{$term}%")
                   ->orWhere('snapshot_national_id', 'like', "%{$term}%")
@@ -367,7 +372,9 @@ class ObservationController extends Controller
                   ->orWhere('snapshot_trade_name', 'like', "%{$term}%")
                   ->orWhere('snapshot_business_id', 'like', "%{$term}%")
                   ->orWhere('snapshot_email', 'like', "%{$term}%")
-                  ->orWhere('public_id', $term);
+                  ->when($looksLikeCode,
+                      fn ($q) => $q->orWhere('public_id', 'like', strtolower($term).'%'),
+                      fn ($q) => $q->orWhere('public_id', $term));
             });
         }
 

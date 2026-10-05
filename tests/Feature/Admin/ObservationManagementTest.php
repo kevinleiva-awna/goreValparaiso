@@ -24,6 +24,46 @@ it('lista observaciones con paginacion', function () {
     $response->assertSeeText('Observaciones recibidas');
 });
 
+it('muestra el codigo corto del expediente en el listado', function () {
+    actingAsFunctionary();
+    $obs = Observation::factory()->forConsultation($this->consultation)
+        ->byUser(User::factory()->citizen()->create())
+        ->create();
+
+    $this->get(route('admin.observations.index'))
+        ->assertOk()
+        ->assertSeeText(substr($obs->public_id, 0, 8));
+});
+
+it('busca por el codigo corto o completo del expediente', function () {
+    actingAsFunctionary();
+    $citizen = User::factory()->citizen()->create();
+    $buscada = Observation::factory()->forConsultation($this->consultation)->byUser($citizen)
+        ->create(['subject' => 'La buscada']);
+    $otra = Observation::factory()->forConsultation($this->consultation)->byUser($citizen)
+        ->create(['subject' => 'Otra observacion']);
+
+    foreach ([substr($buscada->public_id, 0, 8), strtoupper(substr($buscada->public_id, 0, 8)), $buscada->public_id] as $codigo) {
+        $this->get(route('admin.observations.index', ['q' => $codigo]))
+            ->assertOk()
+            ->assertSeeText('La buscada')
+            ->assertDontSeeText('Otra observacion');
+    }
+});
+
+it('no busca por prefijo de codigo si el termino no tiene forma de codigo', function () {
+    actingAsFunctionary();
+    $obs = Observation::factory()->forConsultation($this->consultation)
+        ->byUser(User::factory()->citizen()->create())
+        ->create(['subject' => 'Sin relacion', 'body' => 'Texto cualquiera de la observacion']);
+
+    // Los 4 primeros caracteres no bastan: un RUT o una palabra corta no deben
+    // traer expedientes que por azar empiezan igual.
+    $this->get(route('admin.observations.index', ['q' => substr($obs->public_id, 0, 4)]))
+        ->assertOk()
+        ->assertDontSeeText('Sin relacion');
+});
+
 it('filtra observaciones por consulta', function () {
     actingAsFunctionary();
     $other = Consultation::factory()->create();

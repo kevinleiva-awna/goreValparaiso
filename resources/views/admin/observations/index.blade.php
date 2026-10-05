@@ -131,7 +131,7 @@
                         <label class="form-label small text-muted mb-1">Busqueda</label>
                         <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
                                class="form-control"
-                               placeholder="Texto, RUT, nombre, correo o codigo UUID">
+                               placeholder="Texto, RUT, nombre, correo o codigo">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small text-muted mb-1">Proceso</label>
@@ -180,6 +180,7 @@
                                     <input type="checkbox" class="form-check-input" id="select-all"
                                            title="Seleccionar todas las visibles">
                                 </th>
+                                <th title="ID del expediente. Los archivos del ZIP llevan el codigo completo, que empieza igual.">Codigo</th>
                                 <th>Fecha</th>
                                 <th>Ciudadano</th>
                                 <th>Proceso</th>
@@ -203,6 +204,9 @@
                                                value="{{ $obs->id }}"
                                                @disabled($hasResponse)
                                                @if ($hasResponse) title="Esta observacion ya tiene respuesta" @endif>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <code class="small" title="{{ $obs->public_id }}">{{ $obs->short_code }}</code>
                                     </td>
                                     <td class="small text-nowrap">
                                         <div>{{ $obs->submitted_at->format('d/m/Y') }}</div>
@@ -277,7 +281,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-5">
+                                    <td colspan="9" class="text-center text-muted py-5">
                                         <i class="bi bi-inbox display-6 d-block mb-2"></i>
                                         No hay observaciones que coincidan con los filtros.
                                     </td>

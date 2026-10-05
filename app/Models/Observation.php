@@ -119,6 +119,17 @@ class Observation extends Model
     }
 
     /**
+     * Forma corta del ID del expediente: los 8 primeros caracteres del
+     * public_id. Es lo que se muestra en el listado del backoffice y basta para
+     * buscar (el filtro acepta el prefijo); los archivos del ZIP llevan el
+     * public_id completo, que empieza igual.
+     */
+    public function getShortCodeAttribute(): string
+    {
+        return substr((string) $this->public_id, 0, 8);
+    }
+
+    /**
      * Nombre "a quien responder": el de la persona natural o, para PJ y
      * Organizacion sin PJ, la razon social. Los snapshots de PJ/Org dejan
      * snapshot_full_name vacio, asi que TODO lo que muestre identidad debe
