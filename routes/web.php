@@ -182,6 +182,18 @@ Route::prefix('admin')
             ->withTrashed()
             ->name('admin.consultations.restore');
 
+        // Eliminar para siempre una consulta archivada con todo su expediente:
+        // SOLO super-admin, y siempre pasando por la pagina que detalla lo que
+        // se borra y ofrece exportarlo antes.
+        Route::middleware('role:super-admin')->group(function () {
+            Route::get('consultations/{consultation}/eliminar', [ConsultationController::class, 'confirmForceDelete'])
+                ->withTrashed()
+                ->name('admin.consultations.force-delete.confirm');
+            Route::delete('consultations/{consultation}/eliminar', [ConsultationController::class, 'forceDelete'])
+                ->withTrashed()
+                ->name('admin.consultations.force-delete');
+        });
+
         // Antecedentes tecnicos (documentos) anidados bajo cada consulta.
         Route::post('consultations/{consultation}/documents',
             [ConsultationDocumentController::class, 'store'])

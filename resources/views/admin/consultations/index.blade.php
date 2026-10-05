@@ -127,6 +127,12 @@
                                                 <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar
                                             </button>
                                         </form>
+                                        @if (auth()->user()->isSuperAdmin())
+                                            <a href="{{ route('admin.consultations.force-delete.confirm', $consultation) }}"
+                                               class="btn btn-sm btn-outline-danger" title="Eliminar definitivamente">
+                                                <i class="bi bi-trash3"></i>
+                                            </a>
+                                        @endif
                                     @else
                                         <a href="{{ route('admin.consultations.edit', $consultation) }}"
                                            class="btn btn-sm btn-outline-secondary">
