@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Guion de la capacitación — Plataforma de Participación GORE Valparaíso</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 17mm 18mm 17mm;
+    @bottom-left { content: "Guion de la capacitación · AWNA"; font: 8pt "Segoe UI", sans-serif; color: #8a93a3; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 8pt "Segoe UI", sans-serif; color: #8a93a3; }
+  }
+  @page :first { @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  :root {
+    --ink: #1c2433; --soft: #5b6578; --line: #dde2ea;
+    --brand: #1f3a6e; --brand-soft: #eef2f9;
+    --say: #f4f7fc; --say-bar: #3a63b8;
+    --warn: #fff6e5; --warn-bar: #d9901a;
+    --go: #eaf6ef; --go-bar: #2e8a57;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font: 10.5pt/1.5 "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--ink); }
+  h1, h2, h3 { color: var(--brand); line-height: 1.2; margin: 0; }
+  p { margin: 0 0 6pt; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; background: #eef1f5; padding: 0 3pt; border-radius: 3pt; }
+
+  /* Portada */
+  .cover { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; }
+  .cover .band { background: var(--brand); color: #fff; padding: 22mm 14mm 18mm; border-radius: 6pt; }
+  .cover .kicker { font-size: 10pt; letter-spacing: .12em; text-transform: uppercase; opacity: .8; margin-bottom: 10pt; }
+  .cover h1 { color: #fff; font-size: 30pt; margin-bottom: 10pt; }
+  .cover .sub { font-size: 13pt; opacity: .92; }
+  .cover dl { display: grid; grid-template-columns: 38mm 1fr; gap: 5pt 10pt; margin: 0; font-size: 10.5pt; }
+  .cover dt { color: var(--soft); }
+  .cover dd { margin: 0; }
+  .cover .how { border-top: 1px solid var(--line); padding-top: 10pt; color: var(--soft); font-size: 9.5pt; }
+  .legend { display: flex; gap: 14pt; margin-top: 8pt; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 5pt; }
+  .legend i { width: 10pt; height: 10pt; border-radius: 2pt; display: inline-block; }
+
+  /* Secciones */
+  .section { page-break-before: always; }
+  .section > h2 { font-size: 17pt; margin-bottom: 4pt; }
+  .lead { color: var(--soft); margin-bottom: 12pt; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6pt 0 12pt; }
+  th { text-align: left; background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  th, td { padding: 5pt 7pt; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.t { white-space: nowrap; color: var(--soft); }
+
+  .check { list-style: none; padding: 0; margin: 0 0 10pt; }
+  .check li { padding: 3pt 0 3pt 18pt; position: relative; }
+  .check li::before { content: ""; position: absolute; left: 0; top: 6pt; width: 9pt; height: 9pt; border: 1.3pt solid var(--brand); border-radius: 2pt; }
+
+  /* Bloques del guion */
+  .block { page-break-before: always; }
+  .block-head { display: flex; align-items: baseline; gap: 10pt; border-bottom: 2pt solid var(--brand); padding-bottom: 5pt; margin-bottom: 10pt; }
+  .block-head .n { font-size: 26pt; font-weight: 700; color: var(--brand); line-height: 1; }
+  .block-head h2 { font-size: 16pt; flex: 1; }
+  .block-head .min { font-size: 10pt; color: #fff; background: var(--brand); padding: 2pt 8pt; border-radius: 10pt; white-space: nowrap; }
+  .goal { color: var(--soft); margin-bottom: 10pt; }
+  .goal b { color: var(--ink); }
+
+  h3 { font-size: 9pt; letter-spacing: .1em; text-transform: uppercase; color: var(--soft); margin: 10pt 0 4pt; break-after: avoid; }
+  ol.do { margin: 0 0 6pt; padding-left: 16pt; }
+  ol.do li { margin-bottom: 3pt; }
+  ol.do b { color: var(--brand); }
+
+  .say { background: var(--say); border-left: 3pt solid var(--say-bar); border-radius: 0 4pt 4pt 0; padding: 6pt 11pt; margin: 0 0 5pt; break-inside: avoid; font-size: 10.6pt; line-height: 1.45; }
+  .say .cue { display: block; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .08em; color: var(--say-bar); font-weight: 600; margin-bottom: 2pt; }
+  .say p { margin: 0 0 4pt; }
+  .say p:last-child { margin-bottom: 0; }
+
+  .warn, .next { border-radius: 0 4pt 4pt 0; padding: 6pt 11pt; margin: 8pt 0 0; break-inside: avoid; font-size: 9.8pt; }
+  .warn { background: var(--warn); border-left: 3pt solid var(--warn-bar); }
+  .warn b:first-child { color: #9a5f00; }
+  .next { background: var(--go); border-left: 3pt solid var(--go-bar); }
+  .next b:first-child { color: var(--go-bar); }
+
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; margin: 6pt 0 12pt; }
+  .rules div { border: 1px solid var(--line); border-radius: 5pt; padding: 8pt 10pt; break-inside: avoid; }
+  .rules b { display: block; color: var(--brand); font-size: 11pt; }
+
+  .faq dt { font-weight: 600; margin-top: 8pt; break-after: avoid; }
+  .faq dd { margin: 2pt 0 0; color: var(--ink); break-inside: avoid; }
+
+  .copy { border: 1px dashed #a9b3c4; border-radius: 4pt; padding: 5pt 10pt; margin: 0 0 6pt; break-inside: avoid; }
+  .copy .lbl { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .08em; color: var(--soft); display: block; margin-bottom: 2pt; }
+</style>
+</head>
+<body>
+
+<!-- ============================== PORTADA ============================== -->
+<section class="cover">
+  <div class="band">
+    <div class="kicker">Guion del presentador</div>
+    <h1>Capacitación de usuarios</h1>
+    <div class="sub">Plataforma de Procesos Participativos Reglados<br>Gobierno Regional de Valparaíso</div>
+  </div>
+
+  <dl>
+    <dt>Fecha</dt><dd>Lunes 5 de octubre de 2026</dd>
+    <dt>Duración</dt><dd>90 minutos (versión corta de 60 en la página 3)</dd>
+    <dt>Público</dt><dd>Funcionarios que operarán el backoffice</dd>
+    <dt>Presenta</dt><dd>Kevin Leiva, AWNA</dd>
+    <dt>Ambiente</dt><dd>Notebook local con datos de demostración (todo ficticio)</dd>
+  </dl>
+
+  <div class="how">
+    <p><b>Cómo usar este guion.</b> Cada bloque ocupa una página y tiene la misma estructura: qué se busca, qué mostrar en pantalla (los clics exactos), qué decir y cómo pasar al bloque siguiente. Los diálogos no son para leer de memoria: son una base para decirlo con tus palabras.</p>
+    <div class="legend">
+      <span><i style="background:var(--say-bar)"></i> Qué decir</span>
+      <span><i style="background:var(--warn-bar)"></i> Ojo / riesgo en vivo</span>
+      <span><i style="background:var(--go-bar)"></i> Transición al siguiente bloque</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PREPARACIÓN ============================ -->
+<section>
+  <h2 style="font-size:17pt;margin-bottom:4pt">Antes de empezar</h2>
+  <p class="lead">Media hora antes de que llegue el cliente. Si ensayaste, restaura primero la base (comando al final).</p>
+
+  <ul class="check">
+    <li>MariaDB corriendo (XAMPP no la deja como servicio). Comando en <code>docs/capacitacion/guion-presentacion.md</code>.</li>
+    <li>App levantada en red: <code>php artisan serve --host=0.0.0.0 --port=8000</code>. Aceptar el aviso del firewall de Windows <b>ahora</b>, no frente al cliente.</li>
+    <li><b>Navegador 1</b> (backoffice): <code>localhost:8000/admin/login</code> con <code>kevin@awna.cl</code>. Contraseña: la del <code>DatabaseSeeder</code>.</li>
+    <li><b>Navegador 2</b> (portal ciudadano): <code>localhost:8000</code>. Tiene que ser <b>otro navegador</b>: con la sesión de funcionario abierta, la ficha dice «Cuenta institucional» y no deja participar.</li>
+    <li>Ventana InPrivate lista con la funcionaria <code>daniela.fuentes@example.com</code> (misma contraseña), para el bloque 9.</li>
+    <li>IP del notebook (<code>ipconfig</code> → Dirección IPv4) y código QR de <code>http://IP:8000/consultas</code> (Edge: clic derecho → «Crear código QR para esta página»).</li>
+    <li>Carpeta <code>docs/capacitacion/archivos-en-vivo</code> abierta: PDF de la consulta B, su versión 2 y una foto para adjuntar.</li>
+    <li>Zoom del navegador en 125 % para que se lea en el proyector. Notificaciones del sistema silenciadas.</li>
+    <li>Manual de usuario a mano para entregar al final: <code>docs/manual-usuario/manual-de-usuario.pdf</code>.</li>
+  </ul>
+
+  <h3>Qué hay cargado</h3>
+  <table>
+    <tr><th>Consulta</th><th>Estado</th><th>Para qué sirve en la sesión</th></tr>
+    <tr><td>Zonificación del Borde Costero — Litoral Central (ZUBC)</td><td>Activa hasta el 30-oct</td><td>La consulta de trabajo: 19 observaciones, adjuntos, respuestas publicadas y 2 borradores</td></tr>
+    <tr><td>Plan Regional de Ordenamiento Territorial — Imagen Objetivo (PROT)</td><td>Publicada, abre el 9-nov</td><td>Muestra «Participación no habilitada aún»</td></tr>
+    <tr><td>Modificación al PRI — Valle del Aconcagua (IPT)</td><td>Cerrada</td><td>Expediente terminado: 6 observaciones, todas respondidas</td></tr>
+    <tr><td>Consulta B — Sector Borde Costero Norte (IPT)</td><td>Se crea en vivo</td><td>Bloques 4 y 5. Textos para copiar en el anexo</td></tr>
+  </table>
+
+  <h3>Las cuatro reglas de oro (las vas a repetir al cierre)</h3>
+  <div class="rules">
+    <div><b>1. Las observaciones no se editan</b>Ni siquiera un super-admin. Es la garantía del proceso reglado.</div>
+    <div><b>2. Una respuesta publicada no se toca</b>Por eso siempre se revisa el borrador antes de publicar.</div>
+    <div><b>3. Las fechas mandan</b>Con las fechas bien puestas, la consulta abre y cierra sola.</div>
+    <div><b>4. Cada uno usa su propia cuenta</b>La bitácora registra quién hizo cada cosa.</div>
+  </div>
+</section>
+
+<!-- ============================== AGENDA ============================== -->
+<section class="section">
+  <h2>Agenda</h2>
+  <p class="lead">La sesión sigue el ciclo de vida de una consulta, en el mismo orden en que ocurre en la realidad.</p>
+  <table>
+    <tr><th>#</th><th>Bloque</th><th>Qué se ve</th><th>Min</th><th>Reloj</th></tr>
+    <tr><td>1</td><td>Apertura</td><td>Para qué sirve la plataforma y cómo será la sesión</td><td class="t">5</td><td class="t">0:00</td></tr>
+    <tr><td>2</td><td>El portal ciudadano</td><td>Portada, listado, ficha y los tres estados</td><td class="t">10</td><td class="t">0:05</td></tr>
+    <tr><td>3</td><td>Ingreso y panel</td><td>Login, cuenta personal, Dashboard</td><td class="t">5</td><td class="t">0:15</td></tr>
+    <tr><td>4</td><td>Crear y publicar una consulta</td><td>Consulta B: datos, fechas, antecedentes, reemplazo, activación</td><td class="t">15</td><td class="t">0:20</td></tr>
+    <tr><td>5</td><td>Participación en vivo</td><td>Los asistentes envían observaciones desde el celular</td><td class="t">10</td><td class="t">0:35</td></tr>
+    <tr><td>6</td><td>Revisar observaciones</td><td>Listado, filtros, ficha, archivar una prueba</td><td class="t">10</td><td class="t">0:45</td></tr>
+    <tr><td>7</td><td>Responder</td><td>Borrador, publicación, respuesta en lote</td><td class="t">10</td><td class="t">0:55</td></tr>
+    <tr><td>8</td><td>Exportar el expediente</td><td>ZIP de adjuntos, Excel y CSV</td><td class="t">7</td><td class="t">1:05</td></tr>
+    <tr><td>9</td><td>Funciones de super-admin</td><td>Usuarios, Bitácora, vista de funcionario</td><td class="t">8</td><td class="t">1:12</td></tr>
+    <tr><td>10</td><td>Cierre y preguntas</td><td>Reglas de oro, rutina de trabajo, soporte</td><td class="t">10</td><td class="t">1:20</td></tr>
+  </table>
+
+  <h3>Si solo hay 60 minutos</h3>
+  <ul style="margin:0;padding-left:16pt">
+    <li>Bloque 2: mostrar solo la ficha activa y nombrar los otros estados (5 min).</li>
+    <li>Bloque 5: hacer tú un solo envío desde el navegador 2, sin celulares (5 min).</li>
+    <li>Bloques 6 y 7 juntos: ficha → publicar el borrador → respuesta en lote (12 min).</li>
+    <li>Bloque 9: solo la Bitácora (3 min).</li>
+  </ul>
+</section>
+
+<!-- ============================== BLOQUE 1 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">1</span><h2>Apertura</h2><span class="min">5 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que sepan qué van a poder hacer al salir y que la sesión es práctica, con datos de prueba.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li>Proyectar la <b>portada del portal</b> (navegador 2). Nada más todavía.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say">
+    <p>«Buenos días y gracias por venir. Soy Kevin, de AWNA, el equipo que desarrolló la plataforma de participación del Gobierno Regional.</p>
+    <p>La idea de hoy es que salgan de esta sala sabiendo hacer, de principio a fin, todo lo que implica una consulta pública: publicarla, recibir las observaciones, responderlas y entregar el expediente.»</p>
+  </div>
+  <div class="say">
+    <p>«La plataforma tiene dos caras. Una es el <b>portal ciudadano</b>, lo que ve cualquier persona en internet. La otra es el <b>backoffice</b>, donde trabajan ustedes.</p>
+    <p>Vamos a recorrer una consulta completa en el mismo orden en que ocurre en la realidad. Todo lo que van a ver son <b>datos de prueba</b>: las personas, empresas y organizaciones son inventadas, así que pueden preguntar y equivocarse con tranquilidad.»</p>
+  </div>
+  <div class="say">
+    <p>«Hacia el final hay un espacio para preguntas, pero si algo no se entiende en el momento, deténganme.»</p>
+  </div>
+
+  <div class="next"><b>Transición:</b> «Partamos por donde parte el ciudadano.»</div>
+</section>
+
+<!-- ============================== BLOQUE 2 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">2</span><h2>El portal ciudadano</h2><span class="min">10 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que entiendan qué efecto tiene, para la ciudadanía, cada cosa que configuren después.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li><b>Portada:</b> las cifras y la consulta destacada.</li>
+    <li>Menú <b>Consultas:</b> las tres tarjetas con sus etiquetas Activa, Por iniciar y Cerrada.</li>
+    <li>Abrir <b>Zonificación del Borde Costero</b>: franja de días restantes, «Sobre este proceso», antecedentes (el Resumen ejecutivo dice <b>v2</b>), datos del proceso.</li>
+    <li>Bajar al <b>formulario</b>: mostrar las tres tarjetas de tipo de participante. <b>No enviar nada.</b></li>
+    <li>Bajar a <b>Respuestas institucionales publicadas</b>.</li>
+    <li>Volver y abrir el <b>PROT</b> («Participación no habilitada aún») y luego el <b>PRI Aconcagua</b> («Proceso cerrado», con sus respuestas).</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say"><span class="cue">Portada y listado</span>
+    <p>«Cualquier persona entra sin crear cuenta y ve de inmediato las consultas abiertas. En Consultas está el listado completo. Fíjense en las etiquetas: <b>nadie las pone a mano</b>. Salen de las fechas que ustedes configuran; ya vamos a ver cómo.»</p>
+  </div>
+  <div class="say"><span class="cue">Ficha</span>
+    <p>«Esta es la ficha de una consulta activa: cuántos días quedan, cuántas observaciones lleva y, al lado, los antecedentes técnicos, los documentos que la ciudadanía debe leer antes de opinar.»</p>
+  </div>
+  <div class="say"><span class="cue">Formulario</span>
+    <p>«Se puede participar con ClaveÚnica o sin registro. Sin registro, la persona elige si participa como persona natural, como empresa o como organización sin personalidad jurídica, por ejemplo una agrupación. El <b>correo es obligatorio</b>, porque a ese correo le llega la respuesta.»</p>
+  </div>
+  <div class="say"><span class="cue">Respuestas y otros estados</span>
+    <p>«Abajo están las respuestas que el Gobierno Regional ya publicó: cualquiera puede ver qué se planteó y qué se respondió. Eso es lo que da transparencia al proceso.</p>
+    <p>Esta otra consulta está anunciada pero todavía no abre: se pueden leer los documentos, pero no observar. Y esta ya cerró: no recibe más observaciones, pero los antecedentes y las respuestas siguen disponibles.»</p>
+  </div>
+
+  <div class="next"><b>Transición:</b> «Eso es lo que ve el ciudadano. Ahora vamos a ver de dónde sale todo esto.»</div>
+</section>
+
+<!-- ============================== BLOQUE 3 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">3</span><h2>Ingreso al backoffice y panel</h2><span class="min">5 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que cuiden su cuenta y sepan qué mirar cada día.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li>En el portal, bajar al pie y mostrar el enlace <b>Acceso funcionarios</b>.</li>
+    <li>Pasar al <b>navegador 1</b>, ya con la sesión iniciada (no escribir la contraseña frente a todos).</li>
+    <li>Menú de usuario arriba a la derecha → <b>Perfil</b> (dónde se cambia la contraseña).</li>
+    <li><b>Dashboard:</b> las cuatro cifras, el gráfico de observaciones por día y la tabla por proceso.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say">
+    <p>«Al pie del portal está el enlace Acceso funcionarios. Cada uno de ustedes tendrá su propia cuenta, con su correo institucional. La primera vez que entren, cambien la contraseña desde su perfil.»</p>
+  </div>
+  <div class="say">
+    <p>«Les pido algo importante: <b>no compartan la cuenta</b>. Todo lo que se hace aquí queda registrado con el nombre de quien lo hizo. Si dos personas usan la misma cuenta, el expediente pierde la trazabilidad.»</p>
+  </div>
+  <div class="say">
+    <p>«Este es el panel. Para el día a día, el número más importante es <b>Pendientes de respuesta</b>: mientras haya una consulta abierta, es lo primero que conviene mirar cada mañana. Aquí ven lo que llegó cada día y cuántas observaciones tiene cada proceso.»</p>
+  </div>
+
+  <div class="warn"><b>Ojo:</b> «Pendientes de respuesta» (13) no cuenta las observaciones que tienen un borrador guardado. Si preguntan por qué baja al guardar un borrador: «cuenta las que todavía no tienen ninguna respuesta iniciada».</div>
+  <div class="next"><b>Transición:</b> «Ahora vamos a crear una consulta desde cero.»</div>
+</section>
+
+<!-- ============================== BLOQUE 4 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">4</span><h2>Crear y publicar una consulta</h2><span class="min">15 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que puedan publicar una consulta solos y entiendan que <b>las fechas mandan</b>.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li><b>Consultas → Nueva consulta.</b> Completar con los textos del anexo (consulta B).</li>
+    <li>Fechas: inicio <b>hoy</b>, término 20-11-2026. Métodos: ClaveÚnica y Sin registro. Estado: <b>Borrador</b>. Guardar.</li>
+    <li>En la ficha de la consulta, sección <b>Antecedentes</b>: título «Memoria explicativa», archivo <code>memoria-explicativa-borde-costero-norte.pdf</code>, <b>Subir</b>.</li>
+    <li><b>Reemplazar → Subir nueva versión</b> con <code>…-v2.pdf</code>. Mostrar que ahora dice versión 2.</li>
+    <li><b>Editar</b> la consulta → estado <b>Activa</b> → Guardar.</li>
+    <li>Navegador 2: recargar <b>Consultas</b> y mostrar que ya aparece.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say"><span class="cue">Textos</span>
+    <p>«El título es lo que verá la ciudadanía: conviene escribirlo como lo diría una persona, no como un código interno. El resumen es la bajada de la tarjeta del listado y la descripción es el texto completo de la ficha.»</p>
+  </div>
+  <div class="say"><span class="cue">Fechas — el momento clave del bloque</span>
+    <p>«Esto es lo más importante del formulario. La plataforma recibe observaciones <b>solo entre la fecha de inicio y la de término</b>. Antes del inicio la consulta aparece como próxima; después del término, como cerrada, y deja de recibir. No tienen que acordarse de entrar a cerrarla el último día: el sistema lo hace solo.»</p>
+  </div>
+  <div class="say"><span class="cue">Métodos y estado</span>
+    <p>«Recomiendo dejar siempre activo <b>Sin registro</b>, porque es la única vía por la que participan empresas y organizaciones. Y la dejamos en Borrador: un borrador no lo ve nadie fuera de este equipo, es para prepararla con calma.»</p>
+  </div>
+  <div class="say"><span class="cue">Antecedentes y reemplazo</span>
+    <p>«El sistema guarda una huella digital de cada archivo, que permite demostrar después que el documento publicado es exactamente el que se subió. ¿Y si hay que corregir uno? No se borra: se <b>reemplaza</b>. Queda la versión anterior y se publica la nueva con su número de versión.»</p>
+  </div>
+  <div class="say"><span class="cue">Activar</span>
+    <p>«Cuando todo está listo, la pasamos a Activa. Si solo quisiéramos anunciarla, sin recibir observaciones todavía, la dejaríamos en Publicada. Y ya está en el portal.»</p>
+  </div>
+
+  <div class="warn"><b>Ojo:</b> si la fecha de inicio queda en el futuro, la consulta aparece como «próxima» y el bloque 5 no funciona. Revisa la fecha antes de guardar.</div>
+  <div class="next"><b>Transición:</b> «Ya tenemos una consulta abierta. Ahora ustedes van a ser los ciudadanos.»</div>
+</section>
+
+<!-- ============================== BLOQUE 5 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">5</span><h2>Participación en vivo</h2><span class="min">10 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que vivan la experiencia del ciudadano y vean llegar sus propias observaciones.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li>Proyectar el <b>código QR</b>. Los asistentes entran a la consulta B y envían una observación.</li>
+    <li>Tú, en el <b>navegador 2</b>: participar <b>sin registro</b> como persona natural, con dos observaciones (<b>Agregar otra observación</b>) y adjuntar <code>foto-para-adjuntar.jpg</code> en una. Textos en el anexo.</li>
+    <li>Mostrar la <b>pantalla de confirmación</b> con el código del envío.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say">
+    <p>«Escaneen este código con el celular. Entren a la consulta que acabamos de crear y envíen una observación; escriban lo que quieran, es una prueba. Prueben distintas formas: algunos como persona natural, otros como empresa u organización.»</p>
+  </div>
+  <div class="say">
+    <p>«Mientras tanto, yo envío una con dos observaciones y un archivo adjunto. En un mismo envío caben hasta <b>veinte observaciones</b>, cada una con su tema y su archivo.»</p>
+  </div>
+  <div class="say"><span class="cue">Confirmación</span>
+    <p>«Esta es la confirmación. El código es el <b>comprobante</b> de la persona: con él se ubica su observación en el expediente. Una vez enviada no se puede modificar; si alguien quiere corregir, envía una nueva mientras la consulta siga abierta.»</p>
+  </div>
+
+  <div class="warn"><b>Ojo:</b> si los celulares no cargan la página (redes de invitados suelen aislar los equipos), seguir solo con el navegador 2. Si usan ClaveÚnica, en este notebook abre un <b>simulador</b> («Solo para desarrollo»): decirlo, o no mostrarlo. ClaveÚnica real se ve en el ambiente de pruebas.</div>
+  <div class="next"><b>Transición:</b> «Volvamos al backoffice a ver qué llegó.»</div>
+</section>
+
+<!-- ============================== BLOQUE 6 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">6</span><h2>Revisar las observaciones</h2><span class="min">10 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que sepan encontrar lo que necesitan y que entiendan por qué una observación no se edita.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li><b>Dashboard:</b> las cifras subieron con lo que enviaron.</li>
+    <li><b>Observaciones:</b> el listado. Filtrar por <b>Proceso → Zonificación del Borde Costero</b>.</li>
+    <li>En Búsqueda escribir <code>acceso a la playa</code> → aparecen <b>4 observaciones</b> casi iguales. No responder todavía.</li>
+    <li><b>Ver</b> una observación: datos del participante, texto, adjunto y estado de la respuesta.</li>
+    <li>Volver, buscar el envío <b>«test test / prueba prueba 123»</b> → <b>Archivar</b> → mostrar el botón <b>Archivadas</b>.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say">
+    <p>«En Observaciones está todo lo recibido. Se puede filtrar por proceso, por fecha, por forma de identificación, o buscar por texto, RUT, nombre, correo o código.</p>
+    <p>Busco "acceso a la playa"… cuatro personas plantean prácticamente lo mismo. Guardemos esto para el siguiente paso.»</p>
+  </div>
+  <div class="say"><span class="cue">La regla más importante del día</span>
+    <p>«Algo que quiero que quede muy claro: <b>las observaciones no se pueden editar</b>. Nadie puede cambiar lo que escribió un ciudadano, ni siquiera un administrador. No es una limitación del sistema: es la garantía de que el expediente es fiel a lo que se recibió.»</p>
+  </div>
+  <div class="say"><span class="cue">Archivar</span>
+    <p>«Lo único posible es <b>archivar</b> algo que claramente no corresponde, como este envío de prueba. Solo un super-admin puede hacerlo, queda registrado y se puede revertir desde Archivadas. La regla es simple: <b>ante la duda, no archivar</b>.»</p>
+  </div>
+
+  <div class="next"><b>Transición:</b> «Ahora respondamos.»</div>
+</section>
+
+<!-- ============================== BLOQUE 7 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">7</span><h2>Responder</h2><span class="min">10 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que usen siempre el borrador y conozcan la respuesta en lote.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li>Abrir la observación de la <b>Agrupación Amigos del Humedal de Cartagena</b>: ya tiene un <b>borrador</b>.</li>
+    <li>Leerlo, corregir una palabra y <b>Guardar borrador</b> (se puede editar las veces que haga falta).</li>
+    <li><b>Publicar y notificar al ciudadano</b> → confirmar.</li>
+    <li>Navegador 2: la ficha del Borde Costero → la respuesta ya aparece publicada.</li>
+    <li>Navegador 1: Observaciones → buscar <code>acceso a la playa</code> → marcar las 4 → <b>Responder en lote</b> → pegar el texto del anexo → confirmar.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say"><span class="cue">Borrador</span>
+    <p>«Esta observación ya tiene una respuesta en borrador. El borrador lo ve solo el equipo y se puede corregir las veces que haga falta. Antes de publicar, un aviso: <b>una respuesta publicada no se puede editar ni borrar</b>. Por eso siempre se revisa el borrador primero.»</p>
+  </div>
+  <div class="say"><span class="cue">Publicada</span>
+    <p>«Y aquí está, en la ficha pública del proceso.»</p>
+  </div>
+  <div class="say"><span class="cue">Correo — decirlo con claridad</span>
+    <p>«La plataforma ya genera la notificación por correo, pero en producción todavía falta activar el servicio de envío, que depende de una configuración en el dominio del Gobierno Regional. Mientras tanto, la respuesta queda publicada en el portal y registrada en el sistema.»</p>
+  </div>
+  <div class="say"><span class="cue">En lote</span>
+    <p>«¿Recuerdan las cuatro observaciones sobre el acceso a la playa? Las marco, Responder en lote, escribo el texto una sola vez y queda publicado para las cuatro. Si alguna ya tenía respuesta, el sistema avisa.»</p>
+  </div>
+
+  <div class="warn"><b>Ojo:</b> no prometas que el correo llega hoy. Si preguntan cuándo: cuando Informática publique los registros DNS y Amazon apruebe el envío (punto abierto del acta).</div>
+  <div class="next"><b>Transición:</b> «Con las respuestas listas, falta entregar el expediente.»</div>
+</section>
+
+<!-- ============================== BLOQUE 8 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">8</span><h2>Exportar el expediente</h2><span class="min">7 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que sepan bajar el expediente completo de un proceso y cuidarlo.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li><b>Observaciones</b> → filtrar por <b>Zonificación del Borde Costero</b>.</li>
+    <li><b>Exportar → Adjuntos en ZIP</b> primero (es lo que más tarda).</li>
+    <li>Mientras se prepara: <b>Exportar → Excel (.xlsx)</b> y abrirlo.</li>
+    <li>Abrir el ZIP: el índice y los archivos nombrados por código. Buscar ese código en el Excel.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say">
+    <p>«El expediente se descarga desde Exportar. Primero filtro por la consulta, porque <b>la descarga respeta los filtros de pantalla</b>.</p>
+    <p>Lanzo primero el ZIP con los adjuntos. En un proceso grande puede tardar cerca de un minuto: mientras diga "Preparando…", no hay que volver a hacer clic ni recargar.»</p>
+  </div>
+  <div class="say">
+    <p>«La planilla trae una fila por observación, con los datos del participante, el texto y la respuesta. También está en CSV. En el ZIP, cada archivo viene nombrado con el <b>código de la observación</b>, el mismo de la planilla: así se cruza cada documento con su fila.»</p>
+  </div>
+  <div class="say"><span class="cue">Cuidado con los datos</span>
+    <p>«Estos archivos tienen <b>datos personales</b>. No se publican completos ni se envían por canales que no sean institucionales.»</p>
+  </div>
+
+  <div class="next"><b>Transición:</b> «Por último, dos funciones que solo tiene el administrador.»</div>
+</section>
+
+<!-- ============================== BLOQUE 9 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">9</span><h2>Funciones de super-admin</h2><span class="min">8 min</span></div>
+  <p class="goal"><b>Objetivo:</b> mostrar el control de acceso y cerrar con la trazabilidad: todo lo de hoy quedó registrado.</p>
+
+  <h3>Qué mostrar</h3>
+  <ol class="do">
+    <li><b>Usuarios → Nuevo funcionario:</b> crear uno de prueba (RUT válido, rol Funcionario).</li>
+    <li>Desactivarlo con el interruptor <b>Activo/Inactivo</b>. Mostrar <b>Editar</b> (ahí se asigna una contraseña nueva).</li>
+    <li><b>Bitácora:</b> arriba aparece todo lo hecho en la sesión, con nombre y hora: la consulta B, el reemplazo, sus observaciones, el archivado, las respuestas.</li>
+    <li>Ventana <b>InPrivate</b> con la funcionaria: no ve Usuarios ni Bitácora, y no tiene el botón Archivar.</li>
+  </ol>
+
+  <h3>Qué decir</h3>
+  <div class="say"><span class="cue">Usuarios</span>
+    <p>«En Usuarios se crean las cuentas: RUT, nombre, correo, contraseña inicial y rol, funcionario o super-admin. Cuando alguien deja de participar, la cuenta <b>no se elimina: se desactiva</b>, y así se conserva el registro de todo lo que hizo. Si alguien olvida su contraseña, el administrador le asigna una nueva desde Editar.»</p>
+  </div>
+  <div class="say"><span class="cue">Bitácora — el cierre fuerte del recorrido</span>
+    <p>«Y esta es la Bitácora. Aquí está <b>todo lo que hicimos hoy</b>: la consulta que creamos, el documento que reemplazamos, las observaciones que ustedes enviaron, lo que archivamos y las respuestas, cada cosa con el nombre de quien la hizo y la hora. Nadie puede editar ni borrar este registro.»</p>
+  </div>
+  <div class="say"><span class="cue">Vista de funcionario</span>
+    <p>«Así ve el sistema una persona con rol funcionario: hace todo el trabajo con consultas y observaciones, pero no administra cuentas, no ve la bitácora y no puede archivar.»</p>
+  </div>
+
+  <div class="next"><b>Transición:</b> «Cerremos con lo más importante.»</div>
+</section>
+
+<!-- ============================== BLOQUE 10 ============================== -->
+<section class="block">
+  <div class="block-head"><span class="n">10</span><h2>Cierre y preguntas</h2><span class="min">10 min</span></div>
+  <p class="goal"><b>Objetivo:</b> que se lleven las cuatro reglas, una rutina de trabajo y a quién pedir ayuda.</p>
+
+  <h3>Qué decir</h3>
+  <div class="say"><span class="cue">Las cuatro reglas</span>
+    <p>«Si se llevan solo cuatro cosas de hoy, que sean estas. <b>Uno</b>: las observaciones no se editan. <b>Dos</b>: una respuesta publicada no se toca, por eso siempre se revisa el borrador. <b>Tres</b>: las fechas mandan; si están bien puestas, la consulta abre y cierra sola. <b>Cuatro</b>: cada uno usa su propia cuenta.»</p>
+  </div>
+  <div class="say"><span class="cue">La rutina</span>
+    <p>«Les propongo esta rutina. <b>Antes</b> de abrir una consulta: crearla, subir los antecedentes y activarla. <b>Mientras</b> está abierta: revisar el panel cada día y avanzar los borradores. <b>Al cerrar</b>: responder todo y exportar el expediente.»</p>
+  </div>
+  <div class="say"><span class="cue">Soporte y entrega</span>
+    <p>«Si algo no funciona, escriban a la Unidad de Informática del Gobierno Regional, que nos lo escala a nosotros durante el período de garantía. Les dejo el <b>manual de usuario</b>, con paso a paso todo lo que vimos hoy. ¿Preguntas?»</p>
+  </div>
+
+  <h3>Después de la sesión</h3>
+  <ul style="margin:0;padding-left:16pt">
+    <li>Entregar el manual de usuario y coordinar la creación de las cuentas de producción (una por persona).</li>
+    <li>Anotar las preguntas que no tuvieron respuesta y responderlas por correo.</li>
+  </ul>
+</section>
+
+<!-- ============================ PREGUNTAS ============================ -->
+<section class="section">
+  <h2>Preguntas probables y respuesta sugerida</h2>
+  <p class="lead">Respuestas cortas, alineadas con el manual del administrador y el acta de entrega.</p>
+  <dl class="faq">
+    <dt>«Un ciudadano escribió mal su observación. ¿Se puede corregir?»</dt>
+    <dd>No. Puede enviar una nueva mientras el proceso siga abierto. Si es spam o una prueba, un super-admin la archiva.</dd>
+
+    <dt>«¿Se puede borrar una consulta?»</dt>
+    <dd>Primero se archiva: sale de la vista, conserva todo y se puede restaurar. Una vez archivada, un super-admin puede eliminarla para siempre con todo su expediente; antes el sistema detalla lo que se borrará, ofrece descargarlo y pide escribir ELIMINAR.</dd>
+
+    <dt>«Publiqué una respuesta con un error. ¿Qué hago?»</dt>
+    <dd>La respuesta publicada no cambia. Corresponde una comunicación complementaria por la vía institucional que defina el Gobierno Regional.</dd>
+
+    <dt>«Cerré la consulta antes de tiempo. ¿Se perdieron observaciones?»</dt>
+    <dd>No. Cambiar el estado no borra nada: se vuelve a dejar Activa y se ajustan las fechas.</dd>
+
+    <dt>«¿Por qué no le llega el correo al ciudadano?»</dt>
+    <dd>Falta activar el servicio de envío: Informática debe publicar unos registros en el DNS del dominio y Amazon debe aprobar el envío. Mientras tanto, la respuesta queda publicada en el portal.</dd>
+
+    <dt>«¿ClaveÚnica ya funciona?»</dt>
+    <dd>Está integrada y probada de punta a punta en el ambiente de pruebas con el proveedor oficial. Para ciudadanos reales falta que Gobierno Digital confirme la certificación de la institución.</dd>
+
+    <dt>«¿Cuántos archivos puede adjuntar un ciudadano?»</dt>
+    <dd>Uno por observación, de hasta 10 MB. Como un envío puede tener hasta 20 observaciones, son hasta 20 archivos por trámite.</dd>
+
+    <dt>«¿Qué tan grandes pueden ser los antecedentes que subimos nosotros?»</dt>
+    <dd>Hasta 110 MB por archivo.</dd>
+
+    <dt>«¿Y si se cae el servidor?»</dt>
+    <dd>La base de datos tiene respaldo automático diario con 7 días de retención, y los archivos están en almacenamiento redundante de AWS.</dd>
+
+    <dt>«¿Cómo demostramos que un antecedente no fue alterado?»</dt>
+    <dd>Cada archivo guarda su huella digital (SHA-256) al subirse. El equipo técnico puede compararla con la del archivo descargado.</dd>
+
+    <dt>«¿Los ciudadanos necesitan crear una cuenta?»</dt>
+    <dd>No. Participan con ClaveÚnica o sin registro, declarando sus datos en el formulario.</dd>
+
+    <dt>«¿Podemos exportar solo un proceso?»</dt>
+    <dd>Sí. La exportación respeta los filtros: se filtra por el proceso y se exporta.</dd>
+  </dl>
+</section>
+
+<!-- ============================== ANEXO ============================== -->
+<section class="section">
+  <h2 style="margin-bottom:8pt">Anexo: textos para copiar en vivo</h2>
+
+  <h3>Consulta B (bloque 4)</h3>
+  <div class="copy"><span class="lbl">Título</span>Modificación al Plan Regulador Intercomunal — Sector Borde Costero Norte</div>
+  <div class="copy"><span class="lbl">Resumen</span>Actualización de las zonas de riesgo y de las áreas verdes del borde costero norte. Revisa los antecedentes y envía tus observaciones.</div>
+  <div class="copy"><span class="lbl">Descripción</span>La modificación incorpora las zonas de riesgo por tsunami, amplía las áreas verdes junto a los esteros y asegura accesos públicos a las playas del sector norte.</div>
+  <div class="copy"><span class="lbl">Configuración</span>Tipo IPT · Inicio: hoy · Término: 20-11-2026 · ClaveÚnica y Sin registro · Estado: Borrador · Antecedente: memoria-explicativa-borde-costero-norte.pdf (y luego la v2 para Reemplazar)</div>
+
+  <h3>Tu envío como ciudadano (bloque 5)</h3>
+  <div class="copy"><span class="lbl">Participante</span>Persona Natural · correo de prueba que termine en @example.com · RUT de prueba válido (por ejemplo 11.111.111-1)</div>
+  <div class="copy"><span class="lbl">Observación 1 · Tema Riesgo natural · con foto adjunta</span>Solicito que la modificación incluya las vías de evacuación ante tsunami del sector norte y que se señalicen las zonas de seguridad en los accesos a la playa.</div>
+  <div class="copy"><span class="lbl">Observación 2 · Tema Áreas verdes</span>Propongo que la franja junto al estero se destine a un parque público con senderos, en lugar de permitir nuevas construcciones.</div>
+
+  <h3>Respuesta en lote (bloque 7)</h3>
+  <div class="copy"><span class="lbl">Texto</span>Agradecemos su observación. La propuesta definitiva incorporará como condición que cada tramo del borde costero cuente con accesos públicos a la playa, y reconocerá las servidumbres de paso de uso histórico. Ningún proyecto nuevo podrá cerrar un acceso existente.<br><br>División de Planificación y Desarrollo<br>Gobierno Regional de Valparaíso</div>
+
+  <h3>Si ensayaste, y plan B</h3>
+  <div class="copy"><span class="lbl">Dejar los datos como estaban (desde la carpeta del proyecto)</span><code>cmd /c "C:\xampp\mysql\bin\mysql.exe -u root gore_dev &lt; storage\app\demo-capacitacion.sql"</code><br>
+    <span style="color:var(--soft)">Sin proyector o sin equipo: capturas de todas las pantallas en <code>docs/etapa-2/img/</code> y en el manual de usuario.</span></div>
+</section>
+
+</body>
+</html>
